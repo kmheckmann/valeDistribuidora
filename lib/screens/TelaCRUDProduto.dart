@@ -1,0 +1,165 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+import 'package:tcc_2/model/Produto.dart';
+
+class TelaCRUDProduto extends StatefulWidget {
+  final Produto produto;
+  final String categoria;
+
+  final DocumentSnapshot snapshot;
+
+  TelaCRUDProduto({this.produto, this.snapshot, this.categoria});
+
+  @override
+  _TelaCRUDProdutoState createState() =>
+      _TelaCRUDProdutoState(produto, snapshot, categoria);
+}
+
+class _TelaCRUDProdutoState extends State<TelaCRUDProduto> {
+  Produto produto;
+  String categoria;
+  final DocumentSnapshot snapshot;
+  bool _novocadastro;
+
+  _TelaCRUDProdutoState(this.produto, this.snapshot, this.categoria);
+
+  Produto _produtoEditado = Produto();
+
+  String _nomeTela;
+  final _controllerCodigo = TextEditingController();
+  final _controllerDescricao = TextEditingController();
+  final _controllerCodBarra = TextEditingController();
+  final _controllerPrecoCompra = TextEditingController();
+  final _controllerPrecoVenda = TextEditingController();
+  final _controllerQtdEstoque = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    if (produto != null) {
+      _nomeTela = "Editar Produto";
+      _novocadastro = false;
+      _controllerCodigo.text = produto.codigo.toString();
+      _controllerDescricao.text = produto.descricao;
+      _controllerCodBarra.text = produto.codBarra.toString();
+      _controllerPrecoCompra.text = produto.precoCompra.toString();
+      _controllerPrecoVenda.text = produto.precoVenda.toString();
+      _controllerQtdEstoque.text = produto.qtdEstoque.toString();
+    } else {
+      _nomeTela = "Cadastrar Produto";
+      produto = Produto();
+      produto.ativo = false;
+      _novocadastro = true;
+      produto.qtdEstoque = 0;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(_nomeTela),
+        centerTitle: true,
+      ),
+      floatingActionButton: FloatingActionButton(
+          child: Icon(Icons.save),
+          backgroundColor: Colors.blue,
+          onPressed: () {
+            Map<String, dynamic> mapa = produto.converterParaMapa();
+            if(_novocadastro){
+              produto.salvarProduto(mapa, this.categoria);
+            }else{
+              produto.editarProduto(mapa, produto.id, this.categoria);
+            }
+            Navigator.of(context).pop();
+          }),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(8.0),
+        child: Container(
+            child: Column(
+          children: <Widget>[
+            _criarCampoText(_controllerCodigo, "Código", TextInputType.number),
+            _criarCampoText(
+                _controllerDescricao, "Descrição", TextInputType.text),
+            _criarCampoText(
+                _controllerCodBarra, "Código de Barra", TextInputType.number),
+            _criarCampoText(
+                _controllerPrecoCompra, "Preço Compra", TextInputType.number),
+            _criarCampoText(
+                _controllerPrecoVenda, "Preço Venda", TextInputType.number),
+            Container(
+              padding: EdgeInsets.all(6.0),
+              child: TextField(
+                controller: _controllerQtdEstoque,
+                keyboardType: TextInputType.number,
+                enabled: false,
+                decoration: InputDecoration(labelText: "Quantidade em Estoque"),
+                style: TextStyle(color: Colors.grey, fontSize: 17.0),
+              ),
+            ),
+            _criarCampoCheckBox()
+          ],
+        )),
+      ),
+    );
+  }
+
+  Widget _criarCampoText(
+      TextEditingController controller, String nome, TextInputType tipo) {
+    return Container(
+        padding: EdgeInsets.all(6.0),
+        child: TextField(
+          controller: controller,
+          keyboardType: tipo,
+          decoration: InputDecoration(
+            labelText: nome,
+          ),
+          style: TextStyle(color: Colors.black, fontSize: 17.0),
+          onChanged: (texto) {
+            switch (nome) {
+              case "Descrição":
+                produto.descricao = texto;
+                break;
+              case "Código":
+                produto.codigo = int.parse(texto);
+                break;
+              case "Código de Barra":
+                produto.codBarra = int.parse(texto);
+                break;
+              case "Preço Compra":
+                produto.precoCompra = double.parse(texto);
+                break;
+              case "Preço Venda":
+                produto.precoVenda = double.parse(texto);
+                break;
+            }
+          },
+        ));
+  }
+
+  Widget _criarCampoCheckBox() {
+    return Container(
+      padding: EdgeInsets.only(top: 10.0),
+      child: Row(
+        children: <Widget>[
+          Checkbox(
+            value: produto.ativo == true,
+            onChanged: (bool novoValor) {
+              setState(() {
+                if (novoValor) {
+                  produto.ativo = true;
+                } else {
+                  produto.ativo = false;
+                }
+              });
+            },
+          ),
+          Text(
+            "Ativo?",
+            style: TextStyle(fontSize: 18.0),
+          ),
+        ],
+      ),
+    );
+  }
+}
