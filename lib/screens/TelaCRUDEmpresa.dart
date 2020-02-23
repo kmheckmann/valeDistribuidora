@@ -65,7 +65,7 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
     }
   }
 
-String _dropdownValue='';
+String _dropdownValue;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -109,72 +109,10 @@ String _dropdownValue='';
                     _controllerTelefone, "Telefone", TextInputType.text),
                 _criarCampoText(
                     _controllerEmail, "E-mail", TextInputType.emailAddress),
+                _criarDropDownCidade(),
                 _criarCampoCheckBox(),
                 _criarCampoCheckBoxFornecedor(),
-                StreamBuilder<QuerySnapshot>(
-                  stream: Firestore.instance.collection('cidades').snapshots(),
-                  builder: (context, snapshot){
-                  var length = snapshot.data.documents.length;
-                  DocumentSnapshot ds = snapshot.data.documents[length - 1];
-                  return new Container(
-                  padding: EdgeInsets.all(8.0),
-                  child: new Row(
-                  children: <Widget>[
-                  new Expanded(
-                flex: 2,
-                child: new Container(
-                  padding: EdgeInsets.fromLTRB(12.0,10.0,10.0,10.0),
-                  child: new Text("Cidade"),
-                )
-            ),
-            new Expanded(
-              flex: 4,
-              child:new InputDecorator(
-                decoration: const InputDecoration(
-                  //labelText: 'Activity',
-                  hintText: "Selecione a cidade",
-                  hintStyle: TextStyle(
-                    color: Colors.black,
-                    fontSize: 16.0,
-                    fontFamily: "OpenSans",
-                    fontWeight: FontWeight.normal,
-                  ),
-                ),
-                isEmpty: _dropdownValue == null,
-                child: new DropdownButton(
-                  value: _dropdownValue,
-                  isDense: true,
-                  onChanged: (String newValue) {
-                    setState(() {
-                      _dropdownValue = newValue;
-                      print(_dropdownValue);
-                    });
-                  },
-                  items: snapshot.data.documents.map((DocumentSnapshot document) {
-                    return new DropdownMenuItem<String>(
-                        value: document.data['nome'],
-                        child: new Container(
-                          decoration: new BoxDecoration(
-                              color: Colors.black,
-                              borderRadius: new BorderRadius.circular(5.0)
-                          ),
-                          height: 100.0,
-                          padding: EdgeInsets.fromLTRB(10.0, 2.0, 10.0, 0.0),
-                          //color: primaryColor,
-                          child: new Text(document.data['nome']),
-                        )
-                    );
-                  }).toList(),
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-)
-
-
+                
               ],
             )),
       ),
@@ -278,5 +216,42 @@ String _dropdownValue='';
         ],
       ),
     );
+  }
+
+  Widget _criarDropDownCidade(){
+   return StreamBuilder<QuerySnapshot>(
+    stream: Firestore.instance.collection('cidades').snapshots(),
+    builder: (context, snapshot){
+      var length = snapshot.data.documents.length;
+      DocumentSnapshot ds = snapshot.data.documents[length - 1];
+      return Container(
+        padding: EdgeInsets.all(8.0),
+        child: Row(
+          children: <Widget>[
+            Container(
+              width: 300.0,
+                child: DropdownButton(
+                  value: _dropdownValue,
+                  hint: Text("Selecionar cidade"),
+                  onChanged: (String newValue) {
+                    setState(() {
+                      _dropdownValue = newValue;
+                    });
+                  },
+                  items: snapshot.data.documents.map((DocumentSnapshot document) {
+                    return new DropdownMenuItem<String>(
+                        value: document.data['nome'],
+                        child: new Container(
+                          child: new Text(document.data['nome'],style: TextStyle(color: Colors.black)),
+                        )
+                    );
+                  }).toList(),
+                ),
+            ),
+          ],
+        ),
+      );
+    }
+);
   }
 }
