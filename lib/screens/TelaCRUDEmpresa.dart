@@ -80,10 +80,11 @@ String _dropdownValue;
           backgroundColor: Colors.blue,
           onPressed: () {
             Map<String, dynamic> mapa = empresa.converterParaMapa();
+            Map<String, dynamic> mapaCidade = cidade.converterParaMapa();
             if(_novocadastro){
-              empresa.salvarEmpresa(mapa);
+              empresa.salvarEmpresa(mapa, mapaCidade);
             }else{
-              empresa.editarEmpresa(mapa, empresa.id);
+              empresa.editarEmpresa(mapa, mapaCidade, empresa.id, cidade.id);
             }
             Navigator.of(context).pop();
           }),
@@ -101,6 +102,7 @@ String _dropdownValue;
                     _controllerCnpj, "CNPJ", TextInputType.text),
                 _criarCampoText(
                     _controllerCep, "CEP", TextInputType.text),
+                _criarDropDownCidade(),
                 _criarCampoText(
                     _controllerBairro, "Bairro", TextInputType.text),
                 _criarCampoText(
@@ -111,7 +113,6 @@ String _dropdownValue;
                     _controllerTelefone, "Telefone", TextInputType.text),
                 _criarCampoText(
                     _controllerEmail, "E-mail", TextInputType.emailAddress),
-                _criarDropDownCidade(),
                 _criarCampoCheckBox(),
                 _criarCampoCheckBoxFornecedor(),
                 
@@ -137,6 +138,9 @@ String _dropdownValue;
             switch (nome) {
               case "Razão Social":
                 empresa.razaoSocial = texto;
+                break;
+              case "Nome Fantasia":
+                empresa.nomeFantasia = texto;
                 break;
               case "CNPJ":
                 empresa.cnpj = texto;
@@ -238,7 +242,7 @@ String _dropdownValue;
                   onChanged: (String newValue) {
                     setState(() {
                       _dropdownValue = newValue;
-                      _obterCidade();
+                      _obterCidadeDropDow();
                       print(cidade.nome);
                     });
                   },
@@ -246,7 +250,6 @@ String _dropdownValue;
                     return DropdownMenuItem<String>(
                         value: document.data['nome'],
                         child: Container(
-                          //height: 50.0,
                           child:Text(document.data['nome'],style: TextStyle(color: Colors.black)),
                         )
                     );
@@ -260,13 +263,11 @@ String _dropdownValue;
 );
   }
 
-Future<Cidade> _obterCidade() async {
+Future<Cidade> _obterCidadeDropDow() async {
 CollectionReference ref = Firestore.instance.collection('cidades');
 QuerySnapshot eventsQuery = await ref
     .where("nome", isEqualTo: _dropdownValue)
     .getDocuments();
-
-HashMap<String, Cidade> eventsHashMap = new HashMap<String, Cidade>();
 
 eventsQuery.documents.forEach((document) {
   cidade.id = document.documentID;

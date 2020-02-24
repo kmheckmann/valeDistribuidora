@@ -22,7 +22,7 @@ class _TelaEmpresasState extends State<TelaEmpresas> {
           }
       ),
       body: FutureBuilder<QuerySnapshot>(
-        //O sistema ira acessar o documento "cidades"
+        //O sistema ira acessar o documento "empresas"
           future: Firestore.instance
               .collection("empresas").getDocuments(),
           builder: (context, snapshot) {
