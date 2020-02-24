@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:tcc_2/model/Cidade.dart';
@@ -27,7 +29,7 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
 
   Empresa _empresaEditada = Empresa();
   String _nomeTela;
-  bool _novoCadastro;
+  Cidade cidade = Cidade();
 
   final _controllerRazaoSocial = TextEditingController();
   final _controllerNomeFantasia = TextEditingController();
@@ -236,13 +238,16 @@ String _dropdownValue;
                   onChanged: (String newValue) {
                     setState(() {
                       _dropdownValue = newValue;
+                      _obterCidade();
+                      print(cidade.nome);
                     });
                   },
                   items: snapshot.data.documents.map((DocumentSnapshot document) {
-                    return new DropdownMenuItem<String>(
+                    return DropdownMenuItem<String>(
                         value: document.data['nome'],
-                        child: new Container(
-                          child: new Text(document.data['nome'],style: TextStyle(color: Colors.black)),
+                        child: Container(
+                          //height: 50.0,
+                          child:Text(document.data['nome'],style: TextStyle(color: Colors.black)),
                         )
                     );
                   }).toList(),
@@ -254,4 +259,22 @@ String _dropdownValue;
     }
 );
   }
+
+Future<Cidade> _obterCidade() async {
+CollectionReference ref = Firestore.instance.collection('cidades');
+QuerySnapshot eventsQuery = await ref
+    .where("nome", isEqualTo: _dropdownValue)
+    .getDocuments();
+
+HashMap<String, Cidade> eventsHashMap = new HashMap<String, Cidade>();
+
+eventsQuery.documents.forEach((document) {
+  cidade.id = document.documentID;
+  cidade.nome = document.data["nome"];
+  cidade.ativa = document.data["ativa"];
+});
+
+return cidade;
+}
+
 }

@@ -47,7 +47,7 @@ class Empresa{
       "cnpj": cnpj,
       "inscEstadual": inscEstadual,
       "cep": cep,
-      "cidade": cidade.id,
+      "cidade": cidade,
       "bairro": bairro,
       "logradouro": logradouro,
       "numero": numero,
