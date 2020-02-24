@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:tcc_2/model/Cidade.dart';
@@ -27,7 +29,7 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
 
   Empresa _empresaEditada = Empresa();
   String _nomeTela;
-  bool _novoCadastro;
+  Cidade cidade = Cidade();
 
   final _controllerRazaoSocial = TextEditingController();
   final _controllerNomeFantasia = TextEditingController();
@@ -65,7 +67,7 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
     }
   }
 
-String _dropdownValue='';
+String _dropdownValue;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -78,10 +80,11 @@ String _dropdownValue='';
           backgroundColor: Colors.blue,
           onPressed: () {
             Map<String, dynamic> mapa = empresa.converterParaMapa();
+            Map<String, dynamic> mapaCidade = cidade.converterParaMapa();
             if(_novocadastro){
-              empresa.salvarEmpresa(mapa);
+              empresa.salvarEmpresa(mapa, mapaCidade);
             }else{
-              empresa.editarEmpresa(mapa, empresa.id);
+              empresa.editarEmpresa(mapa, mapaCidade, empresa.id, cidade.id);
             }
             Navigator.of(context).pop();
           }),
@@ -99,6 +102,7 @@ String _dropdownValue='';
                     _controllerCnpj, "CNPJ", TextInputType.text),
                 _criarCampoText(
                     _controllerCep, "CEP", TextInputType.text),
+                _criarDropDownCidade(),
                 _criarCampoText(
                     _controllerBairro, "Bairro", TextInputType.text),
                 _criarCampoText(
@@ -111,70 +115,7 @@ String _dropdownValue='';
                     _controllerEmail, "E-mail", TextInputType.emailAddress),
                 _criarCampoCheckBox(),
                 _criarCampoCheckBoxFornecedor(),
-                StreamBuilder<QuerySnapshot>(
-                  stream: Firestore.instance.collection('cidades').snapshots(),
-                  builder: (context, snapshot){
-                  var length = snapshot.data.documents.length;
-                  DocumentSnapshot ds = snapshot.data.documents[length - 1];
-                  return new Container(
-                  padding: EdgeInsets.all(8.0),
-                  child: new Row(
-                  children: <Widget>[
-                  new Expanded(
-                flex: 2,
-                child: new Container(
-                  padding: EdgeInsets.fromLTRB(12.0,10.0,10.0,10.0),
-                  child: new Text("Cidade"),
-                )
-            ),
-            new Expanded(
-              flex: 4,
-              child:new InputDecorator(
-                decoration: const InputDecoration(
-                  //labelText: 'Activity',
-                  hintText: "Selecione a cidade",
-                  hintStyle: TextStyle(
-                    color: Colors.black,
-                    fontSize: 16.0,
-                    fontFamily: "OpenSans",
-                    fontWeight: FontWeight.normal,
-                  ),
-                ),
-                isEmpty: _dropdownValue == null,
-                child: new DropdownButton(
-                  value: _dropdownValue,
-                  isDense: true,
-                  onChanged: (String newValue) {
-                    setState(() {
-                      _dropdownValue = newValue;
-                      print(_dropdownValue);
-                    });
-                  },
-                  items: snapshot.data.documents.map((DocumentSnapshot document) {
-                    return new DropdownMenuItem<String>(
-                        value: document.data['nome'],
-                        child: new Container(
-                          decoration: new BoxDecoration(
-                              color: Colors.black,
-                              borderRadius: new BorderRadius.circular(5.0)
-                          ),
-                          height: 100.0,
-                          padding: EdgeInsets.fromLTRB(10.0, 2.0, 10.0, 0.0),
-                          //color: primaryColor,
-                          child: new Text(document.data['nome']),
-                        )
-                    );
-                  }).toList(),
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-)
-
-
+                
               ],
             )),
       ),
@@ -197,6 +138,9 @@ String _dropdownValue='';
             switch (nome) {
               case "Razão Social":
                 empresa.razaoSocial = texto;
+                break;
+              case "Nome Fantasia":
+                empresa.nomeFantasia = texto;
                 break;
               case "CNPJ":
                 empresa.cnpj = texto;
@@ -279,4 +223,59 @@ String _dropdownValue='';
       ),
     );
   }
+
+  Widget _criarDropDownCidade(){
+   return StreamBuilder<QuerySnapshot>(
+    stream: Firestore.instance.collection('cidades').snapshots(),
+    builder: (context, snapshot){
+      var length = snapshot.data.documents.length;
+      DocumentSnapshot ds = snapshot.data.documents[length - 1];
+      return Container(
+        padding: EdgeInsets.all(8.0),
+        child: Row(
+          children: <Widget>[
+            Container(
+              width: 300.0,
+                child: DropdownButton(
+                  value: _dropdownValue,
+                  hint: Text("Selecionar cidade"),
+                  onChanged: (String newValue) {
+                    setState(() {
+                      _dropdownValue = newValue;
+                      _obterCidadeDropDow();
+                      print(cidade.nome);
+                    });
+                  },
+                  items: snapshot.data.documents.map((DocumentSnapshot document) {
+                    return DropdownMenuItem<String>(
+                        value: document.data['nome'],
+                        child: Container(
+                          child:Text(document.data['nome'],style: TextStyle(color: Colors.black)),
+                        )
+                    );
+                  }).toList(),
+                ),
+            ),
+          ],
+        ),
+      );
+    }
+);
+  }
+
+Future<Cidade> _obterCidadeDropDow() async {
+CollectionReference ref = Firestore.instance.collection('cidades');
+QuerySnapshot eventsQuery = await ref
+    .where("nome", isEqualTo: _dropdownValue)
+    .getDocuments();
+
+eventsQuery.documents.forEach((document) {
+  cidade.id = document.documentID;
+  cidade.nome = document.data["nome"];
+  cidade.ativa = document.data["ativa"];
+});
+
+return cidade;
+}
+
 }
