@@ -21,6 +21,7 @@ class Empresa{
   bool ehFornecedor;
 
   Map<String, dynamic> dadosEmpresa = Map();
+  Map<String, dynamic> dadosCidade = Map();
 
   Empresa();
 
@@ -52,9 +53,8 @@ QuerySnapshot obterDadosCidade = await refCidade.getDocuments();
 
 obterCidadeDaEmpresa.documents.forEach((document) {
   cidade.id = document.data["id"];
-  
+
   obterDadosCidade.documents.forEach((document1){
-  print(document1.documentID);
   if(cidade.id == document1.documentID){
     cidade.nome = document1.data["nome"];
     cidade.ativa = document1.data["ativa"];  
@@ -84,6 +84,8 @@ return cidade;
 
   Future<Null> salvarEmpresa(Map<String, dynamic> dadosEmpresa, Map<String, dynamic> dadosCidade) async {
     this.dadosEmpresa = dadosEmpresa;
+    this.dadosCidade = dadosCidade;
+    print(dadosCidade["id"]);
     await Firestore.instance
         .collection("empresas")
         .document(dadosEmpresa["cnpj"])
@@ -93,14 +95,15 @@ return cidade;
     .collection("empresas")
     .document(dadosEmpresa["cnpj"])
     .collection("cidade")
-    .document()
+    .document("IDcidade")
     .setData(dadosCidade);
   }
 
   Future<Null> editarEmpresa(
       Map<String, dynamic> dadosEmpresa, Map<String, dynamic> dadosCidade, 
-      String idFirebase, String idCidadeFirebase) async {
+      String idFirebase) async {
     this.dadosEmpresa = dadosEmpresa;
+    this.dadosCidade = dadosCidade;
     await Firestore.instance
         .collection("empresas")
         .document(idFirebase)
@@ -110,7 +113,7 @@ return cidade;
         .collection("empresas")
         .document(idFirebase)
         .collection("cidade")
-        .document(idCidadeFirebase)
+        .document("IDcidade")
         .setData(dadosCidade);
   }
 }

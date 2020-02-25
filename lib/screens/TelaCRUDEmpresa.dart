@@ -87,7 +87,7 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
             if(_novocadastro){
               empresa.salvarEmpresa(mapa, mapaCidade);
             }else{
-              empresa.editarEmpresa(mapa, mapaCidade, empresa.id, cidade.id);
+              empresa.editarEmpresa(mapa, mapaCidade, empresa.id);
             }
             Navigator.of(context).pop();
           }),
