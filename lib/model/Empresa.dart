@@ -11,7 +11,7 @@ class Empresa{
   String cnpj;
   String inscEstadual;
   String cep;
-  Cidade cidade;
+  Cidade cidade = Cidade();
   String bairro;
   String logradouro;
   int numero;
@@ -39,25 +39,30 @@ class Empresa{
     ehFornecedor = snapshot.data["ehFornecedor"];
     ativo = snapshot.data["ativo"];
     //Chama o método para atribuir valores da cidade vinculada à empresa.
-    cidade = Cidade();
-   // _obterCidadeFirebase(snapshot.documentID);
+    _obterCidadeFirebase(snapshot.documentID);
   }
 
 //Método para buscar os valores da cidade na subcoleção dentro da empresa
- /* Future<Cidade> _obterCidadeFirebase(String idEmpresa) async {
+ Future<Cidade> _obterCidadeFirebase(String idEmpresa) async {
 CollectionReference ref = Firestore.instance.collection('empresas').document(idEmpresa).collection('cidade');
-QuerySnapshot eventsQuery = await ref.getDocuments();
+QuerySnapshot obterCidadeDaEmpresa = await ref.getDocuments();
 
-eventsQuery.documents.forEach((document) {
-  print("teste");
-  print(document.documentID);
-  cidade.id = document.documentID;
-  cidade.nome = document.data["nome"];
-  cidade.ativa = document.data["ativa"];
+CollectionReference refCidade = Firestore.instance.collection('cidades');
+QuerySnapshot obterDadosCidade = await refCidade.getDocuments();
+
+obterCidadeDaEmpresa.documents.forEach((document) {
+  cidade.id = document.data["id"];
+  
+  obterDadosCidade.documents.forEach((document1){
+  print(document1.documentID);
+  if(cidade.id == document1.documentID){
+    cidade.nome = document1.data["nome"];
+    cidade.ativa = document1.data["ativa"];  
+  }
 });
-
+});
 return cidade;
-}*/
+ }
 
 
   Map<String, dynamic> converterParaMapa() {

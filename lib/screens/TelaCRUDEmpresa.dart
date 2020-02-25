@@ -30,6 +30,7 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
   Empresa _empresaEditada = Empresa();
   String _nomeTela;
   Cidade cidade = Cidade();
+  String _dropdownValue;
 
   final _controllerRazaoSocial = TextEditingController();
   final _controllerNomeFantasia = TextEditingController();
@@ -57,6 +58,7 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
       _controllerNumero.text = empresa.numero.toString();
       _controllerTelefone.text = empresa.telefone;
       _controllerEmail.text = empresa.email;
+      _dropdownValue = empresa.cidade.nome;
       _novocadastro = false;
     } else {
       _nomeTela = "Cadastrar Empresa";
@@ -67,7 +69,6 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
     }
   }
 
-String _dropdownValue;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -80,7 +81,9 @@ String _dropdownValue;
           backgroundColor: Colors.blue,
           onPressed: () {
             Map<String, dynamic> mapa = empresa.converterParaMapa();
-            Map<String, dynamic> mapaCidade = cidade.converterParaMapa();
+            Map<String, dynamic> mapaCidade = Map();
+            print(cidade.id);
+            mapaCidade["id"] = cidade.id;
             if(_novocadastro){
               empresa.salvarEmpresa(mapa, mapaCidade);
             }else{
