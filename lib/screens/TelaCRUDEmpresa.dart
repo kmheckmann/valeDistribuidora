@@ -1,5 +1,3 @@
-import 'dart:collection';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:tcc_2/model/Cidade.dart';
@@ -7,12 +5,10 @@ import 'package:tcc_2/model/Empresa.dart';
 
 class TelaCRUDEmpresa extends StatefulWidget {
 
-
   final Empresa empresa;
   final DocumentSnapshot snapshot;
 
   TelaCRUDEmpresa({this.empresa, this.snapshot});
-
 
   @override
   _TelaCRUDEmpresaState createState() => _TelaCRUDEmpresaState(empresa, snapshot);
@@ -27,11 +23,12 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
 
   _TelaCRUDEmpresaState(this.empresa, this.snapshot);
 
-  Empresa _empresaEditada = Empresa();
   String _nomeTela;
   Cidade cidade = Cidade();
   String _dropdownValue;
 
+  final _scaffold = GlobalKey<ScaffoldState>();
+  final _validadorCampos = GlobalKey<FormState>();
   final _controllerRazaoSocial = TextEditingController();
   final _controllerNomeFantasia = TextEditingController();
   final _controllerCnpj = TextEditingController();
@@ -63,8 +60,8 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
     } else {
       _nomeTela = "Cadastrar Empresa";
       empresa = Empresa();
-      empresa.ativo = false;
-      empresa.ehFornecedor = false;
+      empresa.ativo = true;
+      empresa.ehFornecedor = true;
       _novocadastro = true;
     }
   }
@@ -72,6 +69,7 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffold,
       appBar: AppBar(
         title: Text(_nomeTela),
         centerTitle: true,
@@ -82,21 +80,30 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
           onPressed: () {
             Map<String, dynamic> mapa = empresa.converterParaMapa();
             Map<String, dynamic> mapaCidade = Map();
-            print(cidade.id);
             mapaCidade["id"] = cidade.id;
-            if(_novocadastro){
+            if(_validadorCampos.currentState.validate()){
+              if(_dropdownValue != null){
+                if(_novocadastro){
               empresa.salvarEmpresa(mapa, mapaCidade);
-            }else{
+                }else{
               empresa.editarEmpresa(mapa, mapaCidade, empresa.id);
-            }
+              }
             Navigator.of(context).pop();
+            }else{
+              _scaffold.currentState.showSnackBar(
+                SnackBar(content: Text("É necessário selecionar uma cidade!"),
+                backgroundColor: Colors.red,
+                duration: Duration(seconds: 5),)
+              );
+            }
+              }
           }),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(8.0),
-        child: Container(
-            child: Column(
-              children: <Widget>[
-                _criarCampoText(_controllerRazaoSocial, "Razão Social", TextInputType.text),
+      body: Form(
+        key: _validadorCampos,
+        child: ListView(
+          padding: EdgeInsets.all(8.0),
+          children: <Widget>[
+            _criarCampoText(_controllerRazaoSocial, "Razão Social", TextInputType.text),
                 _criarCampoText(
                     _controllerNomeFantasia, "Nome Fantasia", TextInputType.text),
                 _criarCampoText(
@@ -118,25 +125,24 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
                     _controllerEmail, "E-mail", TextInputType.emailAddress),
                 _criarCampoCheckBox(),
                 _criarCampoCheckBoxFornecedor(),
-                
-              ],
-            )),
-      ),
-    );
+          ],
+        )));
   }
-
 
   Widget _criarCampoText(
       TextEditingController controller, String nome, TextInputType tipo) {
     return Container(
         padding: EdgeInsets.all(6.0),
-        child: TextField(
+        child: TextFormField(
           controller: controller,
           keyboardType: tipo,
           decoration: InputDecoration(
-            labelText: nome,
+            hintText: nome,
           ),
           style: TextStyle(color: Colors.black, fontSize: 17.0),
+          validator: (text) {
+                if(text.isEmpty) return "É necessário informar este campo!";
+              },
           onChanged: (texto) {
             switch (nome) {
               case "Razão Social":
