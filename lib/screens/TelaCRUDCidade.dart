@@ -15,17 +15,14 @@ class TelaCRUDCidade extends StatefulWidget {
 
 class _TelaCRUDCidadeState extends State<TelaCRUDCidade> {
 
-  Cidade cidade;
   final DocumentSnapshot snapshot;
-  bool _novocadastro;
-
-  _TelaCRUDCidadeState(this.cidade, this.snapshot);
-
-  Cidade _cidadeEditada = Cidade();
-
-  String _nomeTela;
   final _controllerNome = TextEditingController();
+  final _validadorCampos = GlobalKey<FormState>();
 
+  Cidade cidade;
+  bool _novocadastro;
+  String _nomeTela;
+  _TelaCRUDCidadeState(this.cidade, this.snapshot);
 
   @override
   void initState() {
@@ -37,7 +34,7 @@ class _TelaCRUDCidadeState extends State<TelaCRUDCidade> {
     } else {
       _nomeTela = "Cadastrar Cidade";
       cidade = Cidade();
-      cidade.ativa = false;
+      cidade.ativa = true;
       _novocadastro = true;
     }
   }
@@ -53,35 +50,40 @@ class _TelaCRUDCidadeState extends State<TelaCRUDCidade> {
           child: Icon(Icons.save),
           backgroundColor: Colors.blue,
           onPressed: () {
-            Map<String, dynamic> mapa = cidade.converterParaMapa();
+            //verifica se os campos estão validados antes de salvar
+            if(_validadorCampos.currentState.validate()){
+              Map<String, dynamic> mapa = cidade.converterParaMapa();
             if(_novocadastro){
               cidade.salvarCidade(mapa);
             }else{
               cidade.editarCidade(mapa, cidade.id);
             }
             Navigator.of(context).pop();
+            }
           }),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(8.0),
-        child: Container(
-            child: Column(
-              children: <Widget>[
-                Container(
-                  padding: EdgeInsets.all(6.0),
-                  child: TextField(
-                    controller: _controllerNome,
-                    keyboardType: TextInputType.text,
-                    decoration: InputDecoration(labelText: "Nome Cidade"),
-                    style: TextStyle(color: Colors.black, fontSize: 17.0),
-                    onChanged: (texto) {
-                      cidade.nome = texto;
-                    },
-                  ),
-                ),
-                _criarCampoCheckBox()
-              ],
-            )),
-      ),
+      body: Form(
+        key: _validadorCampos,
+        child: ListView(
+          padding: EdgeInsets.all(8.0),
+          //ListView para adicionar scroll quando abrir o teclado em vez de ocultar os campos
+          children: <Widget>[
+            TextFormField(
+              controller: _controllerNome,
+              decoration: InputDecoration(
+                hintText: "Nome Cidade"
+              ),
+              style: TextStyle(color: Colors.black, fontSize: 17.0),
+              keyboardType: TextInputType.text,
+              validator: (text) {
+                if(text.isEmpty) return "Informe o nome da cidade!";
+              },
+              onChanged: (texto) {
+                cidade.nome = texto;
+              },
+            ),
+            _criarCampoCheckBox()
+          ],
+        ))
     );
   }
 
