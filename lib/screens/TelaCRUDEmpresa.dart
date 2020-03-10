@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:tcc_2/model/Cidade.dart';
 import 'package:tcc_2/model/Empresa.dart';
@@ -39,6 +40,10 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
   final _controllerNumero = TextEditingController();
   final _controllerTelefone = TextEditingController();
   final _controllerEmail = TextEditingController();
+
+  var _maskIE = new MaskTextInputFormatter(mask: '###.###.###', filter: { "#": RegExp(r'[0-9]') });
+  var _mask = new MaskTextInputFormatter(mask: '####################################################################################################');
+  var _maskCNPJ = new MaskTextInputFormatter(mask: '##.###.###/####-##', filter: { "#": RegExp(r'[0-9]') });
 
   @override
   void initState() {
@@ -103,15 +108,15 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
         child: ListView(
           padding: EdgeInsets.all(8.0),
           children: <Widget>[
-            _criarCampoText(_controllerRazaoSocial, "Razão Social", TextInputType.text),
+            _criarCampoText(_controllerRazaoSocial, "Razão Social", TextInputType.text, _mask),
                 _criarCampoText(
-                    _controllerNomeFantasia, "Nome Fantasia", TextInputType.text),
+                    _controllerNomeFantasia, "Nome Fantasia", TextInputType.text, _mask),
                 _criarCampoText(
-                    _controllerinscEstadual, "Inscrição Estadual", TextInputType.text),
+                    _controllerinscEstadual, "Inscrição Estadual", TextInputType.number, _maskIE),
                 _criarCampoText(
-                    _controllerCnpj, "CNPJ", TextInputType.text),
+                    _controllerCnpj, "CNPJ", TextInputType.number, _maskCNPJ),
                 _criarCampoText(
-                    _controllerCep, "CEP", TextInputType.text),
+                    _controllerCep, "CEP", TextInputType.number),
                 _criarDropDownCidade(),
                 _criarCampoText(
                     _controllerBairro, "Bairro", TextInputType.text),
@@ -120,7 +125,7 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
                 _criarCampoText(
                     _controllerNumero, "Número", TextInputType.number),
                 _criarCampoText(
-                    _controllerTelefone, "Telefone", TextInputType.text),
+                    _controllerTelefone, "Telefone", TextInputType.number),
                 _criarCampoText(
                     _controllerEmail, "E-mail", TextInputType.emailAddress),
                 _criarCampoCheckBox(),
@@ -130,50 +135,55 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
   }
 
   Widget _criarCampoText(
-      TextEditingController controller, String nome, TextInputType tipo) {
+      TextEditingController controller, String nome, TextInputType tipo, MaskTextInputFormatter mask) {
     return Container(
         padding: EdgeInsets.all(6.0),
         child: TextFormField(
           controller: controller,
           keyboardType: tipo,
+          inputFormatters: [mask],
           decoration: InputDecoration(
             hintText: nome,
           ),
           style: TextStyle(color: Colors.black, fontSize: 17.0),
           validator: (text) {
-                if(text.isEmpty) return "É necessário informar este campo!";
+            if(nome == "E-mail"){
+              if(text.isEmpty || !text.contains("@") || !text.contains(".com")) return "E-mail inválido!";
+            }else{
+              if(text.isEmpty) return "É necessário informar este campo!";
+            }
               },
           onChanged: (texto) {
             switch (nome) {
               case "Razão Social":
-                empresa.razaoSocial = texto;
+                empresa.razaoSocial = mask.getUnmaskedText();
                 break;
               case "Nome Fantasia":
-                empresa.nomeFantasia = texto;
+                empresa.nomeFantasia = mask.getUnmaskedText();
                 break;
               case "CNPJ":
-                empresa.cnpj = texto;
+                empresa.cnpj = mask.getUnmaskedText();
                 break;
               case "Inscrição Estadual":
-                empresa.inscEstadual = texto;
+                empresa.inscEstadual = mask.getUnmaskedText();
                 break;
               case "CEP":
-                empresa.cep = texto;
+                empresa.cep = mask.getUnmaskedText();
                 break;
               case "Bairro":
-                empresa.bairro = texto;
+                empresa.bairro = mask.getUnmaskedText();
                 break;
               case "Logradouro":
-                empresa.logradouro = texto;
+                empresa.logradouro = mask.getUnmaskedText();
                 break;
               case "Número":
-                empresa.numero = int.parse(texto);
+                empresa.numero = int.parse(mask.getUnmaskedText());
                 break;
               case "Telefone":
-                empresa.telefone = texto;
+                empresa.telefone = mask.getUnmaskedText();
                 break;
               case "E-mail":
-                empresa.email = texto;
+                empresa.email = mask.getUnmaskedText();
                 break;
             }
           },
