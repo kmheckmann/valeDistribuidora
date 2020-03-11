@@ -31,10 +31,12 @@ class _TelaUsuarioState extends State<TelaUsuario> {
   final _controllerCPF = TextEditingController();
   final _controllerEmail = TextEditingController();
   final _controllerSenha = TextEditingController();
+  bool _existeCadastro;
 
   @override
   void initState() {
     super.initState();
+    bool _existeCadastro = false;
     if (usuario != null) {
       print(usuario.id);
       _nomeTela = "Editar Usuário";
@@ -45,6 +47,8 @@ class _TelaUsuarioState extends State<TelaUsuario> {
     } else {
       _nomeTela = "Cadastrar Usuário";
       usuario = Usuario();
+      usuario.ativo = true;
+      usuario.ehAdministrador = true;
     }
   }
 
@@ -107,6 +111,11 @@ class _TelaUsuarioState extends State<TelaUsuario> {
                           //faz uma verificao simples do texto informado no campo
                           validator: (text) {
                             if (text.isEmpty) return "CPF inválido!";
+                            if (text.isNotEmpty && _existeCadastro == true) return "Já existe outro usuário com o mesmo CPF, verifique!";
+                          },
+                          onChanged: (text){
+                            usuario.cpf = text;
+                            _verificarExistenciaUsuario();
                           },
                         ),
                         SizedBox(
@@ -204,5 +213,20 @@ class _TelaUsuarioState extends State<TelaUsuario> {
 
   void _falha() {
     print("erro");
+  }
+  void _verificarExistenciaUsuario() async {
+    //Busca todas usuarios
+    CollectionReference ref = Firestore.instance.collection("usuarios");
+  //Nos users cadastrados verifica se existe algum com o mesmo cpf informado no cadastro atual
+  //se houver atribui true para a variável _existeCadastro
+    QuerySnapshot eventsQuery = await ref
+    .where("cpf", isEqualTo: usuario.cpf)
+    .getDocuments();
+    print(eventsQuery.documents.length);
+    if(eventsQuery.documents.length > 0){
+      _existeCadastro = true;
+    }else{
+      _existeCadastro = false;
+    }
   }
 }

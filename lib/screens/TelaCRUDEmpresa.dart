@@ -27,6 +27,7 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
   String _nomeTela;
   Cidade cidade = Cidade();
   String _dropdownValue;
+  bool _existeCadastro;
 
   final _scaffold = GlobalKey<ScaffoldState>();
   final _validadorCampos = GlobalKey<FormState>();
@@ -41,13 +42,10 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
   final _controllerTelefone = TextEditingController();
   final _controllerEmail = TextEditingController();
 
-  var _maskIE = new MaskTextInputFormatter(mask: '###.###.###', filter: { "#": RegExp(r'[0-9]') });
-  var _mask = new MaskTextInputFormatter(mask: '####################################################################################################');
-  var _maskCNPJ = new MaskTextInputFormatter(mask: '##.###.###/####-##', filter: { "#": RegExp(r'[0-9]') });
-
   @override
   void initState() {
     super.initState();
+    _existeCadastro = false;
     if (empresa != null) {
       _nomeTela = "Editar Empresa";
       _controllerRazaoSocial.text = empresa.razaoSocial;
@@ -83,23 +81,34 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
           child: Icon(Icons.save),
           backgroundColor: Colors.blue,
           onPressed: () {
-            Map<String, dynamic> mapa = empresa.converterParaMapa();
-            Map<String, dynamic> mapaCidade = Map();
-            mapaCidade["id"] = cidade.id;
+
             if(_validadorCampos.currentState.validate()){
-              if(_dropdownValue != null){
+              if(_dropdownValue != null && empresa.email.contains("@") && empresa.email.contains(".com")){
+                Map<String, dynamic> mapa = empresa.converterParaMapa();
+                Map<String, dynamic> mapaCidade = Map();
+                mapaCidade["id"] = cidade.id;
                 if(_novocadastro){
-              empresa.salvarEmpresa(mapa, mapaCidade);
+                  empresa.salvarEmpresa(mapa, mapaCidade);
                 }else{
-              empresa.editarEmpresa(mapa, mapaCidade, empresa.id);
+                  empresa.editarEmpresa(mapa, mapaCidade, empresa.id);
               }
             Navigator.of(context).pop();
             }else{
-              _scaffold.currentState.showSnackBar(
+                if(!empresa.email.contains("@") || !empresa.email.contains(".com")){
+                _scaffold.currentState.showSnackBar(
+                SnackBar(content: Text("E-mail inválido!"),
+                backgroundColor: Colors.red,
+                duration: Duration(seconds: 5),)
+              );
+              }
+              if(_dropdownValue == null){
+                _scaffold.currentState.showSnackBar(
                 SnackBar(content: Text("É necessário selecionar uma cidade!"),
                 backgroundColor: Colors.red,
                 duration: Duration(seconds: 5),)
               );
+              }
+              
             }
               }
           }),
@@ -108,26 +117,26 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
         child: ListView(
           padding: EdgeInsets.all(8.0),
           children: <Widget>[
-            _criarCampoText(_controllerRazaoSocial, "Razão Social", TextInputType.text, _mask),
+            _criarCampoText(_controllerRazaoSocial, "Razão Social", TextInputType.text, 200),
                 _criarCampoText(
-                    _controllerNomeFantasia, "Nome Fantasia", TextInputType.text, _mask),
+                    _controllerNomeFantasia, "Nome Fantasia", TextInputType.text, 200),
                 _criarCampoText(
-                    _controllerinscEstadual, "Inscrição Estadual", TextInputType.number, _maskIE),
+                    _controllerinscEstadual, "Inscrição Estadual", TextInputType.number, 9),
                 _criarCampoText(
-                    _controllerCnpj, "CNPJ", TextInputType.number, _maskCNPJ),
+                    _controllerCnpj, "CNPJ", TextInputType.number, 14),
                 _criarCampoText(
-                    _controllerCep, "CEP", TextInputType.number),
+                    _controllerCep, "CEP", TextInputType.number, 8),
                 _criarDropDownCidade(),
                 _criarCampoText(
-                    _controllerBairro, "Bairro", TextInputType.text),
+                    _controllerBairro, "Bairro", TextInputType.text, 100),
                 _criarCampoText(
-                    _controllerlogradouro, "Logradouro", TextInputType.text),
+                    _controllerlogradouro, "Logradouro", TextInputType.text, 100),
                 _criarCampoText(
-                    _controllerNumero, "Número", TextInputType.number),
+                    _controllerNumero, "Número", TextInputType.number, 10),
                 _criarCampoText(
-                    _controllerTelefone, "Telefone", TextInputType.number),
+                    _controllerTelefone, "Telefone", TextInputType.number, 11),
                 _criarCampoText(
-                    _controllerEmail, "E-mail", TextInputType.emailAddress),
+                    _controllerEmail, "E-mail", TextInputType.emailAddress, 50),
                 _criarCampoCheckBox(),
                 _criarCampoCheckBoxFornecedor(),
           ],
@@ -135,55 +144,62 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
   }
 
   Widget _criarCampoText(
-      TextEditingController controller, String nome, TextInputType tipo, MaskTextInputFormatter mask) {
+      TextEditingController controller, String nome, TextInputType tipo, int tamanho) {
     return Container(
         padding: EdgeInsets.all(6.0),
         child: TextFormField(
           controller: controller,
           keyboardType: tipo,
-          inputFormatters: [mask],
+          maxLength: tamanho,
           decoration: InputDecoration(
             hintText: nome,
           ),
           style: TextStyle(color: Colors.black, fontSize: 17.0),
           validator: (text) {
-            if(nome == "E-mail"){
-              if(text.isEmpty || !text.contains("@") || !text.contains(".com")) return "E-mail inválido!";
-            }else{
-              if(text.isEmpty) return "É necessário informar este campo!";
-            }
+              if(text.isEmpty) return "É necessário informar este campo!";      
+              if(_existeCadastro && text.isNotEmpty) return "Já existe empresa com essa IE, verifique!";
               },
           onChanged: (texto) {
             switch (nome) {
               case "Razão Social":
-                empresa.razaoSocial = mask.getUnmaskedText();
+                empresa.razaoSocial = texto;
+                _verificarExistenciaEmpresa();
                 break;
               case "Nome Fantasia":
-                empresa.nomeFantasia = mask.getUnmaskedText();
+                empresa.nomeFantasia = texto;
+                _verificarExistenciaEmpresa();
                 break;
               case "CNPJ":
-                empresa.cnpj = mask.getUnmaskedText();
+                empresa.cnpj = texto;
+                _verificarExistenciaEmpresa();
                 break;
               case "Inscrição Estadual":
-                empresa.inscEstadual = mask.getUnmaskedText();
+                empresa.inscEstadual = texto;
+                _verificarExistenciaEmpresa();
                 break;
               case "CEP":
-                empresa.cep = mask.getUnmaskedText();
+                empresa.cep = texto;
+                _verificarExistenciaEmpresa();
                 break;
               case "Bairro":
-                empresa.bairro = mask.getUnmaskedText();
+                empresa.bairro = texto;
+                _verificarExistenciaEmpresa();
                 break;
               case "Logradouro":
-                empresa.logradouro = mask.getUnmaskedText();
+                empresa.logradouro = texto;
+                _verificarExistenciaEmpresa();
                 break;
               case "Número":
-                empresa.numero = int.parse(mask.getUnmaskedText());
+                empresa.numero = int.parse(texto);
+                _verificarExistenciaEmpresa();
                 break;
               case "Telefone":
-                empresa.telefone = mask.getUnmaskedText();
+                empresa.telefone = texto;
+                _verificarExistenciaEmpresa();
                 break;
               case "E-mail":
-                empresa.email = mask.getUnmaskedText();
+                empresa.email = texto;
+                _verificarExistenciaEmpresa();
                 break;
             }
           },
@@ -296,5 +312,21 @@ eventsQuery.documents.forEach((document) {
 
 return cidade;
 }
+
+void _verificarExistenciaEmpresa() async {
+    //Busca todas as empresas cadastradas
+    CollectionReference ref = Firestore.instance.collection("empresas");
+  //Nas empresas cadastradas verifica se existe alguma com o mesmo cnpj e IE do cadastro atual
+  //se houver atribui true para a variável _existeCadastro
+    QuerySnapshot eventsQuery = await ref
+    .where("inscEstadual", isEqualTo: empresa.inscEstadual)
+    .getDocuments();
+    print(eventsQuery.documents.length);
+    if(eventsQuery.documents.length > 0){
+      _existeCadastro = true;
+    }else{
+      _existeCadastro = false;
+    }
+  }
 
 }
