@@ -116,6 +116,20 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.1.4"
+  mask_text_input_formatter:
+    dependency: "direct main"
+    description:
+      name: mask_text_input_formatter
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.6"
+  masked_text:
+    dependency: "direct main"
+    description:
+      name: masked_text
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.0.6"
   matcher:
     dependency: transitive
     description:

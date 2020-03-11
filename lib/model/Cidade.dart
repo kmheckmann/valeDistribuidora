@@ -40,5 +40,4 @@ class Cidade{
         .document(idFirebase)
         .setData(dadosCidade);
   }
-
 }

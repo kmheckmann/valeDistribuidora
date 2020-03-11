@@ -15,29 +15,29 @@ class TelaCRUDCidade extends StatefulWidget {
 
 class _TelaCRUDCidadeState extends State<TelaCRUDCidade> {
 
-  Cidade cidade;
   final DocumentSnapshot snapshot;
-  bool _novocadastro;
-
-  _TelaCRUDCidadeState(this.cidade, this.snapshot);
-
-  Cidade _cidadeEditada = Cidade();
-
-  String _nomeTela;
   final _controllerNome = TextEditingController();
+  final _validadorCampos = GlobalKey<FormState>();
+  bool _existeCadastro;
 
+  Cidade cidade;
+  bool _novocadastro;
+  String _nomeTela;
+  _TelaCRUDCidadeState(this.cidade, this.snapshot);
 
   @override
   void initState() {
     super.initState();
+    _existeCadastro = false;
     if (cidade != null) {
       _nomeTela = "Editar Cidade";
       _controllerNome.text = cidade.nome;
       _novocadastro = false;
+      
     } else {
       _nomeTela = "Cadastrar Cidade";
       cidade = Cidade();
-      cidade.ativa = false;
+      cidade.ativa = true;
       _novocadastro = true;
     }
   }
@@ -53,35 +53,47 @@ class _TelaCRUDCidadeState extends State<TelaCRUDCidade> {
           child: Icon(Icons.save),
           backgroundColor: Colors.blue,
           onPressed: () {
-            Map<String, dynamic> mapa = cidade.converterParaMapa();
-            if(_novocadastro){
+            //verifica se os campos estão validados antes de salvar
+            if(_validadorCampos.currentState.validate()){
+              //Ao savar é executada a validação do form é feita, caso exista uma cidade com mesmo nome
+              //ou o nome esteja vazio o cadastro não é realizado e é apresentada a mensagem
+             Map<String, dynamic> mapa = cidade.converterParaMapa();
+             if(_novocadastro){
               cidade.salvarCidade(mapa);
             }else{
               cidade.editarCidade(mapa, cidade.id);
             }
             Navigator.of(context).pop();
+            }
           }),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(8.0),
-        child: Container(
-            child: Column(
-              children: <Widget>[
-                Container(
-                  padding: EdgeInsets.all(6.0),
-                  child: TextField(
-                    controller: _controllerNome,
-                    keyboardType: TextInputType.text,
-                    decoration: InputDecoration(labelText: "Nome Cidade"),
-                    style: TextStyle(color: Colors.black, fontSize: 17.0),
-                    onChanged: (texto) {
-                      cidade.nome = texto;
-                    },
-                  ),
-                ),
-                _criarCampoCheckBox()
-              ],
-            )),
-      ),
+      body: Form(
+        key: _validadorCampos,
+        child: ListView(
+          padding: EdgeInsets.all(8.0),
+          //ListView para adicionar scroll quando abrir o teclado em vez de ocultar os campos
+          children: <Widget>[
+            TextFormField(
+              controller: _controllerNome,
+              decoration: InputDecoration(
+                hintText: "Nome Cidade"
+              ),
+              style: TextStyle(color: Colors.black, fontSize: 17.0),
+              keyboardType: TextInputType.text,
+              validator: (text) {
+                //no validator consiste se a cidade informada já existe
+                //se existir retorna a mensagem
+                if(_existeCadastro) return "Já existe essa cidade, verifique!";
+                if(text.isEmpty) return "Informe o nome da cidade!";
+              },
+              onChanged: (texto) {
+                cidade.nome = texto;
+                //Cada vez que o campo for editado será verificado se a cidade informada já existe
+                _verificarExistenciaCidade();
+              },
+            ),
+            _criarCampoCheckBox()
+          ],
+        ))
     );
   }
 
@@ -110,5 +122,21 @@ class _TelaCRUDCidadeState extends State<TelaCRUDCidade> {
         ],
       ),
     );
+  }
+
+  void _verificarExistenciaCidade() async {
+    //Busca todas as cidades cadastradas
+    CollectionReference ref = Firestore.instance.collection("cidades");
+  //Nas cidades cadastradas verifica se existe alguma com o mesmo nome informado no cadastro atual
+  //se houver atribui tru para a variável _existeCadastro
+    QuerySnapshot eventsQuery = await ref
+    .where("nome", isEqualTo: cidade.nome)
+    .getDocuments();
+    print(eventsQuery.documents.length);
+    if(eventsQuery.documents.length > 0){
+      _existeCadastro = true;
+    }else{
+      _existeCadastro = false;
+    }
   }
 }

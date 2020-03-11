@@ -34,8 +34,7 @@ class _TelaInicialState extends State<TelaInicial> {
             return Form(
               key: _validadorCampos,
               child: ListView(
-                //ListView para que campos não fiquei ocultos, caso ocorra de, por exemplo,
-                //abrir o tecla a tela fica com scroll e nao oculta o campo
+                //ListView para adicionar scroll quando abrir o teclado em vez de ocultar os campos
                 padding: EdgeInsets.all(16.0),
                 children: <Widget>[
                   TextFormField(

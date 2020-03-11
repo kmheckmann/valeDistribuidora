@@ -19,6 +19,9 @@ class _TelaCRUDProdutoState extends State<TelaCRUDProduto> {
   Produto produto;
   String categoria;
   final DocumentSnapshot snapshot;
+  final _validadorCampos = GlobalKey<FormState>();
+  bool _existeCadastroCodigo;
+  bool _existeCadastroCodigoBarra;
   bool _novocadastro;
 
   _TelaCRUDProdutoState(this.produto, this.snapshot, this.categoria);
@@ -36,6 +39,8 @@ class _TelaCRUDProdutoState extends State<TelaCRUDProduto> {
   @override
   void initState() {
     super.initState();
+    _existeCadastroCodigo = false;
+    _existeCadastroCodigoBarra = false;
     if (produto != null) {
       _nomeTela = "Editar Produto";
       _novocadastro = false;
@@ -48,7 +53,7 @@ class _TelaCRUDProdutoState extends State<TelaCRUDProduto> {
     } else {
       _nomeTela = "Cadastrar Produto";
       produto = Produto();
-      produto.ativo = false;
+      produto.ativo = true;
       _novocadastro = true;
       produto.qtdEstoque = 0;
     }
@@ -65,24 +70,25 @@ class _TelaCRUDProdutoState extends State<TelaCRUDProduto> {
           child: Icon(Icons.save),
           backgroundColor: Colors.blue,
           onPressed: () {
-            Map<String, dynamic> mapa = produto.converterParaMapa();
+            if(_validadorCampos.currentState.validate()){
+              Map<String, dynamic> mapa = produto.converterParaMapa();
             if(_novocadastro){
               produto.salvarProduto(mapa, this.categoria);
             }else{
               produto.editarProduto(mapa, produto.id, this.categoria);
             }
             Navigator.of(context).pop();
+            }
           }),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(8.0),
-        child: Container(
-            child: Column(
+      body: Form(
+        key: _validadorCampos,
+        child: ListView(
+          padding: EdgeInsets.all(8.0),
           children: <Widget>[
             _criarCampoText(_controllerCodigo, "Código", TextInputType.number),
             _criarCampoText(
                 _controllerDescricao, "Descrição", TextInputType.text),
-            _criarCampoText(
-                _controllerCodBarra, "Código de Barra", TextInputType.number),
+            _criarCampoCodBarra(),
             _criarCampoText(
                 _controllerPrecoCompra, "Preço Compra", TextInputType.number),
             _criarCampoText(
@@ -99,8 +105,9 @@ class _TelaCRUDProdutoState extends State<TelaCRUDProduto> {
             ),
             _criarCampoCheckBox()
           ],
-        )),
+        ),
       ),
+      
     );
   }
 
@@ -108,13 +115,17 @@ class _TelaCRUDProdutoState extends State<TelaCRUDProduto> {
       TextEditingController controller, String nome, TextInputType tipo) {
     return Container(
         padding: EdgeInsets.all(6.0),
-        child: TextField(
+        child: TextFormField(
           controller: controller,
           keyboardType: tipo,
           decoration: InputDecoration(
-            labelText: nome,
+            hintText: nome,
           ),
           style: TextStyle(color: Colors.black, fontSize: 17.0),
+          validator: (text){
+            if(text.isEmpty) return "É necessário informar este campo!";
+            if(_existeCadastroCodigo && text.isNotEmpty) return "Já existe um produto com esse código, verifique!";      
+          },
           onChanged: (texto) {
             switch (nome) {
               case "Descrição":
@@ -122,9 +133,7 @@ class _TelaCRUDProdutoState extends State<TelaCRUDProduto> {
                 break;
               case "Código":
                 produto.codigo = int.parse(texto);
-                break;
-              case "Código de Barra":
-                produto.codBarra = int.parse(texto);
+                _verificarExistenciaProduto();
                 break;
               case "Preço Compra":
                 produto.precoCompra = double.parse(texto);
@@ -136,6 +145,28 @@ class _TelaCRUDProdutoState extends State<TelaCRUDProduto> {
           },
         ));
   }
+
+  Widget _criarCampoCodBarra() {
+    return Container(
+        padding: EdgeInsets.all(6.0),
+        child: TextFormField(
+          controller: _controllerCodBarra,
+          keyboardType: TextInputType.number,
+          decoration: InputDecoration(
+            hintText: "Código de Barra",
+          ),
+          style: TextStyle(color: Colors.black, fontSize: 17.0),
+          validator: (text){
+            if(text.isEmpty) return "É necessário informar este campo!";
+            if(_existeCadastroCodigoBarra && text.isNotEmpty) return "Já existe um produto com esse código de barras, verifique!";
+          },
+          onChanged: (texto) {
+                produto.codBarra = int.parse(texto);
+                _verificarExistenciaProduto();
+          },
+        ));
+  }
+  
 
   Widget _criarCampoCheckBox() {
     return Container(
@@ -161,5 +192,33 @@ class _TelaCRUDProdutoState extends State<TelaCRUDProduto> {
         ],
       ),
     );
+  }
+
+    void _verificarExistenciaProduto() async {
+    //Busca todas as cidades cadastradas
+    CollectionReference ref = Firestore.instance.collection("produtos").document(this.categoria).collection("itens");
+  //Nas cidades cadastradas verifica se existe alguma com o mesmo nome informado no cadastro atual
+  //se houver atribui tru para a variável _existeCadastro
+    QuerySnapshot eventsQuery = await ref
+    .where("codigo", isEqualTo: produto.codigo)
+    .getDocuments();
+
+    QuerySnapshot eventsQuery1 = await ref
+    .where("codBarra", isEqualTo: produto.codBarra)
+    .getDocuments();
+
+    print(eventsQuery.documents.length);
+    if(eventsQuery.documents.length > 0){
+      _existeCadastroCodigo = true;
+    }else{
+      _existeCadastroCodigo = false;
+    }
+
+    print(eventsQuery1.documents.length);
+    if(eventsQuery1.documents.length > 0){
+      _existeCadastroCodigoBarra = true;
+    }else{
+      _existeCadastroCodigoBarra = false;
+    }
   }
 }
