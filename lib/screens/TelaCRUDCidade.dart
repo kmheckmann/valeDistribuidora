@@ -132,6 +132,7 @@ class _TelaCRUDCidadeState extends State<TelaCRUDCidade> {
     QuerySnapshot eventsQuery = await ref
     .where("nome", isEqualTo: cidade.nome)
     .getDocuments();
+    print(eventsQuery.documents.length);
     if(eventsQuery.documents.length > 0){
       _existeCadastro = true;
     }else{

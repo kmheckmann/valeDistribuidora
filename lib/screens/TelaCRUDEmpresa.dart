@@ -27,7 +27,8 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
   String _nomeTela;
   Cidade cidade = Cidade();
   String _dropdownValue;
-  bool _existeCadastro;
+  bool _existeCadastroIE;
+  bool _existeCadastroCNPJ;
 
   final _scaffold = GlobalKey<ScaffoldState>();
   final _validadorCampos = GlobalKey<FormState>();
@@ -45,7 +46,8 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
   @override
   void initState() {
     super.initState();
-    _existeCadastro = false;
+    _existeCadastroIE = false;
+    _existeCadastroCNPJ = false;
     if (empresa != null) {
       _nomeTela = "Editar Empresa";
       _controllerRazaoSocial.text = empresa.razaoSocial;
@@ -117,91 +119,232 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
         child: ListView(
           padding: EdgeInsets.all(8.0),
           children: <Widget>[
-            _criarCampoText(_controllerRazaoSocial, "Razão Social", TextInputType.text, 200),
-                _criarCampoText(
-                    _controllerNomeFantasia, "Nome Fantasia", TextInputType.text, 200),
-                _criarCampoText(
-                    _controllerinscEstadual, "Inscrição Estadual", TextInputType.number, 9),
-                _criarCampoText(
-                    _controllerCnpj, "CNPJ", TextInputType.number, 14),
-                _criarCampoText(
-                    _controllerCep, "CEP", TextInputType.number, 8),
+            _criarCampoRazaoSocial(),
+                _criarCampoNomFantasia(),
+                _criarCampoIE(),
+                _criarCampoCNPJ(),
+                _criarCampoCEP(),
                 _criarDropDownCidade(),
-                _criarCampoText(
-                    _controllerBairro, "Bairro", TextInputType.text, 100),
-                _criarCampoText(
-                    _controllerlogradouro, "Logradouro", TextInputType.text, 100),
-                _criarCampoText(
-                    _controllerNumero, "Número", TextInputType.number, 10),
-                _criarCampoText(
-                    _controllerTelefone, "Telefone", TextInputType.number, 11),
-                _criarCampoText(
-                    _controllerEmail, "E-mail", TextInputType.emailAddress, 50),
+                _criarCampoBairro(),
+                _criarCampoLogradouro(),
+                _criarCampoNumero(),
+                _criarCampoTelefone(),
+                _criarCampoEmail(),
                 _criarCampoCheckBox(),
                 _criarCampoCheckBoxFornecedor(),
           ],
         )));
   }
 
-  Widget _criarCampoText(
-      TextEditingController controller, String nome, TextInputType tipo, int tamanho) {
+  
+Widget _criarCampoRazaoSocial(){
     return Container(
         padding: EdgeInsets.all(6.0),
         child: TextFormField(
-          controller: controller,
-          keyboardType: tipo,
-          maxLength: tamanho,
+          controller: _controllerRazaoSocial,
+          keyboardType: TextInputType.text,
+          maxLength: 200,
           decoration: InputDecoration(
-            hintText: nome,
+            hintText: "Razão Social",
           ),
           style: TextStyle(color: Colors.black, fontSize: 17.0),
           validator: (text) {
               if(text.isEmpty) return "É necessário informar este campo!";      
-              if(_existeCadastro && text.isNotEmpty) return "Já existe empresa com essa IE, verifique!";
               },
           onChanged: (texto) {
-            switch (nome) {
-              case "Razão Social":
                 empresa.razaoSocial = texto;
                 _verificarExistenciaEmpresa();
-                break;
-              case "Nome Fantasia":
+          },
+        ));
+  }
+
+Widget _criarCampoNomFantasia(){
+    return Container(
+        padding: EdgeInsets.all(6.0),
+        child: TextFormField(
+          controller: _controllerNomeFantasia,
+          keyboardType: TextInputType.text,
+          maxLength: 200,
+          decoration: InputDecoration(
+            hintText: "Nome Fantasia",
+          ),
+          style: TextStyle(color: Colors.black, fontSize: 17.0),
+          validator: (text) {
+              if(text.isEmpty) return "É necessário informar  este campo!";  
+              },
+          onChanged: (texto) {
                 empresa.nomeFantasia = texto;
                 _verificarExistenciaEmpresa();
-                break;
-              case "CNPJ":
-                empresa.cnpj = texto;
-                _verificarExistenciaEmpresa();
-                break;
-              case "Inscrição Estadual":
-                empresa.inscEstadual = texto;
-                _verificarExistenciaEmpresa();
-                break;
-              case "CEP":
+          },
+        ));
+  }
+
+  Widget _criarCampoCEP(){
+    return Container(
+        padding: EdgeInsets.all(6.0),
+        child: TextFormField(
+          controller: _controllerCep,
+          keyboardType: TextInputType.number,
+          maxLength: 8,
+          decoration: InputDecoration(
+            hintText: "CEP",
+          ),
+          style: TextStyle(color: Colors.black, fontSize: 17.0),
+          validator: (text) {
+              if(text.isEmpty || text.length < 8) return "É necessário informar corretamente este campo!";  
+              },
+          onChanged: (texto) {
                 empresa.cep = texto;
                 _verificarExistenciaEmpresa();
-                break;
-              case "Bairro":
-                empresa.bairro = texto;
-                _verificarExistenciaEmpresa();
-                break;
-              case "Logradouro":
-                empresa.logradouro = texto;
-                _verificarExistenciaEmpresa();
-                break;
-              case "Número":
-                empresa.numero = int.parse(texto);
-                _verificarExistenciaEmpresa();
-                break;
-              case "Telefone":
-                empresa.telefone = texto;
-                _verificarExistenciaEmpresa();
-                break;
-              case "E-mail":
+          },
+        ));
+  }
+
+  Widget _criarCampoEmail(){
+    return Container(
+        padding: EdgeInsets.all(6.0),
+        child: TextFormField(
+          controller: _controllerEmail,
+          keyboardType: TextInputType.emailAddress,
+          maxLength: 50,
+          decoration: InputDecoration(
+            hintText: "E-mail",
+          ),
+          style: TextStyle(color: Colors.black, fontSize: 17.0),
+          validator: (text) {
+              if(text.isEmpty) return "É necessário informar este campo!";  
+              if(text.isNotEmpty && !text.contains("@") || !text.contains(".com")) return "E-mail inválido!";
+              },
+          onChanged: (texto) {
                 empresa.email = texto;
                 _verificarExistenciaEmpresa();
-                break;
-            }
+          },
+        ));
+  }
+
+  Widget _criarCampoNumero(){
+    return Container(
+        padding: EdgeInsets.all(6.0),
+        child: TextFormField(
+          controller: _controllerNumero,
+          keyboardType: TextInputType.number,
+          maxLength: 10,
+          decoration: InputDecoration(
+            hintText: "Número",
+          ),
+          style: TextStyle(color: Colors.black, fontSize: 17.0),
+          validator: (text) {
+              if(text.isEmpty) return "É necessário informar este campo!";  
+              },
+          onChanged: (texto) {
+                empresa.numero = int.parse(texto);
+                _verificarExistenciaEmpresa();
+          },
+        ));
+  }
+
+  Widget _criarCampoTelefone(){
+    return Container(
+        padding: EdgeInsets.all(6.0),
+        child: TextFormField(
+          controller: _controllerTelefone,
+          keyboardType: TextInputType.number,
+          maxLength: 11,
+          decoration: InputDecoration(
+            hintText: "Telefone",
+          ),
+          style: TextStyle(color: Colors.black, fontSize: 17.0),
+          validator: (text) {
+              if(text.isEmpty) return "É necessário informar este campo!";  
+              },
+          onChanged: (texto) {
+                empresa.telefone = texto;
+                _verificarExistenciaEmpresa();
+          },
+        ));
+  }
+
+  Widget _criarCampoBairro(){
+    return Container(
+        padding: EdgeInsets.all(6.0),
+        child: TextFormField(
+          controller: _controllerBairro,
+          keyboardType: TextInputType.text,
+          maxLength: 100,
+          decoration: InputDecoration(
+            hintText: "Bairro",
+          ),
+          style: TextStyle(color: Colors.black, fontSize: 17.0),
+          validator: (text) {
+              if(text.isEmpty) return "É necessário informar este campo!";  
+              },
+          onChanged: (texto) {
+                empresa.bairro = texto;
+                _verificarExistenciaEmpresa();
+          },
+        ));
+  }
+
+  Widget _criarCampoLogradouro(){
+    return Container(
+        padding: EdgeInsets.all(6.0),
+        child: TextFormField(
+          controller: _controllerlogradouro,
+          keyboardType: TextInputType.text,
+          maxLength: 100,
+          decoration: InputDecoration(
+            hintText: "Logradouro",
+          ),
+          style: TextStyle(color: Colors.black, fontSize: 17.0),
+          validator: (text) {
+              if(text.isEmpty) return "É necessário informar este campo!";  
+              },
+          onChanged: (texto) {
+                empresa.logradouro = texto;
+                _verificarExistenciaEmpresa();
+          },
+        ));
+  }
+
+Widget _criarCampoCNPJ(){
+    return Container(
+        padding: EdgeInsets.all(6.0),
+        child: TextFormField(
+          controller: _controllerCnpj,
+          keyboardType: TextInputType.number,
+          maxLength: 14,
+          decoration: InputDecoration(
+            hintText: "CNPJ",
+          ),
+          style: TextStyle(color: Colors.black, fontSize: 17.0),
+          validator: (text) {
+              if(text.isEmpty || text.length < 14) return "É necessário informar corretamente este campo!";  
+              if(_existeCadastroCNPJ && text.isNotEmpty) return "Já existe empresa com esse CNPJ, verifique!";
+              },
+          onChanged: (texto) {
+                empresa.cnpj = texto;
+                _verificarExistenciaEmpresa();
+          },
+        ));
+  }
+  Widget _criarCampoIE(){
+    return Container(
+        padding: EdgeInsets.all(6.0),
+        child: TextFormField(
+          controller: _controllerinscEstadual,
+          keyboardType: TextInputType.number,
+          maxLength: 9,
+          decoration: InputDecoration(
+            hintText: "Inscrição Estadual",
+          ),
+          style: TextStyle(color: Colors.black, fontSize: 17.0),
+          validator: (text) {
+              if(text.isEmpty || text.length < 9) return "É necessário informar corretamente este campo!";  
+              if(_existeCadastroIE && text.isNotEmpty) return "Já existe empresa com essa IE, verifique!";    
+              },
+          onChanged: (texto) {
+                empresa.inscEstadual = texto;
+                _verificarExistenciaEmpresa();
           },
         ));
   }
@@ -322,10 +465,23 @@ void _verificarExistenciaEmpresa() async {
     .where("inscEstadual", isEqualTo: empresa.inscEstadual)
     .getDocuments();
     print(eventsQuery.documents.length);
+
+    QuerySnapshot eventsQuery1 = await ref
+    .where("cnpj", isEqualTo: empresa.cnpj)
+    .getDocuments();
+    print("eventsquery1");
+    print(eventsQuery1.documents.length);
+
     if(eventsQuery.documents.length > 0){
-      _existeCadastro = true;
+      _existeCadastroIE = true;
     }else{
-      _existeCadastro = false;
+      _existeCadastroIE = false;
+    }
+
+    if(eventsQuery.documents.length > 0){
+      _existeCadastroCNPJ = true;
+    }else{
+      _existeCadastroCNPJ = false;
     }
   }
 
