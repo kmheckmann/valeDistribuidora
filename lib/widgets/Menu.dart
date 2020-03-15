@@ -41,7 +41,7 @@ class Menu extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: <Widget>[
                                 Text(
-                                  "Olá, ${model.dadosUsuario["nome"]}",
+                                  "Olá, ${model.dadosUsuarioAtual["nome"]}",
                               style: TextStyle(
                                   fontSize: 20.0, color: Colors.black)
                                 ),

@@ -10,9 +10,11 @@ class Usuario extends Model {
 
   //armazena o usuario que esta logado, se nao tiver usuario fica null, se tiver, contem o id e infos basicas
   FirebaseUser usuarioFirebase;
+  //armazena o novo usuario criado
 
   //ira armazenar os dados importantes do usuario
-  Map<String, dynamic> dadosUsuario = Map();
+  Map<String, dynamic> dadosUsuarioAtual = Map();
+  Map<String, dynamic> dadosNovoUsuario = Map();
 
   //ID do documento no firebase
   String id;
@@ -43,32 +45,27 @@ class Usuario extends Model {
   void addListener(VoidCallback listener) {
 
     super.addListener(listener);
-    _carregarDadosUsuario();
   }
 
 
   //VoidCallBack uma funcao passada que sera chamado de dentro do metodo
   void cadastrarUsuario(
-      {@required Map<String, dynamic> dadosUsuario,
+      {@required Map<String, dynamic> dadosUser,
       @required String senha,
       @required VoidCallback cadastradoSucesso,
       @required VoidCallback cadastroFalhou}) {
     carregando = true;
-    notifyListeners();
     _autenticar
         .createUserWithEmailAndPassword(
-            email: dadosUsuario["email"], password: senha)
+            email: dadosUser["email"], password: senha)
         .then((user) async {
-      //se der certo a criacao do usuario, pego os dados e salvo no firebase
-      usuarioFirebase = user;
-      await _salvarUsuario(dadosUsuario);
+      //se der certo a criacao do usuario, pego os dados e salvo no firebase      
+      await _salvarUsuario(dadosUser, user);
       cadastradoSucesso();
       carregando = false;
-      notifyListeners();
     }).catchError((erro) {
       cadastroFalhou();
       carregando = false;
-      notifyListeners();
     });
   }
 
@@ -94,11 +91,11 @@ class Usuario extends Model {
     });
   }
 
-  Future<Null> _salvarUsuario(Map<String, dynamic> dadosUsuario) async {
-    this.dadosUsuario = dadosUsuario;
+  Future<Null> _salvarUsuario(Map<String, dynamic> dadosUsuario,FirebaseUser user) async {
+    this.dadosNovoUsuario = dadosUsuario;
     await Firestore.instance
         .collection("usuarios")
-        .document(usuarioFirebase.uid)
+        .document(user.uid)
         .setData(dadosUsuario);
   }
 
@@ -108,7 +105,7 @@ class Usuario extends Model {
 
   void sair() async {
     await _autenticar.signOut();
-    dadosUsuario = Map();
+    dadosUsuarioAtual = Map();
     usuarioFirebase = null;
     notifyListeners();
   }
@@ -122,9 +119,9 @@ class Usuario extends Model {
       usuarioFirebase = await _autenticar.currentUser();
 
     if(usuarioFirebase != null){
-      if(dadosUsuario["name"] == null){
+      if(dadosUsuarioAtual["name"] == null){
         DocumentSnapshot docUsuario = await Firestore.instance.collection("usuarios").document(usuarioFirebase.uid).get();
-        dadosUsuario = docUsuario.data;
+        dadosUsuarioAtual = docUsuario.data;
       }
 
       notifyListeners();

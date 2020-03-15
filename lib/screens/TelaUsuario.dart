@@ -76,7 +76,7 @@ class _TelaUsuarioState extends State<TelaUsuario> {
                     };
 
                     model.cadastrarUsuario(
-                        dadosUsuario: dadosUsuario,
+                        dadosUser: dadosUsuario,
                         senha: _controllerSenha.text,
                         cadastradoSucesso: _sucesso,
                         cadastroFalhou: _falha);
