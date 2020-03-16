@@ -6,6 +6,7 @@ class Cidade{
   String id;
 
   String nome;
+  String estado;
   bool ativa;
 
   Map<String, dynamic> dadosCidade = Map();
@@ -15,12 +16,14 @@ class Cidade{
   Cidade.buscarFirebase(DocumentSnapshot snapshot){
     id = snapshot.documentID;
     nome = snapshot.data["nome"];
+    estado = snapshot.data["estado"];
     ativa = snapshot.data["ativa"];
   }
 
   Map<String, dynamic> converterParaMapa() {
     return {
       "nome": nome,
+      "estado": estado,
       "ativa": ativa,
     };
   }

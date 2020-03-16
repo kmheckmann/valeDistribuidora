@@ -45,6 +45,7 @@ class Usuario extends Model {
   void addListener(VoidCallback listener) {
 
     super.addListener(listener);
+    _carregarDadosUsuario();
   }
 
 
@@ -122,8 +123,8 @@ class Usuario extends Model {
       if(dadosUsuarioAtual["name"] == null){
         DocumentSnapshot docUsuario = await Firestore.instance.collection("usuarios").document(usuarioFirebase.uid).get();
         dadosUsuarioAtual = docUsuario.data;
+        dadosNovoUsuario = docUsuario.data;
       }
-
       notifyListeners();
     }
   }
