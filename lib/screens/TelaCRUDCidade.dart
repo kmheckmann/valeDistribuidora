@@ -63,7 +63,7 @@ class _TelaCRUDCidadeState extends State<TelaCRUDCidade> {
               if(_dropdownValue != null){
                 //Ao savar é executada a validação do form é feita, caso exista uma cidade com mesmo nome
               //ou o nome esteja vazio o cadastro não é realizado e é apresentada a mensagem
-              cidade.estado = _dropdownValue;
+              
                 Map<String, dynamic> mapa = cidade.converterParaMapa();
              if(_novocadastro){
               cidade.salvarCidade(mapa);
@@ -159,6 +159,8 @@ class _TelaCRUDCidadeState extends State<TelaCRUDCidade> {
     onChanged: (String newValue) {
       setState(() {
         _dropdownValue = newValue;
+        cidade.estado = _dropdownValue;
+        _verificarExistenciaCidade();
       });
     },
     items: <String>['Acre', 'Alogoas','Amapá','Amazonas','Bahia','Ceará','Distrito Federal',
@@ -176,55 +178,28 @@ class _TelaCRUDCidadeState extends State<TelaCRUDCidade> {
         ],
       ),
     );
-    
-    /*return Container(
-      padding: EdgeInsets.all(8.0),
-      child: Row(
-        children: <Widget>[
-          Container(
-            width: 300.0,
-            child: DropdownButton(
-              value: _dropdownValue,
-              hint: Text("Selecionar estado"),
-              onChanged: (String newValue){
-                setState(() {
-                  print(newValue);
-                  _dropdownValue = newValue;
-                  cidade.estado = newValue;
-                });
-              },
-              items: <String>['Acre','Alogoas','Amapá','Amazonas','Bahia','Ceará','Distrito Federal',
-              'Espírito Santo','Goiás','Maranhão','Mato Grosso','Mato Grosso do Sul','Minas Gerais',
-              'Pará','Paraíba','Paraná','Pernambuco','Piauí','Rio de Janeiro','Rio Grande do Norte',
-              'Rio Grande do Sul','Rondônia','Roraima','Santa Catarina','São Paulo','Sergipe','Tocantins']
-              .map<DropdownMenuItem<String>>((String value) {
-                 return DropdownMenuItem<String>(
-                  value: value,
-                  child: Container(
-                    child: Text(value,style: TextStyle(color: Colors.black)),
-                     ),
-                   );
-                  }).toList()
-              ),
-          )
-        ],
-      ),
-    );*/
   }
 
   void _verificarExistenciaCidade() async {
     //Busca todas as cidades cadastradas
     CollectionReference ref = Firestore.instance.collection("cidades");
-  //Nas cidades cadastradas verifica se existe alguma com o mesmo nome informado no cadastro atual
-  //se houver atribui tru para a variável _existeCadastro
-    QuerySnapshot eventsQuery = await ref
+  //Nas cidades cadastradas verifica se existe alguma com o mesmo nome e estado informados no cadastro atual
+  //se houver atribui true para a variável _existeCadastro
+    QuerySnapshot eventsQuery1 = await ref
     .where("nome", isEqualTo: cidade.nome)
     .getDocuments();
-    print(eventsQuery.documents.length);
-    if(eventsQuery.documents.length > 0){
-      _existeCadastro = true;
-    }else{
-      _existeCadastro = false;
-    }
+    QuerySnapshot eventsQuery2 = await ref
+    .where("estado", isEqualTo: cidade.estado)
+    .getDocuments();
+    eventsQuery2.documents.forEach((document){
+      print(document.data["nome"]);
+      print(document.data["estado"]);
+      if(document.data["nome"] == cidade.nome && document.data["estado"] == cidade.estado){
+        _existeCadastro = true;
+      }
+      if(document.data["nome"] != cidade.nome || document.data["estado"] != cidade.estado){
+        _existeCadastro = false;
+      }
+    });
   }
 }
