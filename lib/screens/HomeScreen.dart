@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:tcc_2/screens/TelaCidades.dart';
 import 'package:tcc_2/screens/TelaEmpresas.dart';
 import 'package:tcc_2/screens/TelaUsuario.dart';
+import 'package:tcc_2/screens/TelaRotas.dart';
 import 'package:tcc_2/screens/TelaUsuarios.dart';
 import 'package:tcc_2/tabs/CategoriaTab.dart';
 import 'package:tcc_2/tabs/HomeTab.dart';
@@ -57,11 +58,11 @@ class HomeScreen extends StatelessWidget {
         ),
         Scaffold(
           appBar: AppBar(
-            title: Text("Categorias"),
+            title: Text("Rotas"),
             centerTitle: true,
           ),
           drawer: Menu(_pageController),
-          body: Container(),
+          body: TelaRotas(),
         ),
         Scaffold(
           appBar: AppBar(
