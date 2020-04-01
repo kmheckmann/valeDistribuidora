@@ -21,7 +21,7 @@ class _TelaCRUDRotaState extends State<TelaCRUDRota> {
   final _scaffold = GlobalKey<ScaffoldState>();
   Stream<QuerySnapshot> empresas;
   Stream<QuerySnapshot> vendedores;
-  bool _existeCadastro;
+  bool _clienteComRota;
   String _dropdownValueVendedor;
   String _dropdownValueCliente;
   String _dropdownValueDiaSemana;
@@ -40,7 +40,7 @@ class _TelaCRUDRotaState extends State<TelaCRUDRota> {
     super.initState();
     empresas = Firestore.instance.collection('empresas').snapshots();
     vendedores = Firestore.instance.collection('usuarios').snapshots();
-    _existeCadastro = false;
+    _clienteComRota = false;
     if (rota != null) {
       _nomeTela = "Editar Rota";
       _dropdownValueDiaSemana = rota.diaSemana;
@@ -70,25 +70,33 @@ class _TelaCRUDRotaState extends State<TelaCRUDRota> {
         child: Icon(Icons.save),
         backgroundColor: Colors.blue,
         onPressed: (){
+          _verificarExistenciaRota();
+          print(_clienteComRota);
           if(_dropdownValueCliente != null 
           && _dropdownValueVendedor != null 
           && _dropdownValueDiaSemana != null){  
-          rota.tituloRota = _dropdownValueVendedor+" - "+_dropdownValueCliente;         
-          Map<String, dynamic> mapa = rota.converterParaMapa();
-          Map<String, dynamic> mapaVendedor = Map();
-          mapaVendedor["id"] = vendedor.id;
-          Map<String, dynamic> mapaCliente = Map();
-          mapaCliente["id"] = cliente.id;
-          if(_novocadastro){
-            String id = (_dropdownValueVendedor+" - "+_dropdownValueCliente);
-            rota.salvarRota(mapa, mapaCliente,mapaVendedor, id);
-            }else{
-              rota.editarRota(mapa, mapaCliente, mapaVendedor, rota.idFirebase);
-            }
-            Navigator.of(context).pop();
+              if(_clienteComRota == false){
+                rota.tituloRota = _dropdownValueVendedor+" - "+_dropdownValueCliente;         
+                Map<String, dynamic> mapa = rota.converterParaMapa();
+                Map<String, dynamic> mapaVendedor = Map();
+                mapaVendedor["id"] = vendedor.id;
+                Map<String, dynamic> mapaCliente = Map();
+                mapaCliente["id"] = cliente.id;
+                  if(_novocadastro){
+                    String id = (_dropdownValueVendedor+" - "+_dropdownValueCliente);
+                    rota.salvarRota(mapa, mapaCliente,mapaVendedor, id);
+                  }else{
+                    rota.editarRota(mapa, mapaCliente, mapaVendedor, rota.idFirebase);
+                  }
+                  Navigator.of(context).pop();
 
-            
-
+              }else{
+                _scaffold.currentState.showSnackBar(
+                SnackBar(content: Text("Cliente é utilizado em outra rota. Verifique!"),
+                backgroundColor: Colors.red,
+                duration: Duration(seconds: 5),)
+              );
+              }
           }else{
             _scaffold.currentState.showSnackBar(
                 SnackBar(content: Text("Todos os campos da tela devem ter um valor selecionado!"),
@@ -134,6 +142,7 @@ class _TelaCRUDRotaState extends State<TelaCRUDRota> {
                       _dropdownValueCliente = newValue;
                       _obterClienteDropDow();
                       _obterVendedorDropDow();
+                      _verificarExistenciaRota();
                     });
                   },
                   items: snapshot.data.documents.map((DocumentSnapshot document) {
@@ -187,6 +196,7 @@ return cliente;
                       _dropdownValueVendedor = newValue;
                       _obterVendedorDropDow();
                       _obterClienteDropDow();
+                      _verificarExistenciaRota();
                     });
                   },
                   items: snapshot.data.documents.map((DocumentSnapshot document) {
@@ -240,6 +250,7 @@ Widget _criarDropDownDiaSemana(){
         rota.diaSemana = _dropdownValueDiaSemana;
         _obterClienteDropDow();
         _obterVendedorDropDow();
+        _verificarExistenciaRota();
       });
     },
     items: <String>['Domingo', 'Segunda-feira','Terça-feita',
@@ -271,6 +282,7 @@ Widget _criarRadioButton(){
              rota.frequencia = "Semanal";
              _obterClienteDropDow();
              _obterVendedorDropDow();
+             _verificarExistenciaRota();
              
              }
           ); },
@@ -285,6 +297,7 @@ Widget _criarRadioButton(){
             rota.frequencia = "Quinzenal";
             _obterClienteDropDow();
             _obterVendedorDropDow();
+            _verificarExistenciaRota();
             }); },
       ),
       RadioListTile<SingingCharacter>(
@@ -297,6 +310,7 @@ Widget _criarRadioButton(){
             rota.frequencia = "Mensal";
             _obterClienteDropDow();
             _obterVendedorDropDow();
+            _verificarExistenciaRota();
             }); },
       )
     ],
@@ -319,6 +333,7 @@ Widget _criarCampoCheckBox() {
                 }
                 _obterClienteDropDow();
                 _obterVendedorDropDow();
+                _verificarExistenciaRota();
               });
             },
           ),
@@ -342,22 +357,25 @@ Widget _criarCampoCheckBox() {
     }
   }
 
-  void _verificarExistenciaRota(String tituloRota) async {
-    //Busca todas as cidades cadastradas
+  void _verificarExistenciaRota() async {
+    //Busca todas as rotas cadastradas
     CollectionReference ref = Firestore.instance.collection("rotas");
-  //Nas rotas cadastradas verifica se existe alguma com o mesmo vendedor e cliente informados no cadastro atual
-  //se houver atribui true para a variável _existeCadastro
-    QuerySnapshot eventsQuery1 = await ref
-    .where("tituloRota", isEqualTo: tituloRota)
-    .getDocuments();
+    QuerySnapshot eventsQuery1 = await ref.where("ativa", isEqualTo: true).getDocuments();
     print(eventsQuery1.documents.length);
       if(eventsQuery1.documents.length > 0){
-        _existeCadastro = true;
+        eventsQuery1.documents.forEach((document) async {
+          CollectionReference ref2 = Firestore.instance.collection('rotas').document(document.documentID).collection('cliente');
+          QuerySnapshot eventsQuery2 = await ref2.where("id", isEqualTo: cliente.id).getDocuments();
+          eventsQuery2.documents.forEach((document1){
+            if(document1["id"] == cliente.id){
+              _clienteComRota = true;
+            }else{
+              _clienteComRota = false;
+            }
+          });
+        });
       }else{
-        _existeCadastro = false;
+        _clienteComRota = false;
       }
-
-
   }
-
 }

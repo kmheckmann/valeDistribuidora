@@ -42,6 +42,7 @@ class _TelaRotasState extends State<TelaRotas> {
                   itemBuilder: (context, index) {
                     Rota rota =
                     Rota.buscarFirebase(snapshot.data.documents[index]);
+                    
                     return _construirListaCidades(context, rota, snapshot.data.documents[index]);
                   });
           }),
