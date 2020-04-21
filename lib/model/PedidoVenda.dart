@@ -8,9 +8,10 @@ class PedidoVenda extends Pedido{
 
   PedidoVenda.buscarFirebase(DocumentSnapshot snapshot){
     id = snapshot.documentID;
-    valorTotal = snapshot.data["vlTotal"]+ 0.0;
-    percentualDesconto = snapshot.data["percentDesc"]+ 0.0;
-    tipoPagamento = snapshot.data["tipoPgto"];
+    valorTotal = snapshot.data["valorTotal"];
+    percentualDesconto = snapshot.data["percentualDesconto"];
+    tipoPagamento = snapshot.data["tipoPagamento"];
+    tipoPedido = snapshot.data["tipoPedido"];
     ehPedidoVenda = snapshot.data["ehPedidoVenda"];
     dataPedido = snapshot.data["dataPedido"];
     pedidoFinalizado = snapshot.data["pedidoFinalizado"];
@@ -26,6 +27,8 @@ class PedidoVenda extends Pedido{
       "tipoPagamento": tipoPagamento,
       "ehPedidoVenda": ehPedidoVenda,
       "tipoPedido": tipoPedido,
+      "dataPedido": dataPedido,
+      "pedidoFinalizado": pedidoFinalizado
     };
   }
 

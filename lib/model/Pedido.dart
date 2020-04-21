@@ -107,7 +107,7 @@ abstract class Pedido{
   }
 
 Future<Empresa> obterEmpresa(String idPedido) async {
-CollectionReference ref = Firestore.instance.collection('pedidos').document(idPedido).collection('empresa');
+CollectionReference ref = Firestore.instance.collection('pedidos').document(idPedido).collection('cliente');
 QuerySnapshot obterEmpresaPedido = await ref.getDocuments();
 
 CollectionReference refCliente = Firestore.instance.collection('empresas');

@@ -1,45 +1,37 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:scoped_model/scoped_model.dart';
+import 'package:tcc_2/model/ItemPedido.dart';
 import 'package:tcc_2/model/PedidoVenda.dart';
-import 'package:tcc_2/model/Usuario.dart';
-import 'package:tcc_2/screens/TelaCRUDPedido.dart';
+import 'package:tcc_2/screens/TelaCRUDItemPedido.dart';
 
-class TelaPedidos extends StatefulWidget {
+class TelaItensPedido extends StatefulWidget {
+  final PedidoVenda pedidoVenda;
+
+  TelaItensPedido({this.pedidoVenda});
   @override
-  _TelaPedidosState createState() => _TelaPedidosState();
+  _TelaItensPedidoState createState() => _TelaItensPedidoState(pedidoVenda: pedidoVenda);
 }
 
-class _TelaPedidosState extends State<TelaPedidos> {
-
-  Usuario u = Usuario();
+class _TelaItensPedidoState extends State<TelaItensPedido> {
+  PedidoVenda pedidoVenda;
+  _TelaItensPedidoState({this.pedidoVenda});
 
   @override
   Widget build(BuildContext context) {
-    return ScopedModelDescendant<Usuario>(
-      builder: (context, child, model){
-        u.nome = model.dadosUsuarioAtual["nome"];
-        u.email = model.dadosUsuarioAtual["email"];
-        u.cpf = model.dadosUsuarioAtual["cpf"];
-        u.ehAdministrador = model.dadosUsuarioAtual["ehAdministrador"];
-        u.ativo = model.dadosUsuarioAtual["ativo"];
-
-      return Scaffold(
+    return Scaffold(
       floatingActionButton: FloatingActionButton(
           child: Icon(Icons.add),
           backgroundColor: Theme.of(context).primaryColor,
           onPressed: () {
-            print(u.nome);
-            print(model.nome);
             Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => TelaCRUDPedido(user: u,))
+                MaterialPageRoute(builder: (context) => TelaCRUDItemPedido())
             );
           }
       ),
       body: FutureBuilder<QuerySnapshot>(
-        //O sistema ira acessar o documento "pedidos"
+        //O sistema ira acessar o documento "pedidos" e depois a coleção de itens dos pedidos
           future: Firestore.instance
-              .collection("pedidos").getDocuments(),
+              .collection("pedidos").document(pedidoVenda.id).collection("itens").getDocuments(),
           builder: (context, snapshot) {
             //Como os dados serao buscados do firebase, pode ser que demore para obter
             //entao, enquanto os dados nao sao obtidos sera apresentado um circulo na tela
@@ -55,19 +47,14 @@ class _TelaPedidosState extends State<TelaPedidos> {
                   itemCount: snapshot.data.documents.length,
                   //Ira pegar cada cidade no firebase e retornar
                   itemBuilder: (context, index) {
-                    PedidoVenda pedidoVenda =
-                    PedidoVenda.buscarFirebase(snapshot.data.documents[index]);
-                    return _construirListaPedidos(context, pedidoVenda, snapshot.data.documents[index],u);
+                    ItemPedido itemPedido = ItemPedido.buscarFirebase(snapshot.data.documents[index]);
+                    return _construirListaPedidos(context, itemPedido, snapshot.data.documents[index]);
                   });
           }),
     );
-      });
-    
-    
-    /**/
   }
 
-  Widget _construirListaPedidos(contexto, PedidoVenda p, DocumentSnapshot snapshot, Usuario u){
+  Widget _construirListaPedidos(contexto, ItemPedido p, DocumentSnapshot snapshot){
     return InkWell(
       //InkWell eh pra dar uma animacao quando clicar no produto
       child: Card(
@@ -95,8 +82,9 @@ class _TelaPedidosState extends State<TelaPedidos> {
         ),
       ),
       onTap: (){
-        Navigator.of(contexto).push(MaterialPageRoute(builder: (contexto)=>TelaCRUDPedido(pedidoVenda: p,snapshot: snapshot, user: u)));
+        Navigator.of(contexto).push(MaterialPageRoute(builder: (contexto)=>TelaCRUDItemPedido()));
       },
     );
   }
+
 }

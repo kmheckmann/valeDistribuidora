@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:tcc_2/model/Empresa.dart';
 import 'package:tcc_2/model/PedidoVenda.dart';
 import 'package:tcc_2/model/Usuario.dart';
+import 'package:tcc_2/screens/TelaCRUDItemPedido.dart';
+import 'package:tcc_2/screens/TelaItensPedido.dart';
 
 class TelaCRUDPedido extends StatefulWidget {
   final PedidoVenda pedidoVenda;
@@ -18,7 +20,7 @@ class TelaCRUDPedido extends StatefulWidget {
 class _TelaCRUDPedidoState extends State<TelaCRUDPedido> {
   final DocumentSnapshot snapshot;
   PedidoVenda pedidoVenda;
-  Usuario vendedor = Usuario();
+  Usuario vendedor;
 
   _TelaCRUDPedidoState(this.pedidoVenda, this.snapshot, this.vendedor);
 
@@ -61,16 +63,16 @@ class _TelaCRUDPedidoState extends State<TelaCRUDPedido> {
       pedidoVenda = PedidoVenda();
       pedidoVenda.dataPedido = DateTime.now();
       pedidoVenda.ehPedidoVenda = true;
+      pedidoVenda.pedidoFinalizado = false;
+      pedidoVenda.valorTotal = 0.0;
+      pedidoVenda.percentualDesconto = 0.0;
       //formatar data
       String data = (pedidoVenda.dataPedido.day.toString()+"/"+pedidoVenda.dataPedido.month.toString()+"/"+pedidoVenda.dataPedido.year.toString());
       _controllerData.text = data; 
       _novocadastro = true;
       _controllerVendedor.text = vendedor.nome;
-      pedidoVenda.pedidoFinalizado = false;
     }
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -83,7 +85,31 @@ class _TelaCRUDPedidoState extends State<TelaCRUDPedido> {
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.save),
         backgroundColor: Colors.blue,
-        onPressed: (){}
+        onPressed: (){
+            _obterVendedorDropDow();
+          if(_dropdownValueTipoPgto != null &&
+             _dropdownValueCliente != null &&
+             _dropdownValueTipoPedido != null){
+               Map<String, dynamic> mapa = pedidoVenda.converterParaMapa();
+               print(vendedor.id);
+               Map<String, dynamic> mapaVendedor = Map();
+                mapaVendedor["id"] = vendedor.id;
+                Map<String, dynamic> mapaEmpresa = Map();
+                mapaEmpresa["id"] = empresa.id;
+                if(_novocadastro){
+                    pedidoVenda.salvarPedido(mapa, mapaEmpresa, mapaVendedor);
+                  }else{
+                    pedidoVenda.editarRota(mapa, mapaEmpresa, mapaVendedor, pedidoVenda.id);
+                  }
+                  Navigator.of(context).push(MaterialPageRoute(builder: (contexto)=>TelaItensPedido(pedidoVenda: pedidoVenda)));
+             }else{
+               _scaffold.currentState.showSnackBar(
+                SnackBar(content: Text("Todos os campos da tela devem ser informados!"),
+                backgroundColor: Colors.red,
+                duration: Duration(seconds: 5),)
+              );
+             }
+        }
       ),
       body: Form(
         key: _validadorCampos,
@@ -103,7 +129,7 @@ class _TelaCRUDPedidoState extends State<TelaCRUDPedido> {
                 hintText: "% Desconto"
               ),
               style: TextStyle(color: Colors.black, fontSize: 17.0),
-              onChanged:(texto ){
+              onChanged:(texto){
                 pedidoVenda.percentualDesconto = double.parse(texto);
                 pedidoVenda.calcularDesconto();
                 setState(() {
@@ -144,8 +170,9 @@ Widget _criarDropDownTipoPedido(){
             hint: Text("Selecionar Tipo Pedido"),
             onChanged: (String newValue) {
               setState(() {
+                _obterClienteDropDow();
                 _dropdownValueTipoPedido = newValue;
-                pedidoVenda.tipoPedido = _dropdownValueTipoPedido;
+                pedidoVenda.tipoPedido = newValue;
               });
             },
           items: <String>['Normal', 'Troca','Bonificação']
@@ -178,8 +205,9 @@ Widget _criarDropDownTipoPgto(){
             hint: Text("Selecionar Tipo Pagamento"),
             onChanged: (String newValue) {
               setState(() {
+                _obterClienteDropDow();
                 _dropdownValueTipoPgto = newValue;
-                pedidoVenda.tipoPedido = _dropdownValueTipoPgto;
+                pedidoVenda.tipoPagamento = _dropdownValueTipoPgto;
               });
             },
           items: <String>['À Vista', 'Cheque','Boleto', 'Duplicata']
@@ -246,6 +274,20 @@ Future<Empresa> _obterClienteDropDow() async {
   empresa = c;
   });
   return empresa;
+}
+
+Future<Usuario> _obterVendedorDropDow() async {
+CollectionReference ref = Firestore.instance.collection('usuarios');
+QuerySnapshot eventsQuery = await ref
+    .where("cpf", isEqualTo: vendedor.cpf)
+    .getDocuments();
+
+eventsQuery.documents.forEach((document) {
+  Usuario v = Usuario.buscarFirebase(document);
+  vendedor = v;
+});
+
+return vendedor;
 }
 
 }
