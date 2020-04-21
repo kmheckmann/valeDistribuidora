@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:tcc_2/screens/TelaCidades.dart';
 import 'package:tcc_2/screens/TelaEmpresas.dart';
+import 'package:tcc_2/screens/TelaPedidos.dart';
 import 'package:tcc_2/screens/TelaUsuario.dart';
 import 'package:tcc_2/screens/TelaRotas.dart';
 import 'package:tcc_2/screens/TelaUsuarios.dart';
@@ -30,7 +31,7 @@ class HomeScreen extends StatelessWidget {
             centerTitle: true,
           ),
           drawer: Menu(_pageController),
-          body: Container(),
+          body: TelaPedidos(),
         ),
         Scaffold(
           appBar: AppBar(
