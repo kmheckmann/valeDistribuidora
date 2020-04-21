@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:scoped_model/scoped_model.dart';
 import 'package:tcc_2/model/Usuario.dart';
-import 'package:tcc_2/screens/HomeScreen.dart';
 import 'package:tcc_2/screens/TelaInicial.dart';
-import 'package:tcc_2/tabs/HomeTab.dart';
 
 void main() => runApp(MyApp());
 

@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:tcc_2/model/Empresa.dart';
 import 'package:tcc_2/model/PedidoVenda.dart';
 import 'package:tcc_2/model/Usuario.dart';
-import 'package:tcc_2/screens/TelaCRUDItemPedido.dart';
 import 'package:tcc_2/screens/TelaItensPedido.dart';
 
 class TelaCRUDPedido extends StatefulWidget {
@@ -83,7 +82,7 @@ class _TelaCRUDPedidoState extends State<TelaCRUDPedido> {
         centerTitle: true,
       ),
       floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.save),
+        child: Icon(Icons.apps),
         backgroundColor: Colors.blue,
         onPressed: (){
             _obterVendedorDropDow();
@@ -99,9 +98,9 @@ class _TelaCRUDPedidoState extends State<TelaCRUDPedido> {
                 if(_novocadastro){
                     pedidoVenda.salvarPedido(mapa, mapaEmpresa, mapaVendedor);
                   }else{
-                    pedidoVenda.editarRota(mapa, mapaEmpresa, mapaVendedor, pedidoVenda.id);
+                    pedidoVenda.editarPedido(mapa, mapaEmpresa, mapaVendedor, pedidoVenda.id);
                   }
-                  Navigator.of(context).push(MaterialPageRoute(builder: (contexto)=>TelaItensPedido(pedidoVenda: pedidoVenda)));
+                  Navigator.of(context).push(MaterialPageRoute(builder: (contexto)=>TelaItensPedido(pedidoVenda: pedidoVenda, snapshot: snapshot,)));
              }else{
                _scaffold.currentState.showSnackBar(
                 SnackBar(content: Text("Todos os campos da tela devem ser informados!"),
