@@ -97,6 +97,10 @@ QuerySnapshot obterDadosProduto = await refCliente.getDocuments();
   return produto;
 }
 
+bool produtoTemEstoque(String idProduto){
+  
+}
+
 
 
 }

@@ -42,7 +42,6 @@ class _TelaCRUDPedidoState extends State<TelaCRUDPedido> {
   @override
   void initState() {
     super.initState();
-    empresas = Firestore.instance.collection('empresas').snapshots();
     if (pedidoVenda != null) {
       _nomeTela = "Editar Pedido";
       _controllerVlTotal.text = pedidoVenda.valorTotal.toString();
@@ -85,7 +84,8 @@ class _TelaCRUDPedidoState extends State<TelaCRUDPedido> {
         child: Icon(Icons.apps),
         backgroundColor: Colors.blue,
         onPressed: (){
-            _obterVendedorDropDow();
+            _obterClienteDropDow();
+            _obterVendedor();
           if(_dropdownValueTipoPgto != null &&
              _dropdownValueCliente != null &&
              _dropdownValueTipoPedido != null){
@@ -94,12 +94,18 @@ class _TelaCRUDPedidoState extends State<TelaCRUDPedido> {
                Map<String, dynamic> mapaVendedor = Map();
                 mapaVendedor["id"] = vendedor.id;
                 Map<String, dynamic> mapaEmpresa = Map();
+                print("empresa:");
+                print(empresa.id);
                 mapaEmpresa["id"] = empresa.id;
                 if(_novocadastro){
                     pedidoVenda.salvarPedido(mapa, mapaEmpresa, mapaVendedor);
+                    print("pedido venda:");
+                  print(pedidoVenda.id);
                   }else{
                     pedidoVenda.editarPedido(mapa, mapaEmpresa, mapaVendedor, pedidoVenda.id);
                   }
+                  print("pedido venda:");
+                  print(pedidoVenda.id);
                   Navigator.of(context).push(MaterialPageRoute(builder: (contexto)=>TelaItensPedido(pedidoVenda: pedidoVenda, snapshot: snapshot,)));
              }else{
                _scaffold.currentState.showSnackBar(
@@ -160,7 +166,7 @@ Widget _criarDropDownTipoPedido(){
       child: Row(
         children: <Widget>[
           Container(
-            width: 387.4,
+            width: 336.0,
             child: DropdownButton<String>(
             value: _dropdownValueTipoPedido,
             style: TextStyle(
@@ -195,7 +201,7 @@ Widget _criarDropDownTipoPgto(){
       child: Row(
         children: <Widget>[
           Container(
-            width: 387.4,
+            width: 336.0,
             child: DropdownButton<String>(
             value: _dropdownValueTipoPgto,
             style: TextStyle(
@@ -225,6 +231,7 @@ Widget _criarDropDownTipoPgto(){
   }
 
   Widget _criarDropDownCliente(){
+    empresas = Firestore.instance.collection('empresas').snapshots();
    return StreamBuilder<QuerySnapshot>(
     stream: empresas,
     builder: (context, snapshot){
@@ -235,7 +242,7 @@ Widget _criarDropDownTipoPgto(){
         child: Row(
           children: <Widget>[
             Container(
-              width: 387.4,
+              width: 336.0,
                 child: DropdownButton(
                   value: _dropdownValueCliente,
                   hint: Text("Selecionar cliente"),
@@ -270,12 +277,13 @@ Future<Empresa> _obterClienteDropDow() async {
 
   eventsQuery.documents.forEach((document) {
   Empresa c = Empresa.buscarFirebase(document);
+  c.id = document.documentID;
   empresa = c;
   });
   return empresa;
 }
 
-Future<Usuario> _obterVendedorDropDow() async {
+Future<Usuario> _obterVendedor() async {
 CollectionReference ref = Firestore.instance.collection('usuarios');
 QuerySnapshot eventsQuery = await ref
     .where("cpf", isEqualTo: vendedor.cpf)

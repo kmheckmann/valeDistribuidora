@@ -4,27 +4,25 @@ import 'package:tcc_2/model/Produto.dart';
 
 class TelaCRUDProduto extends StatefulWidget {
   final Produto produto;
-  final String categoria;
 
   final DocumentSnapshot snapshot;
 
-  TelaCRUDProduto({this.produto, this.snapshot, this.categoria});
+  TelaCRUDProduto({this.produto, this.snapshot});
 
   @override
   _TelaCRUDProdutoState createState() =>
-      _TelaCRUDProdutoState(produto, snapshot, categoria);
+      _TelaCRUDProdutoState(produto, snapshot);
 }
 
 class _TelaCRUDProdutoState extends State<TelaCRUDProduto> {
   Produto produto;
-  String categoria;
   final DocumentSnapshot snapshot;
   final _validadorCampos = GlobalKey<FormState>();
   bool _existeCadastroCodigo;
   bool _existeCadastroCodigoBarra;
   bool _novocadastro;
 
-  _TelaCRUDProdutoState(this.produto, this.snapshot, this.categoria);
+  _TelaCRUDProdutoState(this.produto, this.snapshot);
 
   Produto _produtoEditado = Produto();
 
@@ -73,9 +71,9 @@ class _TelaCRUDProdutoState extends State<TelaCRUDProduto> {
             if(_validadorCampos.currentState.validate()){
               Map<String, dynamic> mapa = produto.converterParaMapa();
             if(_novocadastro){
-              produto.salvarProduto(mapa, this.categoria);
+              produto.salvarProduto(mapa);
             }else{
-              produto.editarProduto(mapa, produto.id, this.categoria);
+              produto.editarProduto(mapa, produto.id);
             }
             Navigator.of(context).pop();
             }
@@ -196,7 +194,7 @@ class _TelaCRUDProdutoState extends State<TelaCRUDProduto> {
 
     void _verificarExistenciaProduto() async {
     //Busca todas as cidades cadastradas
-    CollectionReference ref = Firestore.instance.collection("produtos").document(this.categoria).collection("itens");
+    CollectionReference ref = Firestore.instance.collection("produtos");
   //Nas cidades cadastradas verifica se existe alguma com o mesmo nome informado no cadastro atual
   //se houver atribui tru para a variável _existeCadastro
     QuerySnapshot eventsQuery = await ref

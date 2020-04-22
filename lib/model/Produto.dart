@@ -4,7 +4,6 @@ class Produto{
 
   //ID do documento no firebase
   String id;
-  String categoria;
 
   Map<String, dynamic> dadosProduto = Map();
 
@@ -42,22 +41,18 @@ class Produto{
     };
   }
 
-  Future<Null> salvarProduto(Map<String, dynamic> dadosProduto, String categoria) async {
+  Future<Null> salvarProduto(Map<String, dynamic> dadosProduto) async {
     this.dadosProduto = dadosProduto;
     await Firestore.instance
         .collection("produtos")
-        .document(categoria)
-        .collection("itens")
         .document()
         .setData(dadosProduto);
   }
 
-  Future<Null> editarProduto(Map<String, dynamic> dadosProduto, String idFirebase, String categoria) async {
+  Future<Null> editarProduto(Map<String, dynamic> dadosProduto, String idFirebase) async {
     this.dadosProduto = dadosProduto;
     await Firestore.instance
         .collection("produtos")
-        .document(categoria)
-        .collection("itens")
         .document(idFirebase)
         .setData(dadosProduto);
   }

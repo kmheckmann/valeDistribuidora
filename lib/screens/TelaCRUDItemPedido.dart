@@ -61,8 +61,11 @@ class _TelaCRUDItemPedidoState extends State<TelaCRUDItemPedido> {
         child: Icon(Icons.save),
         backgroundColor: Colors.blue,
         onPressed: (){
+          _obterProdutoDropDow();
           if(_validadorCampos.currentState.validate()){
             if(_dropdownValueProduto != null){
+              print(produto.id);
+              print(produto.descricao);
               Map<String, dynamic> mapa = itemPedido.converterParaMapa();
               if(_novocadastro){
                 itemPedido.salvarItemPedido(mapa, pedidoVenda.id);
@@ -118,7 +121,7 @@ class _TelaCRUDItemPedidoState extends State<TelaCRUDItemPedido> {
 
   Widget _criarDropDownProduto(){
    return StreamBuilder<QuerySnapshot>(
-    stream: Firestore.instance.collection("produtos").document("balas180").collection("itens").snapshots(),
+    stream: Firestore.instance.collection("produtos").snapshots(),
     builder: (context, snapshot){
       var length = snapshot.data.documents.length;
       DocumentSnapshot ds = snapshot.data.documents[length - 1];
@@ -127,7 +130,7 @@ class _TelaCRUDItemPedidoState extends State<TelaCRUDItemPedido> {
         child: Row(
           children: <Widget>[
             Container(
-              width: 387.4,
+              width: 336.0,
                 child: DropdownButton(
                   value: _dropdownValueProduto,
                   hint: Text("Selecionar produto"),
@@ -156,7 +159,7 @@ class _TelaCRUDItemPedidoState extends State<TelaCRUDItemPedido> {
   }
 
 Future<Produto> _obterProdutoDropDow() async {
-  CollectionReference ref = Firestore.instance.collection('produtos').document('balas180').collection('itens');
+  CollectionReference ref = Firestore.instance.collection('produtos');
   print(_dropdownValueProduto);
   QuerySnapshot eventsQuery = await ref
     .where("descricao", isEqualTo: _dropdownValueProduto)
@@ -164,8 +167,8 @@ Future<Produto> _obterProdutoDropDow() async {
     print(eventsQuery.documents.length);
   eventsQuery.documents.forEach((document) {
   Produto p = Produto.buscarFirebase(document);
-  itemPedido.categoria = p.categoria;
   itemPedido.preco = p.precoVenda;
+  p.id = document.documentID;
   produto = p;
   });
   return produto;
