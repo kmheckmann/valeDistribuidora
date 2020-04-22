@@ -59,7 +59,7 @@ abstract class Pedido{
     .setData(dadosUsuario);
   }
 
-  Future<Null> editarRota(Map<String, dynamic> dadosPedido, Map<String, dynamic> dadosEmpresa, Map<String, dynamic> dadosUsuario, String idFirebase) async {
+  Future<Null> editarPedido(Map<String, dynamic> dadosPedido, Map<String, dynamic> dadosEmpresa, Map<String, dynamic> dadosUsuario, String idFirebase) async {
     this.dadosPedido = dadosPedido;
     this.dadosEmpresa = dadosEmpresa;
     this.dadosUsuario = dadosUsuario;
@@ -94,6 +94,14 @@ abstract class Pedido{
     .then((doc){
       item.id = doc.documentID;
     });
+  }
+
+  void editarItem(ItemPedido item){
+    Firestore.instance.collection("pedidos")
+    .document(id).collection("itens")
+    .document(item.id)
+    .setData(item.converterParaMapa());
+
   }
 
   void removerItem(ItemPedido item){

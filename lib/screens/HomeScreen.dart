@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:tcc_2/screens/TelaCidades.dart';
 import 'package:tcc_2/screens/TelaEmpresas.dart';
 import 'package:tcc_2/screens/TelaPedidos.dart';
+import 'package:tcc_2/screens/TelaProdutos.dart';
 import 'package:tcc_2/screens/TelaUsuario.dart';
 import 'package:tcc_2/screens/TelaRotas.dart';
 import 'package:tcc_2/screens/TelaUsuarios.dart';
-import 'package:tcc_2/tabs/CategoriaTab.dart';
 import 'package:tcc_2/tabs/HomeTab.dart';
 import 'package:tcc_2/widgets/Menu.dart';
 
@@ -67,11 +67,11 @@ class HomeScreen extends StatelessWidget {
         ),
         Scaffold(
           appBar: AppBar(
-            title: Text("Categorias"),
+            title: Text("Produtos"),
             centerTitle: true,
           ),
           drawer: Menu(_pageController),
-          body: CategoriaTab(),
+          body: TelaProdutos(),
         ),
         Scaffold(
           appBar: AppBar(

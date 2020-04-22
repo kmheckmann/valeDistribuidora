@@ -6,32 +6,38 @@ import 'package:tcc_2/screens/TelaCRUDItemPedido.dart';
 
 class TelaItensPedido extends StatefulWidget {
   final PedidoVenda pedidoVenda;
+  final DocumentSnapshot snapshot;
 
-  TelaItensPedido({this.pedidoVenda});
+  TelaItensPedido({this.pedidoVenda, this.snapshot});
   @override
-  _TelaItensPedidoState createState() => _TelaItensPedidoState(pedidoVenda: pedidoVenda);
+  _TelaItensPedidoState createState() => _TelaItensPedidoState(pedidoVenda: pedidoVenda,snapshot: snapshot);
 }
 
 class _TelaItensPedidoState extends State<TelaItensPedido> {
+  final DocumentSnapshot snapshot;
   PedidoVenda pedidoVenda;
-  _TelaItensPedidoState({this.pedidoVenda});
+  _TelaItensPedidoState({this.pedidoVenda, this.snapshot});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text("Itens do Pedido"),
+        centerTitle: true,
+      ),
       floatingActionButton: FloatingActionButton(
           child: Icon(Icons.add),
           backgroundColor: Theme.of(context).primaryColor,
           onPressed: () {
             Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => TelaCRUDItemPedido())
+                MaterialPageRoute(builder: (context) => TelaCRUDItemPedido(pedidoVenda: pedidoVenda,))
             );
           }
       ),
       body: FutureBuilder<QuerySnapshot>(
         //O sistema ira acessar o documento "pedidos" e depois a coleção de itens dos pedidos
           future: Firestore.instance
-              .collection("pedidos").document(pedidoVenda.id).collection("itens").getDocuments(),
+              .collection("pedidos").document(snapshot.documentID).collection("itens").getDocuments(),
           builder: (context, snapshot) {
             //Como os dados serao buscados do firebase, pode ser que demore para obter
             //entao, enquanto os dados nao sao obtidos sera apresentado um circulo na tela
@@ -69,7 +75,7 @@ class _TelaItensPedidoState extends State<TelaItensPedido> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
                       Text(
-                        p.id,
+                        "a",
                         style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: Color.fromARGB(255, 0, 120, 189),
@@ -82,7 +88,7 @@ class _TelaItensPedidoState extends State<TelaItensPedido> {
         ),
       ),
       onTap: (){
-        Navigator.of(contexto).push(MaterialPageRoute(builder: (contexto)=>TelaCRUDItemPedido()));
+        Navigator.of(contexto).push(MaterialPageRoute(builder: (contexto)=>TelaCRUDItemPedido(pedidoVenda: pedidoVenda, itemPedido: p,snapshot: snapshot,)));
       },
     );
   }

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:scoped_model/scoped_model.dart';
 import 'package:tcc_2/acessorios/BotaoMenu.dart';
 import 'package:tcc_2/model/Usuario.dart';
-import 'package:tcc_2/screens/TelaInicial.dart';
 
 class Menu extends StatelessWidget {
 
