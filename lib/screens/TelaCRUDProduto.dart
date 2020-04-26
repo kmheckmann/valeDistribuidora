@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:tcc_2/controller/ProdutoController.dart';
+import 'package:tcc_2/model/Categoria.dart';
 import 'package:tcc_2/model/Produto.dart';
 
 class TelaCRUDProduto extends StatefulWidget {
@@ -17,22 +19,22 @@ class TelaCRUDProduto extends StatefulWidget {
 class _TelaCRUDProdutoState extends State<TelaCRUDProduto> {
   Produto produto;
   final DocumentSnapshot snapshot;
-  final _validadorCampos = GlobalKey<FormState>();
-  bool _existeCadastroCodigo;
-  bool _existeCadastroCodigoBarra;
-  bool _novocadastro;
 
   _TelaCRUDProdutoState(this.produto, this.snapshot);
 
-  Produto _produtoEditado = Produto();
-
-  String _nomeTela;
+  final _validadorCampos = GlobalKey<FormState>();
   final _controllerCodigo = TextEditingController();
   final _controllerDescricao = TextEditingController();
   final _controllerCodBarra = TextEditingController();
   final _controllerPrecoCompra = TextEditingController();
   final _controllerPrecoVenda = TextEditingController();
   final _controllerQtdEstoque = TextEditingController();
+  ProdutoController controllerProduto = ProdutoController();
+  Categoria categoria;
+  bool _existeCadastroCodigo;
+  bool _existeCadastroCodigoBarra;
+  bool _novocadastro;
+  String _nomeTela;
 
   @override
   void initState() {
@@ -67,13 +69,17 @@ class _TelaCRUDProdutoState extends State<TelaCRUDProduto> {
       floatingActionButton: FloatingActionButton(
           child: Icon(Icons.save),
           backgroundColor: Colors.blue,
-          onPressed: () {
+          onPressed: () async{
             if(_validadorCampos.currentState.validate()){
-              Map<String, dynamic> mapa = produto.converterParaMapa();
+              Map<String, dynamic> mapa = controllerProduto.converterParaMapa(produto);
+              Map<String, dynamic> mapaCategoria = Map();
+              mapaCategoria["id"] = categoria.id;
             if(_novocadastro){
-              produto.salvarProduto(mapa);
+              await controllerProduto.obterProxID();
+              produto.id = controllerProduto.proxID;
+              controllerProduto.salvarProduto(mapa, mapaCategoria, produto.id);
             }else{
-              produto.editarProduto(mapa, produto.id);
+              controllerProduto.editarProduto(mapa, mapaCategoria, produto.id);
             }
             Navigator.of(context).pop();
             }

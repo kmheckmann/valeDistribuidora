@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:tcc_2/screens/TelaCategorias.dart';
 import 'package:tcc_2/screens/TelaCidades.dart';
 import 'package:tcc_2/screens/TelaEmpresas.dart';
 import 'package:tcc_2/screens/TelaPedidos.dart';
@@ -97,8 +98,22 @@ class HomeScreen extends StatelessWidget {
           drawer: Menu(_pageController),
           body: TelaUsuarios(),
         ),
-
-
+        Scaffold(
+          appBar: AppBar(
+            title: Text("Consultas"),
+            centerTitle: true,
+          ),
+          drawer: Menu(_pageController),
+          body: Container(),
+        ),
+        Scaffold(
+          appBar: AppBar(
+            title: Text("Categorias"),
+            centerTitle: true,
+          ),
+          drawer: Menu(_pageController),
+          body: TelaCategorias(),
+        ),
       ],
     );
   }
