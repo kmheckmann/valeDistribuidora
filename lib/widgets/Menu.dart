@@ -75,7 +75,7 @@ class Menu extends StatelessWidget {
               BotaoMenu(Icons.add_shopping_cart, "Pedido de Compra", pageController, 8),
               BotaoMenu(Icons.people, "Usuários", pageController, 9),
               BotaoMenu(Icons.assessment, "Consultas", pageController, 10),
-
+              BotaoMenu(Icons.bubble_chart, "Categorias", pageController, 11),
             ],
           )
         ],

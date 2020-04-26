@@ -1,11 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:tcc_2/model/Categoria.dart';
 
 class Produto{
 
   //ID do documento no firebase
   String id;
-
-  Map<String, dynamic> dadosProduto = Map();
 
   int codigo;
   int codBarra;
@@ -14,6 +13,7 @@ class Produto{
   double precoVenda;
   int qtdEstoque;
   bool ativo;
+  Categoria categoria = Categoria();
 
   Produto();
 
@@ -28,33 +28,4 @@ class Produto{
     qtdEstoque = snapshot.data["qtdEstoque"];
     ativo = snapshot.data["ativo"];
   }
-
-  Map<String, dynamic> converterParaMapa(){
-    return{
-     "codigo": codigo,
-     "codBarra": codBarra,
-     "descricao": descricao,
-     "precoCompra": precoCompra,
-     "precoVenda": precoVenda,
-     "qtdEstoque": qtdEstoque,
-     "ativo": ativo
-    };
-  }
-
-  Future<Null> salvarProduto(Map<String, dynamic> dadosProduto) async {
-    this.dadosProduto = dadosProduto;
-    await Firestore.instance
-        .collection("produtos")
-        .document()
-        .setData(dadosProduto);
-  }
-
-  Future<Null> editarProduto(Map<String, dynamic> dadosProduto, String idFirebase) async {
-    this.dadosProduto = dadosProduto;
-    await Firestore.instance
-        .collection("produtos")
-        .document(idFirebase)
-        .setData(dadosProduto);
-  }
-
 }
