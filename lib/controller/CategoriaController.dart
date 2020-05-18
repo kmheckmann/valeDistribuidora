@@ -6,6 +6,7 @@ class CategoriaController {
   bool existeCadastro;
   String proxID;
   CategoriaController();
+  Categoria categoria = Categoria();
 
   Map<String, dynamic> dadosCategoria = Map();
 
@@ -68,4 +69,17 @@ class CategoriaController {
       existeCadastro = false;
     }
   }
+
+  Future<Null> obterCategoriaPorDescricao(String descricao) async {
+  CollectionReference ref = Firestore.instance.collection("categorias");
+  QuerySnapshot eventsQuery = await ref
+    .where("descricao", isEqualTo: descricao)
+    .getDocuments();
+
+  eventsQuery.documents.forEach((document) {
+  Categoria c = Categoria.buscarFirebase(document);
+  c.id = document.documentID;
+  categoria = c;
+  });
+}
 }
