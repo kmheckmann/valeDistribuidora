@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'package:flutter/material.dart';
+import 'package:tcc_2/controller/EmpresaController.dart';
 import 'package:tcc_2/model/Cidade.dart';
 import 'package:tcc_2/model/Empresa.dart';
 
@@ -20,15 +20,16 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
   Empresa empresa;
   final DocumentSnapshot snapshot;
   bool _novocadastro;
-  List cidades = [];
 
   _TelaCRUDEmpresaState(this.empresa, this.snapshot);
 
   String _nomeTela;
   Cidade cidade = Cidade();
+  EmpresaController _controllerEmpresa = EmpresaController();
   String _dropdownValue;
   bool _existeCadastroIE;
   bool _existeCadastroCNPJ;
+  Stream<QuerySnapshot> _streamCidade;
 
   final _scaffold = GlobalKey<ScaffoldState>();
   final _validadorCampos = GlobalKey<FormState>();
@@ -48,6 +49,7 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
     super.initState();
     _existeCadastroIE = false;
     _existeCadastroCNPJ = false;
+    _streamCidade = Firestore.instance.collection('cidades').snapshots();
     if (empresa != null) {
       _nomeTela = "Editar Empresa";
       _controllerRazaoSocial.text = empresa.razaoSocial;
@@ -82,17 +84,20 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
       floatingActionButton: FloatingActionButton(
           child: Icon(Icons.save),
           backgroundColor: Colors.blue,
-          onPressed: () {
+          onPressed: () async{
+            _controllerEmpresa.verificarExistenciaEmpresa(empresa);
+            _existeCadastroCNPJ = _controllerEmpresa.existeCadastroCNPJ;           
+            _existeCadastroIE = _controllerEmpresa.existeCadastroIE;
 
             if(_validadorCampos.currentState.validate()){
               if(_dropdownValue != null && empresa.email.contains("@") && empresa.email.contains(".com")){
-                Map<String, dynamic> mapa = empresa.converterParaMapa();
+                Map<String, dynamic> mapa = _controllerEmpresa.converterParaMapa(empresa);
                 Map<String, dynamic> mapaCidade = Map();
                 mapaCidade["id"] = cidade.id;
                 if(_novocadastro){
-                  empresa.salvarEmpresa(mapa, mapaCidade);
+                  _controllerEmpresa.salvarEmpresa(mapa, mapaCidade);
                 }else{
-                  empresa.editarEmpresa(mapa, mapaCidade, empresa.id);
+                  _controllerEmpresa.editarEmpresa(mapa, mapaCidade, empresa.id);
               }
             Navigator.of(context).pop();
             }else{
@@ -153,7 +158,6 @@ Widget _criarCampoRazaoSocial(){
               },
           onChanged: (texto) {
                 empresa.razaoSocial = texto;
-                _verificarExistenciaEmpresa();
           },
         ));
   }
@@ -174,7 +178,6 @@ Widget _criarCampoNomFantasia(){
               },
           onChanged: (texto) {
                 empresa.nomeFantasia = texto;
-                _verificarExistenciaEmpresa();
           },
         ));
   }
@@ -195,7 +198,6 @@ Widget _criarCampoNomFantasia(){
               },
           onChanged: (texto) {
                 empresa.cep = texto;
-                _verificarExistenciaEmpresa();
           },
         ));
   }
@@ -217,7 +219,6 @@ Widget _criarCampoNomFantasia(){
               },
           onChanged: (texto) {
                 empresa.email = texto;
-                _verificarExistenciaEmpresa();
           },
         ));
   }
@@ -238,7 +239,6 @@ Widget _criarCampoNomFantasia(){
               },
           onChanged: (texto) {
                 empresa.numero = int.parse(texto);
-                _verificarExistenciaEmpresa();
           },
         ));
   }
@@ -259,7 +259,6 @@ Widget _criarCampoNomFantasia(){
               },
           onChanged: (texto) {
                 empresa.telefone = texto;
-                _verificarExistenciaEmpresa();
           },
         ));
   }
@@ -280,7 +279,6 @@ Widget _criarCampoNomFantasia(){
               },
           onChanged: (texto) {
                 empresa.bairro = texto;
-                _verificarExistenciaEmpresa();
           },
         ));
   }
@@ -301,7 +299,6 @@ Widget _criarCampoNomFantasia(){
               },
           onChanged: (texto) {
                 empresa.logradouro = texto;
-                _verificarExistenciaEmpresa();
           },
         ));
   }
@@ -323,7 +320,6 @@ Widget _criarCampoCNPJ(){
               },
           onChanged: (texto) {
                 empresa.cnpj = texto;
-                _verificarExistenciaEmpresa();
           },
         ));
   }
@@ -344,7 +340,6 @@ Widget _criarCampoCNPJ(){
               },
           onChanged: (texto) {
                 empresa.inscEstadual = texto;
-                _verificarExistenciaEmpresa();
           },
         ));
   }
@@ -404,7 +399,7 @@ Widget _criarCampoCNPJ(){
 
   Widget _criarDropDownCidade(){
    return StreamBuilder<QuerySnapshot>(
-    stream: Firestore.instance.collection('cidades').snapshots(),
+    stream: _streamCidade,
     builder: (context, snapshot){
       var length = snapshot.data.documents.length;
       DocumentSnapshot ds = snapshot.data.documents[length - 1];
@@ -455,34 +450,5 @@ eventsQuery.documents.forEach((document) {
 
 return cidade;
 }
-
-void _verificarExistenciaEmpresa() async {
-    //Busca todas as empresas cadastradas
-    CollectionReference ref = Firestore.instance.collection("empresas");
-  //Nas empresas cadastradas verifica se existe alguma com o mesmo cnpj e IE do cadastro atual
-  //se houver atribui true para a variável _existeCadastro
-    QuerySnapshot eventsQuery = await ref
-    .where("inscEstadual", isEqualTo: empresa.inscEstadual)
-    .getDocuments();
-    print(eventsQuery.documents.length);
-
-    QuerySnapshot eventsQuery1 = await ref
-    .where("cnpj", isEqualTo: empresa.cnpj)
-    .getDocuments();
-    print("eventsquery1");
-    print(eventsQuery1.documents.length);
-
-    if(eventsQuery.documents.length > 0){
-      _existeCadastroIE = true;
-    }else{
-      _existeCadastroIE = false;
-    }
-
-    if(eventsQuery.documents.length > 0){
-      _existeCadastroCNPJ = true;
-    }else{
-      _existeCadastroCNPJ = false;
-    }
-  }
 
 }
