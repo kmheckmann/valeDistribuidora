@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:tcc_2/controller/ProdutoController.dart';
 import 'package:tcc_2/model/Produto.dart';
 import 'package:tcc_2/screens/TelaCRUDProduto.dart';
 
@@ -79,12 +80,6 @@ class _TelaProdutosState extends State<TelaProdutos> {
                             fontWeight: FontWeight.w500),
                       ),
                       Text(
-                        "Qtde Estoque: ${p.qtdEstoque}",
-                        style: TextStyle(
-                            fontSize: 16.0,
-                            fontWeight: FontWeight.w500),
-                      ),
-                      Text(
                         p.ativo ? "Ativo" : "Inativo",
                         style: TextStyle(
                             fontSize: 16.0,
@@ -96,7 +91,10 @@ class _TelaProdutosState extends State<TelaProdutos> {
           ],
         ),
       ),
-      onTap: (){
+      onTap: () async{
+        ProdutoController _prodController = ProdutoController();
+        await _prodController.obterCategoria(p.id);
+        p.categoria = _prodController.categoria;
         Navigator.of(contexto).push(MaterialPageRoute(builder: (contexto)=>TelaCRUDProduto(produto: p, snapshot: snapshot)));
       },
     );

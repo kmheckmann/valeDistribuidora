@@ -4,8 +4,10 @@ import 'package:tcc_2/model/Produto.dart';
 
 class ProdutoController{
 
-  bool existeCadastro;
+  bool existeCadastroCodigo;
+  bool existeCadastroCodigoBarra;
   String proxID;
+
 
   ProdutoController();
 
@@ -19,9 +21,7 @@ class ProdutoController{
      "codigo": produto.codigo,
      "codBarra": produto.codBarra,
      "descricao": produto.descricao,
-     "precoCompra": produto.precoCompra,
-     "precoVenda": produto.precoVenda,
-     "qtdEstoque": produto.qtdEstoque,
+     "percentLucro": produto.percentualLucro,
      "ativo": produto.ativo
     };
   }
@@ -81,6 +81,7 @@ class ProdutoController{
   }
 
   Future<Null> obterCategoria(String idProduto) async{
+    Categoria c = Categoria();
     //Busca a categoria vinculada ao produto (dentro do produto está salvo somente o ID da categoria)
     CollectionReference ref = Firestore.instance.collection('produtos').document(idProduto).collection('categoria');
     QuerySnapshot obterCategoria = await ref.getDocuments();
@@ -92,12 +93,45 @@ class ProdutoController{
     //Pega o ID da categoria vinculada ao produto e compara com os IDs das categorias cadastradas
     //Se o ID da categoria vinculada ao produto for igual ao ID de uma das categorias cadastradas, atribui as informações dessa categoria a categoria vinculada ao produto
     obterCategoria.documents.forEach((document){
-      categoria.id = document.documentID;
+      c.id = document.data["id"];
       obterDadosCategoria.documents.forEach((document1){
-        if(categoria.id == document1.documentID){
-          categoria = Categoria.buscarFirebase(document1);
+        if(c.id == document1.documentID){
+          c = Categoria.buscarFirebase(document1);
         }
       });
     });
+    this.categoria = c;
+  }
+
+  Future<Null> verificarExistenciaCodigoProduto(int cod) async {
+    //Busca todos os produtos cadastrados
+    CollectionReference ref = Firestore.instance.collection("produtos");
+  //Verifica se existe algum com o mesmo codigo informado no cadastro atual
+  //se houver atribui true para a variável
+    QuerySnapshot eventsQuery = await ref
+    .where("codigo", isEqualTo: cod)
+    .getDocuments();
+
+    if(eventsQuery.documents.length > 0){
+      existeCadastroCodigo = true;
+    }else{
+      existeCadastroCodigo = false;
+    }
+  }
+
+  Future<Null> verificarExistenciaCodigoBarrasProduto(int codBarras) async {
+    //Busca todos os produtos cadastrados
+    CollectionReference ref = Firestore.instance.collection("produtos");
+  //Verifica se existe algum com o mesmo codigo informado no cadastro atual
+  //se houver atribui true para a variável
+    QuerySnapshot eventsQuery = await ref
+    .where("codBarra", isEqualTo: codBarras)
+    .getDocuments();
+
+    if(eventsQuery.documents.length > 0){
+      existeCadastroCodigoBarra = true;
+    }else{
+      existeCadastroCodigoBarra = false;
+    }
   }
 }

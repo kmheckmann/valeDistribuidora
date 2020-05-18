@@ -138,7 +138,7 @@ class _TelaCRUDItemPedidoState extends State<TelaCRUDItemPedido> {
                     _dropdownValueProduto = newValue;
                       _obterProdutoDropDow();
                     setState(() {
-                      _controllerPreco.text = produto.precoVenda.toString();
+                     // _controllerPreco.text = produto.percentualLucro.toString();
                     });
                   },
                   items: snapshot.data.documents.map((DocumentSnapshot document) {
@@ -167,7 +167,7 @@ Future<Produto> _obterProdutoDropDow() async {
     print(eventsQuery.documents.length);
   eventsQuery.documents.forEach((document) {
   Produto p = Produto.buscarFirebase(document);
-  itemPedido.preco = p.precoVenda;
+  itemPedido.preco = p.percentualLucro;
   p.id = document.documentID;
   produto = p;
   });

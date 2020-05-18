@@ -9,9 +9,7 @@ class Produto{
   int codigo;
   int codBarra;
   String descricao;
-  double precoCompra;
-  double precoVenda;
-  int qtdEstoque;
+  double percentualLucro;
   bool ativo;
   Categoria categoria = Categoria();
 
@@ -22,10 +20,7 @@ class Produto{
     descricao = snapshot.data["descricao"];
     codigo = snapshot.data["codigo"];
     codBarra = snapshot.data["codBarra"];
-    //somar o 0.0 no final eh uma alternativa para corrigir um bug quando busca um valor sem casas decimais do firebase
-    precoCompra = snapshot.data["precoCompra"] + 0.0;
-    precoVenda = snapshot.data["precoVenda"] + 0.0;
-    qtdEstoque = snapshot.data["qtdEstoque"];
+    percentualLucro = snapshot.data["percentLucro"];
     ativo = snapshot.data["ativo"];
   }
 }
