@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:tcc_2/controller/CidadeController.dart';
 import 'package:tcc_2/model/Cidade.dart';
 
 class TelaCRUDCidade extends StatefulWidget {
@@ -24,6 +25,7 @@ class _TelaCRUDCidadeState extends State<TelaCRUDCidade> {
   String _dropdownValue;
 
   Cidade cidade;
+  CidadeController _controllerCidade = CidadeController();
   bool _novocadastro;
   String _nomeTela;
   _TelaCRUDCidadeState(this.cidade, this.snapshot);
@@ -57,18 +59,21 @@ class _TelaCRUDCidadeState extends State<TelaCRUDCidade> {
       floatingActionButton: FloatingActionButton(
           child: Icon(Icons.save),
           backgroundColor: Colors.blue,
-          onPressed: () {
+          onPressed: () async{
+            await _controllerCidade.verificarExistenciaCidade(cidade);
+            _existeCadastro = _controllerCidade.existeCadastro;
             //verifica se os campos estão validados antes de salvar
             if(_validadorCampos.currentState.validate()){
               if(_dropdownValue != null){
                 //Ao savar é executada a validação do form é feita, caso exista uma cidade com mesmo nome
               //ou o nome esteja vazio o cadastro não é realizado e é apresentada a mensagem
-              
-                Map<String, dynamic> mapa = cidade.converterParaMapa();
+                Map<String, dynamic> mapa = _controllerCidade.converterParaMapa(cidade);
              if(_novocadastro){
-              cidade.salvarCidade(mapa);
+               await _controllerCidade.obterProxID();
+               cidade.id = _controllerCidade.proxID;
+              _controllerCidade.salvarCidade(mapa, cidade.id);
             }else{
-              cidade.editarCidade(mapa, cidade.id);
+              _controllerCidade.editarCidade(mapa, cidade.id);
             }
             Navigator.of(context).pop();
               }else{
@@ -98,13 +103,12 @@ class _TelaCRUDCidadeState extends State<TelaCRUDCidade> {
               validator: (text) {
                 //no validator consiste se a cidade informada já existe
                 //se existir retorna a mensagem
+                if(_existeCadastro == null) return "Falha ao salvar, tente novamente";
                 if(_existeCadastro) return "Já existe essa cidade, verifique!";
                 if(text.isEmpty) return "Informe o nome da cidade!";
               },
               onChanged: (texto) {
                 cidade.nome = texto;
-                //Cada vez que o campo for editado será verificado se a cidade informada já existe
-                _verificarExistenciaCidade();
               },
             ),
             _criarDropDownEstado(),
@@ -158,9 +162,9 @@ class _TelaCRUDCidadeState extends State<TelaCRUDCidade> {
     hint: Text("Selecionar Estado"),
     onChanged: (String newValue) {
       setState(() {
+        cidade.estado = null;
         _dropdownValue = newValue;
         cidade.estado = _dropdownValue;
-        _verificarExistenciaCidade();
       });
     },
     items: <String>['Acre', 'Alogoas','Amapá','Amazonas','Bahia','Ceará','Distrito Federal',
@@ -178,28 +182,5 @@ class _TelaCRUDCidadeState extends State<TelaCRUDCidade> {
         ],
       ),
     );
-  }
-
-  void _verificarExistenciaCidade() async {
-    //Busca todas as cidades cadastradas
-    CollectionReference ref = Firestore.instance.collection("cidades");
-  //Nas cidades cadastradas verifica se existe alguma com o mesmo nome e estado informados no cadastro atual
-  //se houver atribui true para a variável _existeCadastro
-    QuerySnapshot eventsQuery1 = await ref
-    .where("nome", isEqualTo: cidade.nome)
-    .getDocuments();
-    QuerySnapshot eventsQuery2 = await ref
-    .where("estado", isEqualTo: cidade.estado)
-    .getDocuments();
-    eventsQuery2.documents.forEach((document){
-      print(document.data["nome"]);
-      print(document.data["estado"]);
-      if(document.data["nome"] == cidade.nome && document.data["estado"] == cidade.estado){
-        _existeCadastro = true;
-      }
-      if(document.data["nome"] != cidade.nome || document.data["estado"] != cidade.estado){
-        _existeCadastro = false;
-      }
-    });
   }
 }
