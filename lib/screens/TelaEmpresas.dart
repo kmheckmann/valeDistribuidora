@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:tcc_2/controller/EmpresaController.dart';
 import 'package:tcc_2/model/Empresa.dart';
 import 'package:tcc_2/screens/TelaCRUDEmpresa.dart';
 
@@ -81,7 +82,11 @@ class _TelaEmpresasState extends State<TelaEmpresas> {
           ],
         ),
       ),
-      onTap: (){
+      onTap: ()async {
+        EmpresaController _empresaController = EmpresaController();
+        await _empresaController.obterCidadeEmpresa(e.id);
+        e.cidade = _empresaController.cidade;
+        print(e.cidade.nome);
         Navigator.of(contexto).push(MaterialPageRoute(builder: (contexto)=>TelaCRUDEmpresa(empresa: e,snapshot: snapshot)));
       },
     );

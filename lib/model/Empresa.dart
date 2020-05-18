@@ -1,5 +1,3 @@
-import 'dart:collection';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:tcc_2/model/Cidade.dart';
 
@@ -20,9 +18,6 @@ class Empresa{
   bool ativo;
   bool ehFornecedor;
 
-  Map<String, dynamic> dadosEmpresa = Map();
-  Map<String, dynamic> dadosCidade = Map();
-
   Empresa();
 
   Empresa.buscarFirebase(DocumentSnapshot snapshot) {
@@ -39,81 +34,5 @@ class Empresa{
     email = snapshot.data["email"];
     ehFornecedor = snapshot.data["ehFornecedor"];
     ativo = snapshot.data["ativo"];
-    //Chama o método para atribuir valores da cidade vinculada à empresa.
-    _obterCidadeFirebase(snapshot.documentID);
-  }
-
-//Método para buscar os valores da cidade na subcoleção dentro da empresa
- Future<Cidade> _obterCidadeFirebase(String idEmpresa) async {
-CollectionReference ref = Firestore.instance.collection('empresas').document(idEmpresa).collection('cidade');
-QuerySnapshot obterCidadeDaEmpresa = await ref.getDocuments();
-
-CollectionReference refCidade = Firestore.instance.collection('cidades');
-QuerySnapshot obterDadosCidade = await refCidade.getDocuments();
-
-obterCidadeDaEmpresa.documents.forEach((document) {
-  cidade.id = document.data["id"];
-
-  obterDadosCidade.documents.forEach((document1){
-  if(cidade.id == document1.documentID){
-    cidade.nome = document1.data["nome"];
-    cidade.ativa = document1.data["ativa"];  
-  }
-});
-});
-return cidade;
- }
-
-
-  Map<String, dynamic> converterParaMapa() {
-    return {
-      "razaoSocial": razaoSocial,
-      "nomeFantasia": nomeFantasia,
-      "cnpj": cnpj,
-      "inscEstadual": inscEstadual,
-      "cep": cep,
-      "bairro": bairro,
-      "logradouro": logradouro,
-      "numero": numero,
-      "telefone": telefone,
-      "email": email,
-      "ativo": ativo,
-      "ehFornecedor": ehFornecedor
-    };
-  }
-
-  Future<Null> salvarEmpresa(Map<String, dynamic> dadosEmpresa, Map<String, dynamic> dadosCidade) async {
-    this.dadosEmpresa = dadosEmpresa;
-    this.dadosCidade = dadosCidade;
-    print(dadosCidade["id"]);
-    await Firestore.instance
-        .collection("empresas")
-        .document(dadosEmpresa["cnpj"])
-        .setData(dadosEmpresa);
-
-    await Firestore.instance
-    .collection("empresas")
-    .document(dadosEmpresa["cnpj"])
-    .collection("cidade")
-    .document("IDcidade")
-    .setData(dadosCidade);
-  }
-
-  Future<Null> editarEmpresa(
-      Map<String, dynamic> dadosEmpresa, Map<String, dynamic> dadosCidade, 
-      String idFirebase) async {
-    this.dadosEmpresa = dadosEmpresa;
-    this.dadosCidade = dadosCidade;
-    await Firestore.instance
-        .collection("empresas")
-        .document(idFirebase)
-        .setData(dadosEmpresa);
-
-    await Firestore.instance
-        .collection("empresas")
-        .document(idFirebase)
-        .collection("cidade")
-        .document("IDcidade")
-        .setData(dadosCidade);
   }
 }
