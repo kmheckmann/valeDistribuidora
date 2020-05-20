@@ -111,4 +111,18 @@ Future<Null> obterCidadeEmpresa(String idEmpresa) async {
       existeCadastroCNPJ = false;
     }
   }
+
+  Future<Null> obterEmpresaPorDescricao(String nomeEmpresa) async {
+  CollectionReference ref = Firestore.instance.collection('empresas');
+  QuerySnapshot eventsQuery = await ref
+    .where("nomeFantasia", isEqualTo: nomeEmpresa)
+    .getDocuments();
+
+  eventsQuery.documents.forEach((document) {
+  Empresa e = Empresa.buscarFirebase(document);
+  e.id = document.documentID;
+  empresa = e;
+  });
+
+}
 }

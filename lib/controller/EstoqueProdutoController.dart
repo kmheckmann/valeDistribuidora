@@ -15,7 +15,7 @@ class EstoqueProdutoController{
     };
   }
 
-    Future<Null> salvarProduto(Map<String, dynamic> dadosEstoqueProduto, String idProduto, String idEstoque) async {
+    Future<Null> salvarEstoqueProduto(Map<String, dynamic> dadosEstoqueProduto, String idProduto, String idEstoque) async {
     this.dadosEstoqueProduto = dadosEstoqueProduto;
     await Firestore.instance
         .collection("produtos")

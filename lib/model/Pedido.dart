@@ -1,9 +1,10 @@
+import 'package:scoped_model/scoped_model.dart';
 import 'package:tcc_2/model/Empresa.dart';
 import 'package:tcc_2/model/ItemPedido.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:tcc_2/model/Usuario.dart';
 
-abstract class Pedido{
+abstract class Pedido extends Model{
 
   String id;
   //A empresa será o cliente em pedidos de venda e o fornecedor em pedidos de compra
@@ -33,27 +34,25 @@ abstract class Pedido{
     };
   }
 
-  Future<Null> salvarPedido(Map<String, dynamic> dadosPedido, Map<String, dynamic> dadosEmpresa, Map<String, dynamic> dadosUsuario) async {
+  Future<Null> salvarPedido(Map<String, dynamic> dadosPedido, Map<String, dynamic> dadosEmpresa, Map<String, dynamic> dadosUsuario, String idPedido) async {
     this.dadosPedido = dadosPedido;
     this.dadosEmpresa = dadosEmpresa;
     this.dadosUsuario = dadosUsuario;
     await Firestore.instance
         .collection("pedidos")
-        .add(dadosPedido)
-        .then((doc){
-          this.id = doc.documentID;
-        });
+        .document(idPedido)
+        .setData(dadosPedido);
 
     await Firestore.instance
     .collection("pedidos")
-    .document(id)
+    .document(idPedido)
     .collection("cliente")
     .document("IDcliente")
     .setData(dadosEmpresa);
 
     await Firestore.instance
     .collection("pedidos")
-    .document(id)
+    .document(idPedido)
     .collection("vendedor")
     .document("IDvendedor")
     .setData(dadosUsuario);
@@ -83,24 +82,22 @@ abstract class Pedido{
         .setData(dadosUsuario);
   }
 
-  void adicionarItem(ItemPedido item){
+  void adicionarItem(ItemPedido item, String idPedido, String idProduto){
     itens.add(item);
 
-//Salva o item no firebase e após salvar pega o id gerado automaticamente e atribui ao item
     Firestore.instance.collection("pedidos")
-    .document(id)
+    .document(idPedido)
     .collection("itens")
-    .add(item.converterParaMapa())
-    .then((doc){
-      item.id = doc.documentID;
-    });
+    .document(item.id)
+    .setData(item.converterParaMapa(idProduto));
   }
 
-  void editarItem(ItemPedido item){
+  void editarItem(ItemPedido item, String idPedido, String idProduto){
     Firestore.instance.collection("pedidos")
-    .document(id).collection("itens")
+    .document(idPedido)
+    .collection("itens")
     .document(item.id)
-    .setData(item.converterParaMapa());
+    .setData(item.converterParaMapa(idProduto));
 
   }
 
