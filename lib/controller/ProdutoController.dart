@@ -7,6 +7,7 @@ class ProdutoController{
   bool existeCadastroCodigo;
   bool existeCadastroCodigoBarra;
   String proxID;
+  Produto produto = Produto();
 
 
   ProdutoController();
@@ -134,4 +135,15 @@ class ProdutoController{
       existeCadastroCodigoBarra = false;
     }
   }
+
+  Future<Null> obterProdutoPorDescricao(String descricao) async {
+  CollectionReference ref = Firestore.instance.collection('produtos');
+  QuerySnapshot eventsQuery = await ref
+    .where("descricao", isEqualTo: descricao)
+    .getDocuments();
+  eventsQuery.documents.forEach((document) {
+  Produto p = Produto.buscarFirebase(document);
+  produto = p;
+  });
+}
 }

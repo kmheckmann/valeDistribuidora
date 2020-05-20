@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:tcc_2/model/PedidoCompra.dart';
 import 'package:tcc_2/model/PedidoVenda.dart';
 import 'package:tcc_2/model/Produto.dart';
 
@@ -7,30 +8,33 @@ class ItemPedido{
   String id;
   Produto produto;
   PedidoVenda pedidoVenda;
+  PedidoCompra pedidoCompra;
   String categoria;
   int quantidade;
   double preco;
+  String labelListaProdutos;
 
   Map<String, dynamic> dadosItemPedido = Map();
 
-  ItemPedido(PedidoVenda p){
-    pedidoVenda = p;
+  ItemPedido(PedidoCompra p){
+    pedidoCompra = p;
   }
 
   ItemPedido.buscarFirebase(DocumentSnapshot document){
     id = document.documentID;
-    categoria = document.data["categoria"];
+    labelListaProdutos = document.data["label"];
     quantidade = document.data["quantidade"];
     preco = document.data["preco"];
-    _obterPedido(pedidoVenda.id);
-    _obterProduto(pedidoVenda.id);
+    //_obterPedido(pedidoVenda.id);
+    //_obterProduto(pedidoVenda.id);
   }
 
-  Map<String, dynamic> converterParaMapa() {
+  Map<String, dynamic> converterParaMapa(String idProduto) {
     return {
-      "categoria": categoria,
+      "id": idProduto,
       "quantidade": quantidade,
-      "preco": preco
+      "preco": preco,
+      "label": labelListaProdutos
     };
   }
 

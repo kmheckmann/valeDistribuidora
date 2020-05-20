@@ -3,6 +3,7 @@ import 'package:tcc_2/screens/TelaCategorias.dart';
 import 'package:tcc_2/screens/TelaCidades.dart';
 import 'package:tcc_2/screens/TelaEmpresas.dart';
 import 'package:tcc_2/screens/TelaPedidos.dart';
+import 'package:tcc_2/screens/TelaPedidosCompra.dart';
 import 'package:tcc_2/screens/TelaProdutos.dart';
 import 'package:tcc_2/screens/TelaUsuario.dart';
 import 'package:tcc_2/screens/TelaRotas.dart';
@@ -84,11 +85,11 @@ class HomeScreen extends StatelessWidget {
         ),
         Scaffold(
           appBar: AppBar(
-            title: Text("Categorias"),
+            title: Text("Pedidos Compra"),
             centerTitle: true,
           ),
           drawer: Menu(_pageController),
-          body: Container(),
+          body: TelaPedidosCompra(),
         ),
         Scaffold(
           appBar: AppBar(

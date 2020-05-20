@@ -1,41 +1,54 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:tcc_2/controller/ItemPedidoController.dart';
+import 'package:tcc_2/controller/PedidoController.dart';
+import 'package:tcc_2/controller/ProdutoController.dart';
 import 'package:tcc_2/model/ItemPedido.dart';
-import 'package:tcc_2/model/PedidoVenda.dart';
+import 'package:tcc_2/model/PedidoCompra.dart';
 import 'package:tcc_2/model/Produto.dart';
+import 'package:tcc_2/screens/TelaItensPedidoCompra.dart';
 
-class TelaCRUDItemPedido extends StatefulWidget {
-  final PedidoVenda pedidoVenda;
+class TelaCRUDItemPedidoCompra extends StatefulWidget {
+  final PedidoCompra pedidoCompra;
   final ItemPedido itemPedido;
   final DocumentSnapshot snapshot;
 
-  TelaCRUDItemPedido({this.pedidoVenda, this.itemPedido, this.snapshot});
+  TelaCRUDItemPedidoCompra({this.pedidoCompra, this.itemPedido, this.snapshot});
 
   @override
-  _TelaCRUDItemPedidoState createState() => _TelaCRUDItemPedidoState(pedidoVenda, itemPedido, snapshot);
+  _TelaCRUDItemPedidoCompraState createState() => _TelaCRUDItemPedidoCompraState(snapshot: snapshot, pedidoCompra: pedidoCompra, itemPedido: itemPedido);
 }
 
-class _TelaCRUDItemPedidoState extends State<TelaCRUDItemPedido> {
+class _TelaCRUDItemPedidoCompraState extends State<TelaCRUDItemPedidoCompra> {
   final DocumentSnapshot snapshot;
+  PedidoCompra pedidoCompra;
   ItemPedido itemPedido;
-  PedidoVenda pedidoVenda;
+
+  _TelaCRUDItemPedidoCompraState({this.snapshot, this.pedidoCompra, this.itemPedido});
+
   String _dropdownValueProduto;
+  double vlItemAntigo;
   final _controllerPreco = TextEditingController();
   final _controllerQtde = TextEditingController();
   bool _novocadastro;
   String _nomeTela;
   Produto produto = Produto();
-
-  _TelaCRUDItemPedidoState(this.pedidoVenda, this.itemPedido, this.snapshot);
+  Stream<QuerySnapshot> _produtos;
 
   final _validadorCampos = GlobalKey<FormState>();
   final _scaffold = GlobalKey<ScaffoldState>();
 
+  ProdutoController _controllerProduto = ProdutoController();
+  ItemPedidoController _controllerItemPedido = ItemPedidoController();
+  PedidoController _controllerPedido = PedidoController();
+
   @override
   void initState() {
     super.initState();
+    _produtos = Firestore.instance.collection("produtos").snapshots();
     if (itemPedido != null) {
       _nomeTela = "Editar Produto";
+      vlItemAntigo = itemPedido.preco;
       _dropdownValueProduto = itemPedido.produto.descricao;
       _controllerPreco.text = itemPedido.preco.toString();
       _controllerQtde.text = itemPedido.quantidade.toString();
@@ -43,8 +56,7 @@ class _TelaCRUDItemPedidoState extends State<TelaCRUDItemPedido> {
       
     } else {
       _nomeTela = "Novo Produto";
-      print(pedidoVenda.id);
-      //itemPedido = ItemPedido(pedidoVenda);
+      itemPedido = ItemPedido(pedidoCompra);
       _novocadastro = true;
     }
   }
@@ -60,25 +72,33 @@ class _TelaCRUDItemPedidoState extends State<TelaCRUDItemPedido> {
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.save),
         backgroundColor: Colors.blue,
-        onPressed: (){
-          _obterProdutoDropDow();
+        onPressed: () async{
+          await _controllerProduto.obterProdutoPorDescricao(_dropdownValueProduto);
+          produto = _controllerProduto.produto;
+          
           if(_validadorCampos.currentState.validate()){
             if(_dropdownValueProduto != null){
-              print(produto.id);
-              print(produto.descricao);
-              //Map<String, dynamic> mapa = itemPedido.converterParaMapa();
               if(_novocadastro){
-                //itemPedido.salvarItemPedido(mapa, pedidoVenda.id);
+                await _controllerItemPedido.obterProxID(pedidoCompra.id);
+                itemPedido.id = _controllerItemPedido.proxID;
+                _controllerPedido.somarPrecoNoVlTotal(pedidoCompra, itemPedido);
+                pedidoCompra.valorTotal = _controllerPedido.pedidoCompra.valorTotal;
+                pedidoCompra.valorComDesconto = _controllerPedido.pedidoCompra.valorComDesconto;
+                _controllerPedido.adicionarItem(itemPedido, pedidoCompra.id, produto.id, _controllerPedido.converterParaMapa(pedidoCompra));
               }else{
-                //itemPedido.editarItemPedido(mapa, pedidoVenda.id, itemPedido.id);
+                _controllerPedido.atualizarPrecoNoVlTotal(vlItemAntigo, pedidoCompra, itemPedido);
+                pedidoCompra.valorTotal = _controllerPedido.pedidoCompra.valorTotal;
+                pedidoCompra.valorComDesconto = _controllerPedido.pedidoCompra.valorComDesconto;
+                _controllerPedido.editarItem(itemPedido, pedidoCompra.id, produto.id, _controllerPedido.converterParaMapa(pedidoCompra));
               }
-              Navigator.of(context).pop(pedidoVenda);
-            }
-            _scaffold.currentState.showSnackBar(
+              Navigator.of(context).pop(MaterialPageRoute(builder: (contexto)=>TelaItensPedidoCompra(pedidoCompra: pedidoCompra)));
+            }else{
+              _scaffold.currentState.showSnackBar(
                 SnackBar(content: Text("É necessário selecionar um produto!"),
                 backgroundColor: Colors.red,
                 duration: Duration(seconds: 5),)
               );
+            }
           }
         }),
         body: Form(
@@ -121,7 +141,7 @@ class _TelaCRUDItemPedidoState extends State<TelaCRUDItemPedido> {
 
   Widget _criarDropDownProduto(){
    return StreamBuilder<QuerySnapshot>(
-    stream: Firestore.instance.collection("produtos").snapshots(),
+    stream: _produtos,
     builder: (context, snapshot){
       var length = snapshot.data.documents.length;
       DocumentSnapshot ds = snapshot.data.documents[length - 1];
@@ -135,10 +155,9 @@ class _TelaCRUDItemPedidoState extends State<TelaCRUDItemPedido> {
                   value: _dropdownValueProduto,
                   hint: Text("Selecionar produto"),
                   onChanged: (String newValue) {
-                    _dropdownValueProduto = newValue;
-                      _obterProdutoDropDow();
                     setState(() {
-                     // _controllerPreco.text = produto.percentualLucro.toString();
+                      _dropdownValueProduto = newValue;
+                      itemPedido.labelListaProdutos = _dropdownValueProduto;
                     });
                   },
                   items: snapshot.data.documents.map((DocumentSnapshot document) {
@@ -158,19 +177,4 @@ class _TelaCRUDItemPedidoState extends State<TelaCRUDItemPedido> {
 );
   }
 
-Future<Produto> _obterProdutoDropDow() async {
-  CollectionReference ref = Firestore.instance.collection('produtos');
-  print(_dropdownValueProduto);
-  QuerySnapshot eventsQuery = await ref
-    .where("descricao", isEqualTo: _dropdownValueProduto)
-    .getDocuments();
-    print(eventsQuery.documents.length);
-  eventsQuery.documents.forEach((document) {
-  Produto p = Produto.buscarFirebase(document);
-  itemPedido.preco = p.percentualLucro;
-  p.id = document.documentID;
-  produto = p;
-  });
-  return produto;
-}
-}
+  }
