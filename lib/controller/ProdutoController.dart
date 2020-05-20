@@ -146,5 +146,4 @@ class ProdutoController{
   produto = p;
   });
 }
-
 }

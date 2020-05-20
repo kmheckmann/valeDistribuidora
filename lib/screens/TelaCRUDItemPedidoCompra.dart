@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:tcc_2/controller/ItemPedidoController.dart';
+import 'package:tcc_2/controller/PedidoController.dart';
 import 'package:tcc_2/controller/ProdutoController.dart';
 import 'package:tcc_2/model/ItemPedido.dart';
 import 'package:tcc_2/model/PedidoCompra.dart';
@@ -38,6 +39,7 @@ class _TelaCRUDItemPedidoCompraState extends State<TelaCRUDItemPedidoCompra> {
 
   ProdutoController _controllerProduto = ProdutoController();
   ItemPedidoController _controllerItemPedido = ItemPedidoController();
+  PedidoController _controllerPedido = PedidoController();
 
   @override
   void initState() {
@@ -79,11 +81,11 @@ class _TelaCRUDItemPedidoCompraState extends State<TelaCRUDItemPedidoCompra> {
               if(_novocadastro){
                 await _controllerItemPedido.obterProxID(pedidoCompra.id);
                 itemPedido.id = _controllerItemPedido.proxID;
-                pedidoCompra.adicionarItem(itemPedido, pedidoCompra.id, produto.id);
+                _controllerPedido.adicionarItem(itemPedido, pedidoCompra.id, produto.id);
               }else{
-                pedidoCompra.editarItem(itemPedido, pedidoCompra.id, produto.id);
+                _controllerPedido.editarItem(itemPedido, pedidoCompra.id, produto.id);
               }
-              Navigator.of(context).push(MaterialPageRoute(builder: (contexto)=>TelaItensPedidoCompra(pedidoCompra: pedidoCompra)));
+              Navigator.of(context).pop(MaterialPageRoute(builder: (contexto)=>TelaItensPedidoCompra(pedidoCompra: pedidoCompra)));
             }
             _scaffold.currentState.showSnackBar(
                 SnackBar(content: Text("É necessário selecionar um produto!"),
@@ -148,6 +150,7 @@ class _TelaCRUDItemPedidoCompraState extends State<TelaCRUDItemPedidoCompra> {
                   onChanged: (String newValue) {
                     setState(() {
                       _dropdownValueProduto = newValue;
+                      itemPedido.labelListaProdutos = _dropdownValueProduto;
                     });
                   },
                   items: snapshot.data.documents.map((DocumentSnapshot document) {

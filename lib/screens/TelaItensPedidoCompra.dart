@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:tcc_2/controller/ItemPedidoController.dart';
+import 'package:tcc_2/controller/ProdutoController.dart';
 import 'package:tcc_2/model/ItemPedido.dart';
 import 'package:tcc_2/model/Pedido.dart';
 import 'package:tcc_2/model/PedidoCompra.dart';
@@ -21,16 +23,11 @@ class _TelaItensPedidoCompraState extends State<TelaItensPedidoCompra> {
   final DocumentSnapshot snapshot;
   ItemPedido itemPedido;
   PedidoCompra pedidoCompra;
-
-  @override
-  void initState() {
-    super.initState();
-    print(pedidoCompra.id);
-  }
+  ItemPedidoController _controller = ItemPedidoController();
 
   _TelaItensPedidoCompraState(this.snapshot, this.pedidoCompra, this.itemPedido);
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context){
     return Scaffold(
       appBar: AppBar(
         title: Text("Itens do Pedido"),
@@ -49,7 +46,7 @@ class _TelaItensPedidoCompraState extends State<TelaItensPedidoCompra> {
         //O sistema ira acessar o documento "pedidos" e depois a coleção de itens dos pedidos
           future: Firestore.instance
               .collection("pedidos").document(pedidoCompra.id).collection("itens").getDocuments(),
-          builder: (context, snapshot) {
+          builder: (context, snapshot){
             //Como os dados serao buscados do firebase, pode ser que demore para obter
             //entao, enquanto os dados nao sao obtidos sera apresentado um circulo na tela
             //indicando que esta carregando
@@ -63,8 +60,10 @@ class _TelaItensPedidoCompraState extends State<TelaItensPedidoCompra> {
                   //Pega a quantidade de cidades
                   itemCount: snapshot.data.documents.length,
                   //Ira pegar cada cidade no firebase e retornar
-                  itemBuilder: (context, index) {
+                  itemBuilder: (context, index){
+                    _controller.obterProduto(pedidoCompra.id);
                     ItemPedido itemPedido = ItemPedido.buscarFirebase(snapshot.data.documents[index]);
+                    itemPedido.produto = _controller.produto;
                     return _construirListaPedidos(context, itemPedido, snapshot.data.documents[index]);
                   });
           }),
@@ -86,11 +85,23 @@ class _TelaItensPedidoCompraState extends State<TelaItensPedidoCompra> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
                       Text(
-                        "a",
+                        snapshot.data["label"],
                         style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: Color.fromARGB(255, 0, 120, 189),
                             fontSize: 20.0),
+                      ),
+                      Text(
+                        "Preço: ${snapshot.data["preco"]}",
+                        style: TextStyle(
+                            fontSize: 16.0,
+                            fontWeight: FontWeight.w500),
+                      ),
+                      Text(
+                        "Qtde: ${snapshot.data["quantidade"]}",
+                        style: TextStyle(
+                            fontSize: 16.0,
+                            fontWeight: FontWeight.w500),
                       ),
                     ],
                   ),
@@ -98,7 +109,9 @@ class _TelaItensPedidoCompraState extends State<TelaItensPedidoCompra> {
           ],
         ),
       ),
-      onTap: (){
+      onTap: () async{
+        await _controller.obterProduto(pedidoCompra.id);
+        p.produto = _controller.produto;
         Navigator.of(contexto).push(MaterialPageRoute(builder: (contexto)=>TelaCRUDItemPedidoCompra(pedidoCompra: pedidoCompra, itemPedido: p,snapshot: snapshot,)));
       },
     );

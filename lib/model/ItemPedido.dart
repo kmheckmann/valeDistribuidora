@@ -12,6 +12,7 @@ class ItemPedido{
   String categoria;
   int quantidade;
   double preco;
+  String labelListaProdutos;
 
   Map<String, dynamic> dadosItemPedido = Map();
 
@@ -21,6 +22,7 @@ class ItemPedido{
 
   ItemPedido.buscarFirebase(DocumentSnapshot document){
     id = document.documentID;
+    labelListaProdutos = document.data["label"];
     quantidade = document.data["quantidade"];
     preco = document.data["preco"];
     //_obterPedido(pedidoVenda.id);
@@ -31,7 +33,8 @@ class ItemPedido{
     return {
       "id": idProduto,
       "quantidade": quantidade,
-      "preco": preco
+      "preco": preco,
+      "label": labelListaProdutos
     };
   }
 

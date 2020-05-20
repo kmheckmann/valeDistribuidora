@@ -96,7 +96,7 @@ class _TelaCRUDPedidoCompraState extends State<TelaCRUDPedidoCompra> {
           if(_dropdownValueTipoPgto != null &&
              _dropdownValueCliente != null){
                
-               Map<String, dynamic> mapa = pedidoCompra.converterParaMapa();
+               Map<String, dynamic> mapa = _controllerPedido.converterParaMapa(pedidoCompra);
                print(vendedor.id);
                Map<String, dynamic> mapaVendedor = Map();
                 mapaVendedor["id"] = vendedor.id;
@@ -106,9 +106,9 @@ class _TelaCRUDPedidoCompraState extends State<TelaCRUDPedidoCompra> {
                 if(_novocadastro){
                   await _controllerPedido.obterProxID();
                   pedidoCompra.id = _controllerPedido.proxID;
-                    pedidoCompra.salvarPedido(mapa, mapaEmpresa, mapaVendedor, pedidoCompra.id);
+                    _controllerPedido.salvarPedido(mapa, mapaEmpresa, mapaVendedor, pedidoCompra.id);
                   }else{
-                    pedidoCompra.editarPedido(mapa, mapaEmpresa, mapaVendedor, pedidoCompra.id);
+                    _controllerPedido.editarPedido(mapa, mapaEmpresa, mapaVendedor, pedidoCompra.id);
                   }
                   Navigator.of(context).push(MaterialPageRoute(builder: (contexto)=>TelaItensPedidoCompra(pedidoCompra: pedidoCompra, snapshot: snapshot,)));
              }else{
@@ -139,7 +139,7 @@ class _TelaCRUDPedidoCompraState extends State<TelaCRUDPedidoCompra> {
               style: TextStyle(color: Colors.black, fontSize: 17.0),
               onChanged:(texto){
                 pedidoCompra.percentualDesconto = double.parse(texto);
-                pedidoCompra.calcularDesconto();
+                _controllerPedido.calcularDesconto(pedidoCompra);
                 setState(() {
                   _controllerVlTotal.text = pedidoCompra.valorTotal.toString();
                 });               

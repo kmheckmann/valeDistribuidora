@@ -13,7 +13,5 @@ class PedidoCompra extends Pedido{
     ehPedidoVenda = snapshot.data["ehPedidoVenda"];
     dataPedido = snapshot.data["dataPedido"];
     pedidoFinalizado = snapshot.data["pedidoFinalizado"];
-    obterEmpresa(snapshot.documentID);
-    obterUsuario(snapshot.documentID);
   }
 }

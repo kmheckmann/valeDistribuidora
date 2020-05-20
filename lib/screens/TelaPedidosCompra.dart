@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:scoped_model/scoped_model.dart';
+import 'package:tcc_2/controller/PedidoController.dart';
 import 'package:tcc_2/model/PedidoCompra.dart';
 import 'package:tcc_2/model/Usuario.dart';
 import 'package:tcc_2/screens/TelaCRUDPedidoCompra.dart';
@@ -97,7 +98,10 @@ Usuario u = Usuario();
           ],
         ),
       ),
-      onTap: (){
+      onTap: () async{
+        PedidoController _controller = PedidoController();
+        await _controller.obterEmpresa(p.id);
+        p.empresa = _controller.empresa;
         Navigator.of(contexto).push(MaterialPageRoute(builder: (contexto)=>TelaCRUDPedidoCompra(pedidoCompra: p,snapshot: snapshot, vendedor: u)));
       },
     );

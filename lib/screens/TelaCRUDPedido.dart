@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:tcc_2/controller/PedidoController.dart';
 import 'package:tcc_2/model/Empresa.dart';
 import 'package:tcc_2/model/PedidoVenda.dart';
 import 'package:tcc_2/model/Usuario.dart';
@@ -34,6 +35,7 @@ class _TelaCRUDPedidoState extends State<TelaCRUDPedido> {
   final _controllerIdPedido = TextEditingController();
   final _controllerPercentDesc = TextEditingController();
   final _controllerVendedor = TextEditingController();
+  PedidoController _pedidoController = PedidoController();
   bool _novocadastro;
   String _nomeTela;
   Empresa empresa = Empresa();
@@ -102,7 +104,7 @@ class _TelaCRUDPedidoState extends State<TelaCRUDPedido> {
                     print("pedido venda:");
                   print(pedidoVenda.id);
                   }else{
-                    pedidoVenda.editarPedido(mapa, mapaEmpresa, mapaVendedor, pedidoVenda.id);
+                    _pedidoController.editarPedido(mapa, mapaEmpresa, mapaVendedor, pedidoVenda.id);
                   }
                   print("pedido venda:");
                   print(pedidoVenda.id);
@@ -136,7 +138,7 @@ class _TelaCRUDPedidoState extends State<TelaCRUDPedido> {
               style: TextStyle(color: Colors.black, fontSize: 17.0),
               onChanged:(texto){
                 pedidoVenda.percentualDesconto = double.parse(texto);
-                pedidoVenda.calcularDesconto();
+                _pedidoController.calcularDesconto(pedidoVenda);
                 setState(() {
                   _controllerVlTotal.text = pedidoVenda.valorTotal.toString();
                 });               
