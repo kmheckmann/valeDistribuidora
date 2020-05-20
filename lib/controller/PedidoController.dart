@@ -52,6 +52,8 @@ class PedidoController{
       "ehPedidoVenda": p.ehPedidoVenda,
       "dataPedido": p.dataPedido,
       "pedidoFinalizado": p.pedidoFinalizado,
+      "label": p.labelTelaPedidos,
+      "valorComDesconto": p.valorComDesconto
     };
   }
 
@@ -103,7 +105,8 @@ class PedidoController{
         .setData(dadosUsuario);
   }
 
-  void adicionarItem(ItemPedido item, String idPedido, String idProduto){
+  void adicionarItem(ItemPedido item, String idPedido, String idProduto, Map<String, dynamic> dadosPedido){
+    this.dadosPedido = dadosPedido;
     itens.add(item);
 
     Firestore.instance.collection("pedidos")
@@ -111,14 +114,25 @@ class PedidoController{
     .collection("itens")
     .document(item.id)
     .setData(item.converterParaMapa(idProduto));
+
+    Firestore.instance
+    .collection("pedidos")
+    .document(idPedido)
+    .setData(dadosPedido);
   }
 
-  void editarItem(ItemPedido item, String idPedido, String idProduto){
+  void editarItem(ItemPedido item, String idPedido, String idProduto, Map<String, dynamic> dadosPedido){
+    this.dadosPedido = dadosPedido;
     Firestore.instance.collection("pedidos")
     .document(idPedido)
     .collection("itens")
     .document(item.id)
     .setData(item.converterParaMapa(idProduto));
+
+    Firestore.instance
+    .collection("pedidos")
+    .document(idPedido)
+    .setData(dadosPedido);
 
   }
 
@@ -175,11 +189,33 @@ QuerySnapshot obterDadosUsuario = await refCliente.getDocuments();
 void calcularDesconto(Pedido p){
   if(p.valorTotal != 0 || p.valorTotal == 0){
     double vlDesc = (p.percentualDesconto/100)*p.valorTotal;
-    pedidoCompra.valorTotal = (p.valorTotal - vlDesc);
-    pedidoVenda.valorTotal = (p.valorTotal - vlDesc);
+    pedidoCompra.valorComDesconto = (p.valorTotal - vlDesc);
+    pedidoVenda.valorComDesconto = (p.valorTotal - vlDesc);
   }else{
-    pedidoVenda.valorTotal = 0;
-    pedidoCompra.valorTotal = 0;
+    pedidoVenda.valorComDesconto = 0;
+    pedidoCompra.valorComDesconto = 0;
   }
+}
+
+void somarPrecoNoVlTotal(Pedido p, ItemPedido novoItem){
+  double valorTotalItem = novoItem.preco*novoItem.quantidade;
+  p.valorTotal += valorTotalItem;
+  pedidoCompra.valorTotal = p.valorTotal;
+  pedidoVenda.valorTotal = p.valorTotal;
+  calcularDesconto(p);
+}
+
+void atualizarPrecoNoVlTotal(double precoAntigo, Pedido p, ItemPedido item){
+  double vlTotalItemAntigo = precoAntigo*item.quantidade;
+  p.valorTotal -= vlTotalItemAntigo;
+  somarPrecoNoVlTotal(p, item);
+}
+
+void subtrairPrecoVlTotal(Pedido p, ItemPedido itemExcluido){
+  double valorTotalItem = itemExcluido.preco*itemExcluido.quantidade;
+  p.valorTotal -= valorTotalItem;
+  pedidoCompra.valorTotal = p.valorTotal;
+  pedidoVenda.valorTotal = p.valorTotal;
+  calcularDesconto(p);
 }
 }

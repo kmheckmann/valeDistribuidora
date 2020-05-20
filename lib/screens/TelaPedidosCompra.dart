@@ -5,6 +5,7 @@ import 'package:tcc_2/controller/PedidoController.dart';
 import 'package:tcc_2/model/PedidoCompra.dart';
 import 'package:tcc_2/model/Usuario.dart';
 import 'package:tcc_2/screens/TelaCRUDPedidoCompra.dart';
+import 'package:intl/intl.dart';
 
 
 class TelaPedidosCompra extends StatefulWidget {
@@ -15,7 +16,7 @@ class TelaPedidosCompra extends StatefulWidget {
 class _TelaPedidosCompraState extends State<TelaPedidosCompra> {
 
 Usuario u = Usuario();
-
+DateFormat format = DateFormat();
 
   @override
   Widget build(BuildContext context) {
@@ -91,6 +92,18 @@ Usuario u = Usuario();
                             fontWeight: FontWeight.bold,
                             color: Color.fromARGB(255, 0, 120, 189),
                             fontSize: 20.0),
+                      ),
+                      Text(
+                        "Fornecedor: ${p.labelTelaPedidos}",
+                        style: TextStyle(
+                            fontSize: 16.0,
+                            fontWeight: FontWeight.w500),
+                      ),
+                      Text(
+                        "Data: ${p.dataPedido.day}/${p.dataPedido.month}/${p.dataPedido.year} ${new DateFormat.Hms().format(p.dataPedido)}",
+                        style: TextStyle(
+                            fontSize: 16.0,
+                            fontWeight: FontWeight.w500),
                       ),
                     ],
                   ),

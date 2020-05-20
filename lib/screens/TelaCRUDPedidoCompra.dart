@@ -7,6 +7,7 @@ import 'package:tcc_2/model/Empresa.dart';
 import 'package:tcc_2/model/PedidoCompra.dart';
 import 'package:tcc_2/model/Usuario.dart';
 import 'package:tcc_2/screens/TelaItensPedidoCompra.dart';
+import 'package:intl/intl.dart';
 
 class TelaCRUDPedidoCompra extends StatefulWidget {
 
@@ -34,6 +35,7 @@ class _TelaCRUDPedidoCompraState extends State<TelaCRUDPedidoCompra> {
   String _dropdownValueTipoPgto;
   String _dropdownValueCliente;
   final _controllerVlTotal = TextEditingController();
+  final _controllerVlTotalDesc = TextEditingController();
   final _controllerData = TextEditingController();
   final _controllerIdPedido = TextEditingController();
   final _controllerPercentDesc = TextEditingController();
@@ -56,9 +58,10 @@ class _TelaCRUDPedidoCompraState extends State<TelaCRUDPedidoCompra> {
       _controllerVendedor.text = pedidoCompra.user.nome;
       _dropdownValueTipoPgto = pedidoCompra.tipoPagamento;
       _dropdownValueCliente = pedidoCompra.empresa.nomeFantasia;
+      _controllerVlTotalDesc.text = pedidoCompra.valorComDesconto.toString();
       _novocadastro = false;
       //formatar data
-      String data = (pedidoCompra.dataPedido.day.toString()+"/"+pedidoCompra.dataPedido.month.toString()+"/"+pedidoCompra.dataPedido.year.toString());
+      String data = (pedidoCompra.dataPedido.day.toString()+"/"+pedidoCompra.dataPedido.month.toString()+"/"+pedidoCompra.dataPedido.year.toString()+" "+(new DateFormat.Hms().format(pedidoCompra.dataPedido)));
       _controllerData.text = data;
       
     } else {
@@ -70,7 +73,7 @@ class _TelaCRUDPedidoCompraState extends State<TelaCRUDPedidoCompra> {
       pedidoCompra.valorTotal = 0.0;
       pedidoCompra.percentualDesconto = 0.0;
       //formatar data
-      String data = (pedidoCompra.dataPedido.day.toString()+"/"+pedidoCompra.dataPedido.month.toString()+"/"+pedidoCompra.dataPedido.year.toString());
+      String data = (pedidoCompra.dataPedido.day.toString()+"/"+pedidoCompra.dataPedido.month.toString()+"/"+pedidoCompra.dataPedido.year.toString()+" "+(new DateFormat.Hms().format(pedidoCompra.dataPedido)));
       _controllerData.text = data; 
       _novocadastro = true;
       _controllerVendedor.text = vendedor.nome;
@@ -125,23 +128,26 @@ class _TelaCRUDPedidoCompraState extends State<TelaCRUDPedidoCompra> {
         child: ListView(
           padding: EdgeInsets.all(8.0),
           children: <Widget>[
-            _criarCampoTexto("Código Pedido", _controllerIdPedido),
-            _criarCampoTexto("Vendedor", _controllerVendedor),
-            _criarCampoTexto("Data Pedido", _controllerData),
+            _criarCampoTexto("Código Pedido", _controllerIdPedido, TextInputType.number),
+            _criarCampoTexto("Vendedor", _controllerVendedor, TextInputType.text),
+            _criarCampoTexto("Data Pedido", _controllerData, TextInputType.text),
             _criarDropDownTipoPgto(),
-            _criarDropDownCliente(),
-            _criarCampoTexto("Valor Total", _controllerVlTotal),
+            _criarDropDownFornecedor(),
+            _criarCampoTexto("Valor Total", _controllerVlTotal, TextInputType.number),
+            _criarCampoTexto("Valor Total Com Desconto", _controllerVlTotalDesc, TextInputType.number),
             TextFormField(
               controller: _controllerPercentDesc,
+              keyboardType: TextInputType.number,
               decoration: InputDecoration(
                 hintText: "% Desconto"
               ),
               style: TextStyle(color: Colors.black, fontSize: 17.0),
               onChanged:(texto){
                 pedidoCompra.percentualDesconto = double.parse(texto);
-                _controllerPedido.calcularDesconto(pedidoCompra);
                 setState(() {
-                  _controllerVlTotal.text = pedidoCompra.valorTotal.toString();
+                  _controllerPedido.calcularDesconto(pedidoCompra);
+                  pedidoCompra.valorComDesconto = _controllerPedido.pedidoCompra.valorComDesconto;
+                  _controllerVlTotalDesc.text = pedidoCompra.valorComDesconto.toString();
                 });               
               },
             ),
@@ -150,9 +156,10 @@ class _TelaCRUDPedidoCompraState extends State<TelaCRUDPedidoCompra> {
     );
   }
 
-  Widget _criarCampoTexto(String nome, TextEditingController controller){
+  Widget _criarCampoTexto(String nome, TextEditingController controller, TextInputType tipo){
   return TextFormField(
           controller: controller,
+          keyboardType: tipo,
           decoration: InputDecoration(
             hintText: nome
           ),
@@ -194,7 +201,7 @@ Widget _criarDropDownTipoPgto(){
     );
   }
 
-  Widget _criarDropDownCliente(){
+  Widget _criarDropDownFornecedor(){
     empresas = Firestore.instance.collection('empresas').snapshots();
    return StreamBuilder<QuerySnapshot>(
     stream: empresas,
@@ -213,6 +220,7 @@ Widget _criarDropDownTipoPgto(){
                   onChanged: (String newValue) {
                     setState(() {
                       _dropdownValueCliente = newValue;
+                      pedidoCompra.labelTelaPedidos = _dropdownValueCliente;
                     });
                   },
                   items: snapshot.data.documents.map((DocumentSnapshot document) {

@@ -26,7 +26,8 @@ class _TelaCRUDItemPedidoCompraState extends State<TelaCRUDItemPedidoCompra> {
 
   _TelaCRUDItemPedidoCompraState({this.snapshot, this.pedidoCompra, this.itemPedido});
 
-    String _dropdownValueProduto;
+  String _dropdownValueProduto;
+  double vlItemAntigo;
   final _controllerPreco = TextEditingController();
   final _controllerQtde = TextEditingController();
   bool _novocadastro;
@@ -47,6 +48,7 @@ class _TelaCRUDItemPedidoCompraState extends State<TelaCRUDItemPedidoCompra> {
     _produtos = Firestore.instance.collection("produtos").snapshots();
     if (itemPedido != null) {
       _nomeTela = "Editar Produto";
+      vlItemAntigo = itemPedido.preco;
       _dropdownValueProduto = itemPedido.produto.descricao;
       _controllerPreco.text = itemPedido.preco.toString();
       _controllerQtde.text = itemPedido.quantidade.toString();
@@ -54,7 +56,6 @@ class _TelaCRUDItemPedidoCompraState extends State<TelaCRUDItemPedidoCompra> {
       
     } else {
       _nomeTela = "Novo Produto";
-      print(pedidoCompra.id);
       itemPedido = ItemPedido(pedidoCompra);
       _novocadastro = true;
     }
@@ -77,21 +78,27 @@ class _TelaCRUDItemPedidoCompraState extends State<TelaCRUDItemPedidoCompra> {
           
           if(_validadorCampos.currentState.validate()){
             if(_dropdownValueProduto != null){
-              print(pedidoCompra.id);
               if(_novocadastro){
                 await _controllerItemPedido.obterProxID(pedidoCompra.id);
                 itemPedido.id = _controllerItemPedido.proxID;
-                _controllerPedido.adicionarItem(itemPedido, pedidoCompra.id, produto.id);
+                _controllerPedido.somarPrecoNoVlTotal(pedidoCompra, itemPedido);
+                pedidoCompra.valorTotal = _controllerPedido.pedidoCompra.valorTotal;
+                pedidoCompra.valorComDesconto = _controllerPedido.pedidoCompra.valorComDesconto;
+                _controllerPedido.adicionarItem(itemPedido, pedidoCompra.id, produto.id, _controllerPedido.converterParaMapa(pedidoCompra));
               }else{
-                _controllerPedido.editarItem(itemPedido, pedidoCompra.id, produto.id);
+                _controllerPedido.atualizarPrecoNoVlTotal(vlItemAntigo, pedidoCompra, itemPedido);
+                pedidoCompra.valorTotal = _controllerPedido.pedidoCompra.valorTotal;
+                pedidoCompra.valorComDesconto = _controllerPedido.pedidoCompra.valorComDesconto;
+                _controllerPedido.editarItem(itemPedido, pedidoCompra.id, produto.id, _controllerPedido.converterParaMapa(pedidoCompra));
               }
               Navigator.of(context).pop(MaterialPageRoute(builder: (contexto)=>TelaItensPedidoCompra(pedidoCompra: pedidoCompra)));
-            }
-            _scaffold.currentState.showSnackBar(
+            }else{
+              _scaffold.currentState.showSnackBar(
                 SnackBar(content: Text("É necessário selecionar um produto!"),
                 backgroundColor: Colors.red,
                 duration: Duration(seconds: 5),)
               );
+            }
           }
         }),
         body: Form(

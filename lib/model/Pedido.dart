@@ -10,11 +10,12 @@ abstract class Pedido extends Model{
   Empresa empresa = Empresa();
   Usuario user = Usuario();
   double valorTotal;
+  double valorComDesconto;
   double percentualDesconto;
   String tipoPagamento;
   bool ehPedidoVenda;
   DateTime dataPedido;
   bool pedidoFinalizado;
+  String labelTelaPedidos;
   List<ItemPedido> itens = [];
-
 }
