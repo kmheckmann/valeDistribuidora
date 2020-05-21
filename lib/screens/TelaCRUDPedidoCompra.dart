@@ -216,7 +216,7 @@ Widget _criarDropDownTipoPgto(){
               width: 336.0,
                 child: DropdownButton(
                   value: _dropdownValueCliente,
-                  hint: Text("Selecionar cliente"),
+                  hint: Text("Selecionar fornecedor"),
                   onChanged: (String newValue) {
                     setState(() {
                       _dropdownValueCliente = newValue;

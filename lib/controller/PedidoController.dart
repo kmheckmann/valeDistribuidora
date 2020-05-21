@@ -136,14 +136,19 @@ class PedidoController{
 
   }
 
-  void removerItem(ItemPedido item, String idPedido){
+  void removerItem(ItemPedido item, String idItem, String idPedido, Map<String, dynamic> dadosPedido){
     Firestore.instance.collection("pedidos")
     .document(idPedido)
     .collection("itens")
-    .document(item.id)
+    .document(idItem)
     .delete();
 
     itens.remove(item);
+
+    Firestore.instance
+    .collection("pedidos")
+    .document(idPedido)
+    .setData(dadosPedido);
   }
 
 Future<Null> obterEmpresa(String idPedido) async {
