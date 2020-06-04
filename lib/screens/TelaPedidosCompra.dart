@@ -115,6 +115,8 @@ DateFormat format = DateFormat();
         PedidoController _controller = PedidoController();
         await _controller.obterEmpresa(p.id);
         p.empresa = _controller.empresa;
+        await _controller.obterUsuario(p.id);
+        p.user = _controller.usuario;
         Navigator.of(contexto).push(MaterialPageRoute(builder: (contexto)=>TelaCRUDPedidoCompra(pedidoCompra: p,snapshot: snapshot, vendedor: u)));
       },
     );

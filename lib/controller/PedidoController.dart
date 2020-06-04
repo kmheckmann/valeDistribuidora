@@ -223,4 +223,16 @@ void subtrairPrecoVlTotal(Pedido p, ItemPedido itemExcluido){
   pedidoVenda.valorTotal = p.valorTotal;
   calcularDesconto(p);
 }
+
+Future<Null> atualizarCapaPedido(String idPedido) async{
+  CollectionReference ref = Firestore.instance.collection('pedidos');
+  QuerySnapshot _obterPedido = await ref.getDocuments();
+
+  _obterPedido.documents.forEach((document){
+    if(idPedido == document.documentID){
+      pedidoVenda = PedidoVenda.buscarFirebase(document);
+      pedidoCompra = PedidoCompra.buscarFirebase(document);
+    }
+  });
+}
 }
