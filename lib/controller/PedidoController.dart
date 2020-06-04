@@ -136,14 +136,19 @@ class PedidoController{
 
   }
 
-  void removerItem(ItemPedido item, String idPedido){
+  void removerItem(ItemPedido item, String idItem, String idPedido, Map<String, dynamic> dadosPedido){
     Firestore.instance.collection("pedidos")
     .document(idPedido)
     .collection("itens")
-    .document(item.id)
+    .document(idItem)
     .delete();
 
     itens.remove(item);
+
+    Firestore.instance
+    .collection("pedidos")
+    .document(idPedido)
+    .setData(dadosPedido);
   }
 
 Future<Null> obterEmpresa(String idPedido) async {
@@ -217,5 +222,17 @@ void subtrairPrecoVlTotal(Pedido p, ItemPedido itemExcluido){
   pedidoCompra.valorTotal = p.valorTotal;
   pedidoVenda.valorTotal = p.valorTotal;
   calcularDesconto(p);
+}
+
+Future<Null> atualizarCapaPedido(String idPedido) async{
+  CollectionReference ref = Firestore.instance.collection('pedidos');
+  QuerySnapshot _obterPedido = await ref.getDocuments();
+
+  _obterPedido.documents.forEach((document){
+    if(idPedido == document.documentID){
+      pedidoVenda = PedidoVenda.buscarFirebase(document);
+      pedidoCompra = PedidoCompra.buscarFirebase(document);
+    }
+  });
 }
 }

@@ -87,6 +87,16 @@ class _TelaCRUDPedidoCompraState extends State<TelaCRUDPedidoCompra> {
       appBar: AppBar(
         title: Text(_nomeTela),
         centerTitle: true,
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(Icons.update), 
+            onPressed: ()async{
+              await _controllerPedido.atualizarCapaPedido(pedidoCompra.id);
+              _controllerVlTotal.text = pedidoCompra.valorTotal.toString();
+              _controllerVlTotalDesc.text = pedidoCompra.valorComDesconto.toString();
+              _controllerPercentDesc.text = pedidoCompra.percentualDesconto.toString();
+            })
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.apps),
@@ -216,7 +226,7 @@ Widget _criarDropDownTipoPgto(){
               width: 336.0,
                 child: DropdownButton(
                   value: _dropdownValueCliente,
-                  hint: Text("Selecionar cliente"),
+                  hint: Text("Selecionar fornecedor"),
                   onChanged: (String newValue) {
                     setState(() {
                       _dropdownValueCliente = newValue;

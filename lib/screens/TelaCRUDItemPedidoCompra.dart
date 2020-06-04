@@ -109,6 +109,7 @@ class _TelaCRUDItemPedidoCompraState extends State<TelaCRUDItemPedidoCompra> {
               _criarDropDownProduto(),
               TextFormField(
                 controller: _controllerPreco,
+                keyboardType: TextInputType.number,
                 decoration: InputDecoration(
                 hintText: "Preço"
               ),
@@ -122,6 +123,7 @@ class _TelaCRUDItemPedidoCompraState extends State<TelaCRUDItemPedidoCompra> {
               ),
               TextFormField(
                 controller: _controllerQtde,
+                keyboardType: TextInputType.number,
                 decoration: InputDecoration(
                 hintText: "Quantidade"
               ),

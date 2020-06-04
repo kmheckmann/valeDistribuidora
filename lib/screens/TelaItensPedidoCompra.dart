@@ -1,11 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:tcc_2/controller/ItemPedidoController.dart';
-import 'package:tcc_2/controller/ProdutoController.dart';
+import 'package:tcc_2/controller/PedidoController.dart';
 import 'package:tcc_2/model/ItemPedido.dart';
-import 'package:tcc_2/model/Pedido.dart';
 import 'package:tcc_2/model/PedidoCompra.dart';
-import 'package:tcc_2/model/Produto.dart';
 import 'package:tcc_2/screens/TelaCRUDItemPedidoCompra.dart';
 
 class TelaItensPedidoCompra extends StatefulWidget {
@@ -23,7 +21,9 @@ class _TelaItensPedidoCompraState extends State<TelaItensPedidoCompra> {
   final DocumentSnapshot snapshot;
   ItemPedido itemPedido;
   PedidoCompra pedidoCompra;
+  ItemPedido itemRemovido;
   ItemPedidoController _controller = ItemPedidoController();
+  PedidoController _controllerPedido = PedidoController();
 
   _TelaItensPedidoCompraState(this.snapshot, this.pedidoCompra, this.itemPedido);
   @override
@@ -64,14 +64,26 @@ class _TelaItensPedidoCompraState extends State<TelaItensPedidoCompra> {
                     _controller.obterProduto(pedidoCompra.id);
                     ItemPedido itemPedido = ItemPedido.buscarFirebase(snapshot.data.documents[index]);
                     itemPedido.produto = _controller.produto;
-                    return _construirListaPedidos(context, itemPedido, snapshot.data.documents[index]);
+                    return _construirListaPedidos(context, itemPedido, snapshot.data.documents[index], pedidoCompra);
                   });
           }),
     );
   }
 
-  Widget _construirListaPedidos(contexto, ItemPedido p, DocumentSnapshot snapshot){
-    return InkWell(
+  Widget _construirListaPedidos(contexto, ItemPedido p, DocumentSnapshot snapshot, PedidoCompra pedido){
+    return Dismissible(
+      //A key é o que widget dismiss usa pra saber qual item está sendo arrastado
+      //Usei os milisegundos pq cada key precisa ser diferente
+      key: Key(DateTime.now().millisecondsSinceEpoch.toString()),
+      background: Container(
+        color: Colors.red,
+        child: Align(
+          alignment: Alignment(-0.9,0.0),
+          child: Icon(Icons.delete, color: Colors.white),
+        ),
+      ),
+      direction: DismissDirection.startToEnd,
+      child: InkWell(
       //InkWell eh pra dar uma animacao quando clicar no produto
       child: Card(
         child: Row(
@@ -112,8 +124,19 @@ class _TelaItensPedidoCompraState extends State<TelaItensPedidoCompra> {
       onTap: () async{
         await _controller.obterProduto(pedidoCompra.id);
         p.produto = _controller.produto;
-        Navigator.of(contexto).push(MaterialPageRoute(builder: (contexto)=>TelaCRUDItemPedidoCompra(pedidoCompra: pedidoCompra, itemPedido: p,snapshot: snapshot,)));
+        Navigator.of(contexto).push(MaterialPageRoute(builder: (contexto)=>TelaCRUDItemPedidoCompra(pedidoCompra: pedido, itemPedido: p,snapshot: snapshot,)));
       },
+    ),
+    //o atributo inDismissed obriga que seja informado a direcao como parametro
+    //no atributo direction rentringi para que o card fosse arrastado somente da esquerda para direita
+    //assim a direcao passada sempre sera a mesma, por isso, a direcao nao sera utilizada
+    onDismissed: (direction){
+      itemRemovido = p;
+      _controllerPedido.subtrairPrecoVlTotal(pedido, itemRemovido);
+      pedido.valorTotal = _controllerPedido.pedidoCompra.valorTotal;
+      pedido.valorComDesconto = _controllerPedido.pedidoCompra.valorComDesconto;
+      _controllerPedido.removerItem(p,snapshot.documentID, pedido.id, _controllerPedido.converterParaMapa(pedido));
+    },
     );
   }
 }
