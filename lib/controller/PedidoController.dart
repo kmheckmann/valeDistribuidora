@@ -12,6 +12,7 @@ class PedidoController{
   PedidoVenda pedidoVenda = PedidoVenda();
   Empresa empresa = Empresa();
   Usuario usuario = Usuario();
+  bool podeFinalizar = false;
   List<ItemPedido> itens = [];
 
   PedidoController();
@@ -234,5 +235,18 @@ Future<Null> atualizarCapaPedido(String idPedido) async{
       pedidoCompra = PedidoCompra.buscarFirebase(document);
     }
   });
+}
+
+Future<Null> verificarSePedidoTemItens(Pedido p) async{
+  //este método tem o objetivo de verificar se o pedido possui itens cadastrados para poder finalizar o pedido
+  CollectionReference ref = Firestore.instance.collection("pedidos").document(p.id).collection("itens");
+  QuerySnapshot _obterItens = await ref.getDocuments();
+
+  if(_obterItens.documents.length > 0){
+    podeFinalizar = true;
+  }else{
+    podeFinalizar = false;
+  }
+
 }
 }
