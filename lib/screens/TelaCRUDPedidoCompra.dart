@@ -73,10 +73,10 @@ class _TelaCRUDPedidoCompraState extends State<TelaCRUDPedidoCompra> {
       pedidoCompra.ehPedidoVenda = false;
       pedidoCompra.valorTotal = 0.0;
       pedidoCompra.percentualDesconto = 0.0;
-      pedidoCompra.pedidoFinalizado = false;
       //formatar data
       _controllerData.text = _formatarData();
       _novocadastro = true;
+      _vlCheckBox = false;
       _controllerVendedor.text = vendedor.nome;
     }
   }

@@ -30,6 +30,7 @@ class _TelaCRUDItemPedidoCompraState extends State<TelaCRUDItemPedidoCompra> {
   double vlItemAntigo;
   final _controllerPreco = TextEditingController();
   final _controllerQtde = TextEditingController();
+  final _controllerProd = TextEditingController();
   bool _novocadastro;
   String _nomeTela;
   Produto produto = Produto();
@@ -69,7 +70,9 @@ class _TelaCRUDItemPedidoCompraState extends State<TelaCRUDItemPedidoCompra> {
         title: Text(_nomeTela),
         centerTitle: true,
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: Visibility(
+        visible: pedidoCompra.pedidoFinalizado ? false : true,
+        child: FloatingActionButton(
         child: Icon(Icons.save),
         backgroundColor: Colors.blue,
         onPressed: () async{
@@ -100,41 +103,15 @@ class _TelaCRUDItemPedidoCompraState extends State<TelaCRUDItemPedidoCompra> {
               );
             }
           }
-        }),
+        })),
         body: Form(
           key: _validadorCampos,
           child: ListView(
             padding: EdgeInsets.all(8.0),
             children: <Widget>[
-              _criarDropDownProduto(),
-              TextFormField(
-                controller: _controllerPreco,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                hintText: "Preço"
-              ),
-              style: TextStyle(color: Colors.black, fontSize: 17.0),
-              validator: (text){
-                if(_controllerPreco.text.isEmpty) return "É necessário preencher este campo!";
-              },
-              onChanged: (texto){
-                itemPedido.preco = double.parse(texto);
-              },
-              ),
-              TextFormField(
-                controller: _controllerQtde,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                hintText: "Quantidade"
-              ),
-              style: TextStyle(color: Colors.black, fontSize: 17.0),
-              validator: (texto){
-                if(_controllerQtde.text.isEmpty) return "É necessário preencher este campo!";
-              },
-              onChanged: (texto){
-                itemPedido.quantidade = int.parse(texto);
-              },
-              ),
+              _campoProduto(),
+              _criarCampoTexto(_controllerPreco, "Preço", TextInputType.number),
+              _criarCampoTexto(_controllerQtde, "Quantidade",TextInputType.number),
 
             ],
           )),
@@ -177,6 +154,44 @@ class _TelaCRUDItemPedidoCompraState extends State<TelaCRUDItemPedidoCompra> {
       );
     }
 );
+  }
+
+  TextStyle _style(){
+    if(pedidoCompra.pedidoFinalizado){
+      return TextStyle(color: Colors.grey, fontSize: 17.0);
+    }else{
+      return TextStyle(color: Colors.black, fontSize: 17.0);
+    }
+  }
+
+  Widget _criarCampoTexto(TextEditingController _controller, String titulo, TextInputType tipo){
+    return TextFormField(
+                controller: _controller,
+                enabled: pedidoCompra.pedidoFinalizado ? false : true,
+                keyboardType: tipo,
+                decoration: InputDecoration(
+                hintText: titulo
+              ),
+              style: _style(),
+              validator: (text){
+                if(_controller.text.isEmpty) return "É necessário preencher este campo!";
+              },
+              onChanged: (texto){
+                if(titulo == "Preço") itemPedido.preco = double.parse(texto);
+                if(titulo == "Quantidade") itemPedido.quantidade = int.parse(texto);
+              },
+              );
+  }
+
+  Widget _campoProduto(){
+    _controllerProd.text = _dropdownValueProduto;
+    //se o pedido estiver finalizado sera criado um TextField com o valor
+    //se não estiver, sera criado o dropDown
+    if(pedidoCompra.pedidoFinalizado){
+      return _criarCampoTexto(_controllerProd, "Produto",TextInputType.text);
+    }else{
+      return _criarDropDownProduto();
+    }
   }
 
   }
