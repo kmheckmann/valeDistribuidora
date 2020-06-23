@@ -33,7 +33,11 @@ class _TelaItensPedidoCompraState extends State<TelaItensPedidoCompra> {
         title: Text("Itens do Pedido"),
         centerTitle: true,
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: Visibility(
+        //O Visibility foi adicionado para poder definir quando o botao é apresentado
+        //se o pedido estiver finalizado, o botão nao é apresentado
+        visible: pedidoCompra.pedidoFinalizado ? false : true,
+        child: FloatingActionButton(
           child: Icon(Icons.add),
           backgroundColor: Theme.of(context).primaryColor,
           onPressed: () {
@@ -41,7 +45,7 @@ class _TelaItensPedidoCompraState extends State<TelaItensPedidoCompra> {
                 MaterialPageRoute(builder: (context) => TelaCRUDItemPedidoCompra(pedidoCompra: pedidoCompra,))
             );
           }
-      ),
+      )),
       body: FutureBuilder<QuerySnapshot>(
         //O sistema ira acessar o documento "pedidos" e depois a coleção de itens dos pedidos
           future: Firestore.instance
@@ -71,6 +75,9 @@ class _TelaItensPedidoCompraState extends State<TelaItensPedidoCompra> {
   }
 
   Widget _construirListaPedidos(contexto, ItemPedido p, DocumentSnapshot snapshot, PedidoCompra pedido){
+    if(pedido.pedidoFinalizado){
+     return _codigoLista(contexto, p, snapshot, pedido);
+    }else{
     return Dismissible(
       //A key é o que widget dismiss usa pra saber qual item está sendo arrastado
       //Usei os milisegundos pq cada key precisa ser diferente
@@ -83,7 +90,23 @@ class _TelaItensPedidoCompraState extends State<TelaItensPedidoCompra> {
         ),
       ),
       direction: DismissDirection.startToEnd,
-      child: InkWell(
+      child: _codigoLista(contexto, p, snapshot, pedido),
+    //o atributo inDismissed obriga que seja informado a direcao como parametro
+    //no atributo direction rentringi para que o card fosse arrastado somente da esquerda para direita
+    //assim a direcao passada sempre sera a mesma, por isso, a direcao nao sera utilizada
+    onDismissed: (direction){
+      itemRemovido = p;
+      _controllerPedido.subtrairPrecoVlTotal(pedido, itemRemovido);
+      pedido.valorTotal = _controllerPedido.pedidoCompra.valorTotal;
+      pedido.valorComDesconto = _controllerPedido.pedidoCompra.valorComDesconto;
+      _controllerPedido.removerItem(p,snapshot.documentID, pedido.id, _controllerPedido.converterParaMapa(pedido));
+    },
+    );
+  }
+  }
+
+  Widget _codigoLista(contexto, ItemPedido p, DocumentSnapshot snapshot, PedidoCompra pedido){
+    return InkWell(
       //InkWell eh pra dar uma animacao quando clicar no produto
       child: Card(
         child: Row(
@@ -126,19 +149,6 @@ class _TelaItensPedidoCompraState extends State<TelaItensPedidoCompra> {
         p.produto = _controller.produto;
         Navigator.of(contexto).push(MaterialPageRoute(builder: (contexto)=>TelaCRUDItemPedidoCompra(pedidoCompra: pedido, itemPedido: p,snapshot: snapshot,)));
       },
-    ),
-    //o atributo inDismissed obriga que seja informado a direcao como parametro
-    //no atributo direction rentringi para que o card fosse arrastado somente da esquerda para direita
-    //assim a direcao passada sempre sera a mesma, por isso, a direcao nao sera utilizada
-    onDismissed: (direction){
-      itemRemovido = p;
-      _controllerPedido.subtrairPrecoVlTotal(pedido, itemRemovido);
-      pedido.valorTotal = _controllerPedido.pedidoCompra.valorTotal;
-      pedido.valorComDesconto = _controllerPedido.pedidoCompra.valorComDesconto;
-      _controllerPedido.removerItem(p,snapshot.documentID, pedido.id, _controllerPedido.converterParaMapa(pedido));
-    },
     );
   }
-
-  
 }

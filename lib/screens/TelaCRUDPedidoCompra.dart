@@ -1,9 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:tcc_2/controller/EmpresaController.dart';
+import 'package:tcc_2/controller/EstoqueProdutoController.dart';
 import 'package:tcc_2/controller/PedidoController.dart';
 import 'package:tcc_2/controller/UsuarioController.dart';
 import 'package:tcc_2/model/Empresa.dart';
+import 'package:tcc_2/model/EstoqueProduto.dart';
 import 'package:tcc_2/model/PedidoCompra.dart';
 import 'package:tcc_2/model/Usuario.dart';
 import 'package:tcc_2/screens/TelaItensPedidoCompra.dart';
@@ -25,6 +27,7 @@ class _TelaCRUDPedidoCompraState extends State<TelaCRUDPedidoCompra> {
   final DocumentSnapshot snapshot;
   PedidoCompra pedidoCompra;
   Usuario vendedor;
+  EstoqueProduto estoque;
 
   _TelaCRUDPedidoCompraState(this.pedidoCompra, this.snapshot, this.vendedor);
 
@@ -49,6 +52,7 @@ class _TelaCRUDPedidoCompraState extends State<TelaCRUDPedidoCompra> {
   PedidoController _controllerPedido = PedidoController();
   EmpresaController _controllerEmpresa = EmpresaController();
   UsuarioController _controllerUsuario = UsuarioController();
+  EstoqueProdutoController _controllerEstoque = EstoqueProdutoController();
 
   @override
   void initState() {
@@ -73,10 +77,11 @@ class _TelaCRUDPedidoCompraState extends State<TelaCRUDPedidoCompra> {
       pedidoCompra.ehPedidoVenda = false;
       pedidoCompra.valorTotal = 0.0;
       pedidoCompra.percentualDesconto = 0.0;
-      pedidoCompra.pedidoFinalizado = false;
       //formatar data
       _controllerData.text = _formatarData();
       _novocadastro = true;
+      _vlCheckBox = false;
+      pedidoCompra.pedidoFinalizado = false;
       _controllerVendedor.text = vendedor.nome;
     }
   }
@@ -110,12 +115,16 @@ class _TelaCRUDPedidoCompraState extends State<TelaCRUDPedidoCompra> {
             empresa = _controllerEmpresa.empresa;
             await _controllerUsuario.obterUsuarioPorCPF(vendedor.cpf);
             vendedor = _controllerUsuario.usuario;
+            pedidoCompra.pedidoFinalizado = _vlCheckBox;
 
             if (pedidoCompra.pedidoFinalizado == true) {
               await _controllerPedido.verificarSePedidoTemItens(pedidoCompra);
+              print(_controllerPedido.podeFinalizar);
 
               if (_controllerPedido.podeFinalizar == true) {
+                _controllerEstoque.gerarEstoque(pedidoCompra);
                 _codigoBotaoSalvar();
+
               } else {
                 _scaffold.currentState.showSnackBar(SnackBar(
                   content: Text(
@@ -290,6 +299,7 @@ class _TelaCRUDPedidoCompraState extends State<TelaCRUDPedidoCompra> {
       pedidoCompra.pedidoFinalizado = _vlCheckBox;
 
       if (_novocadastro) {
+        _novocadastro = false;
         await _controllerPedido.obterProxID();
         pedidoCompra.id = _controllerPedido.proxID;
         _controllerPedido.salvarPedido(
