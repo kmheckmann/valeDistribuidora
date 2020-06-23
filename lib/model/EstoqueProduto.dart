@@ -7,7 +7,6 @@ class EstoqueProduto{
   DateTime dataAquisicao;
   double precoCompra;
   int quantidade;
-  Produto produto = Produto();
 
   EstoqueProduto();
 
