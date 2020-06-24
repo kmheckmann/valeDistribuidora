@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:tcc_2/screens/TelaCategorias.dart';
 import 'package:tcc_2/screens/TelaCidades.dart';
 import 'package:tcc_2/screens/TelaEmpresas.dart';
+import 'package:tcc_2/screens/TelaEstoque.dart';
+import 'package:tcc_2/screens/TelaFiltroEstoque.dart';
 import 'package:tcc_2/screens/TelaPedidos.dart';
 import 'package:tcc_2/screens/TelaPedidosCompra.dart';
 import 'package:tcc_2/screens/TelaProdutos.dart';
@@ -53,11 +55,11 @@ class HomeScreen extends StatelessWidget {
         ),
         Scaffold(
           appBar: AppBar(
-            title: Text("Categorias"),
+            title: Text("Consulta de Estoque"),
             centerTitle: true,
           ),
           drawer: Menu(_pageController),
-          body: Container(),
+          body: TelaFiltroEstoque(),
         ),
         Scaffold(
           appBar: AppBar(
@@ -74,14 +76,6 @@ class HomeScreen extends StatelessWidget {
           ),
           drawer: Menu(_pageController),
           body: TelaProdutos(),
-        ),
-        Scaffold(
-          appBar: AppBar(
-            title: Text("Categorias"),
-            centerTitle: true,
-          ),
-          drawer: Menu(_pageController),
-          body: Container(),
         ),
         Scaffold(
           appBar: AppBar(
