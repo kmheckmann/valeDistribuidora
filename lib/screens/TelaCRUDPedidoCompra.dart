@@ -68,8 +68,8 @@ class _TelaCRUDPedidoCompraState extends State<TelaCRUDPedidoCompra> {
       _controllerVlTotalDesc.text = pedidoCompra.valorComDesconto.toString();
       _novocadastro = false;
       _vlCheckBox = pedidoCompra.pedidoFinalizado;
-      _controllerData.text = _formatarData();  
-      if(pedidoCompra.pedidoFinalizado == true) _permiteEditar = false;
+      _controllerData.text = _formatarData();
+      if (pedidoCompra.pedidoFinalizado == true) _permiteEditar = false;
     } else {
       _nomeTela = "Novo Pedido";
       pedidoCompra = PedidoCompra();
@@ -95,7 +95,7 @@ class _TelaCRUDPedidoCompraState extends State<TelaCRUDPedidoCompra> {
         centerTitle: true,
         actions: <Widget>[
           IconButton(
-              icon: Icon(Icons.update),
+              icon: Icon(Icons.loop),
               onPressed: () async {
                 await _controllerPedido.atualizarCapaPedido(pedidoCompra.id);
                 _controllerVlTotal.text = pedidoCompra.valorTotal.toString();
@@ -103,6 +103,8 @@ class _TelaCRUDPedidoCompraState extends State<TelaCRUDPedidoCompra> {
                     pedidoCompra.valorComDesconto.toString();
                 _controllerPercentDesc.text =
                     pedidoCompra.percentualDesconto.toString();
+                _controllerFornecedor.text = _dropdownValueFornecedor;
+                _controllerFormaPgto.text = pedidoCompra.tipoPagamento;
               })
         ],
       ),
@@ -119,12 +121,10 @@ class _TelaCRUDPedidoCompraState extends State<TelaCRUDPedidoCompra> {
 
             if (pedidoCompra.pedidoFinalizado == true) {
               await _controllerPedido.verificarSePedidoTemItens(pedidoCompra);
-              print(_controllerPedido.podeFinalizar);
 
               if (_controllerPedido.podeFinalizar == true) {
                 _controllerEstoque.gerarEstoque(pedidoCompra);
                 _codigoBotaoSalvar();
-
               } else {
                 _scaffold.currentState.showSnackBar(SnackBar(
                   content: Text(
@@ -238,7 +238,8 @@ class _TelaCRUDPedidoCompraState extends State<TelaCRUDPedidoCompra> {
                     onChanged: (String newValue) {
                       setState(() {
                         _dropdownValueFornecedor = newValue;
-                        pedidoCompra.labelTelaPedidos = _dropdownValueFornecedor;
+                        pedidoCompra.labelTelaPedidos =
+                            _dropdownValueFornecedor;
                       });
                     },
                     items: snapshot.data.documents
@@ -266,16 +267,16 @@ class _TelaCRUDPedidoCompraState extends State<TelaCRUDPedidoCompra> {
           Checkbox(
             value: _vlCheckBox == true,
             onChanged: pedidoCompra.pedidoFinalizado
-                    ? null
-                    : (bool novoValor) {
-                        setState(() {
-                          if (novoValor) {
-                            _vlCheckBox = true;
-                          } else {
-                            _vlCheckBox = false;
-                          }
-              });
-            },
+                ? null
+                : (bool novoValor) {
+                    setState(() {
+                      if (novoValor) {
+                        _vlCheckBox = true;
+                      } else {
+                        _vlCheckBox = false;
+                      }
+                    });
+                  },
           ),
           Text(
             "Finalizado?",
@@ -322,42 +323,44 @@ class _TelaCRUDPedidoCompraState extends State<TelaCRUDPedidoCompra> {
     }
   }
 
-  TextStyle _style(){
-    if(pedidoCompra.pedidoFinalizado){
+  TextStyle _style() {
+    if (pedidoCompra.pedidoFinalizado) {
       return TextStyle(color: Colors.grey, fontSize: 17.0);
-    }else{
+    } else {
       return TextStyle(color: Colors.black, fontSize: 17.0);
     }
   }
 
-  String _formatarData(){
+  String _formatarData() {
     return (pedidoCompra.dataPedido.day.toString() +
-          "/" +
-          pedidoCompra.dataPedido.month.toString() +
-          "/" +
-          pedidoCompra.dataPedido.year.toString() +
-          " " +
-          (new DateFormat.Hms().format(pedidoCompra.dataPedido)));
+        "/" +
+        pedidoCompra.dataPedido.month.toString() +
+        "/" +
+        pedidoCompra.dataPedido.year.toString() +
+        " " +
+        (new DateFormat.Hms().format(pedidoCompra.dataPedido)));
   }
 
-  Widget _campoTipoPgto(){
+  Widget _campoTipoPgto() {
     _controllerFormaPgto.text = pedidoCompra.tipoPagamento;
     //se o pedido estiver finalizado sera criado um TextField com o valor
     //se não estiver, sera criado o dropDown
-    if(pedidoCompra.pedidoFinalizado){
-      return _criarCampoTexto("Tipo Pagamento", _controllerFormaPgto, TextInputType.text);
-    }else{
+    if (pedidoCompra.pedidoFinalizado) {
+      return _criarCampoTexto(
+          "Tipo Pagamento", _controllerFormaPgto, TextInputType.text);
+    } else {
       return _criarDropDownTipoPgto();
     }
   }
 
-  Widget _campoFornecedor(){
+  Widget _campoFornecedor() {
     _controllerFornecedor.text = pedidoCompra.empresa.nomeFantasia;
     //se o pedido estiver finalizado sera criado um TextField com o valor
     //se não estiver, sera criado o dropDown
-    if(pedidoCompra.pedidoFinalizado){
-      return _criarCampoTexto("Fornecedor", _controllerFornecedor, TextInputType.text);
-    }else{
+    if (pedidoCompra.pedidoFinalizado) {
+      return _criarCampoTexto(
+          "Fornecedor", _controllerFornecedor, TextInputType.text);
+    } else {
       return _criarDropDownFornecedor();
     }
   }
