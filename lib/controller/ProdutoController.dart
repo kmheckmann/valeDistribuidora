@@ -13,6 +13,7 @@ class ProdutoController{
   ProdutoController();
 
   Categoria categoria = Categoria();
+  List<Produto> produtos;
 
   Map<String, dynamic> dadosProduto = Map();
   Map<String, dynamic> dadosCategoria = Map();
@@ -146,4 +147,5 @@ class ProdutoController{
   produto = p;
   });
 }
+
 }

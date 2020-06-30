@@ -15,6 +15,7 @@ abstract class Pedido extends Model{
   String tipoPagamento;
   bool ehPedidoVenda;
   DateTime dataPedido;
+  DateTime dataFinalPedido;
   bool pedidoFinalizado;
   String labelTelaPedidos;
   List<ItemPedido> itens = [];

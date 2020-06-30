@@ -15,5 +15,6 @@ class PedidoCompra extends Pedido{
     pedidoFinalizado = snapshot.data["pedidoFinalizado"];
     labelTelaPedidos = snapshot.data["label"];
     valorComDesconto = snapshot.data["valorComDesconto"];
+    dataFinalPedido = snapshot.data["dataFinalPedido"];
   }
 }

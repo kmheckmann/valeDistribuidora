@@ -12,15 +12,14 @@ class TelaFiltroEstoque extends StatefulWidget {
 }
 
 class _TelaFiltroEstoqueState extends State<TelaFiltroEstoque> {
+  EstoqueProdutoController _controllerEstoque = EstoqueProdutoController();
+  ProdutoController _controllerProduto = ProdutoController();
+  Produto p = Produto();
+  List<EstoqueProduto> estoques;
+  Stream<QuerySnapshot> _produtos;
+  String _dropdownValueProduto;
 
-EstoqueProdutoController _controllerEstoque = EstoqueProdutoController();
-ProdutoController _controllerProduto = ProdutoController();
-Produto p = Produto();
-List<EstoqueProduto> estoques;
-Stream<QuerySnapshot> _produtos;
-String _dropdownValueProduto;
-
-@override
+  @override
   void initState() {
     super.initState();
     _produtos = Firestore.instance.collection("produtos").snapshots();
@@ -30,57 +29,68 @@ String _dropdownValueProduto;
   Widget build(BuildContext context) {
     return Scaffold(
       floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.arrow_forward),
-        backgroundColor: Theme.of(context).primaryColor,
-        onPressed: () async{
-          await _controllerProduto.obterProdutoPorDescricao(_dropdownValueProduto);
-          p = _controllerProduto.produto;
-          await _controllerEstoque.obterEstoqueProduto(p);
-          this.estoques = _controllerEstoque.estoques;
-          Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => TelaEstoque(estoques: estoques,))
-            );
-
-        }),
-        body: Padding(padding: EdgeInsets.fromLTRB(10.0, 0, 0, 3.0),
-        child: _criarDropDownProduto(),),
+          child: Icon(Icons.arrow_forward),
+          backgroundColor: Theme.of(context).primaryColor,
+          onPressed: () async {
+            await _controllerProduto
+                .obterProdutoPorDescricao(_dropdownValueProduto);
+            p = _controllerProduto.produto;
+            await _controllerEstoque.obterEstoqueProduto(p);
+            this.estoques = _controllerEstoque.estoques;
+            Navigator.of(context).push(MaterialPageRoute(
+                builder: (context) => TelaEstoque(
+                      estoques: estoques,
+                    )));
+          }),
+      body: Padding(
+        padding: EdgeInsets.fromLTRB(10.0, 0, 0, 3.0),
+        child: _criarDropDownProduto(),
+      ),
     );
   }
 
-  Widget _criarDropDownProduto(){
-   return StreamBuilder<QuerySnapshot>(
-    stream: _produtos,
-    builder: (context, snapshot){
-      var length = snapshot.data.documents.length;
-      DocumentSnapshot ds = snapshot.data.documents[length - 1];
-      return Container(
-        padding: EdgeInsets.fromLTRB(0.0, 8.0, 8.0,0.0),
-        child: Row(
-          children: <Widget>[
-            Container(
-              width: 336.0,
-                child: DropdownButton(
-                  value: _dropdownValueProduto,
-                  hint: Text("Selecionar produto"),
-                  onChanged: (String newValue) {
-                    setState(() {
-                      _dropdownValueProduto = newValue;
-                    });
-                  },
-                  items: snapshot.data.documents.map((DocumentSnapshot document) {
-                    return DropdownMenuItem<String>(
-                        value: document.data['descricao'],
-                        child: Container(
-                          child:Text(document.data['descricao'],style: TextStyle(color: Colors.black)),
-                        )
-                    );
-                  }).toList(),
+  Widget _criarDropDownProduto() {
+    return StreamBuilder<QuerySnapshot>(
+        stream: _produtos,
+        builder: (context, snapshot) {
+
+          if (!snapshot.hasData)
+              return Center(
+                child: CircularProgressIndicator(),
+              );
+            else{          
+
+          var length = snapshot.data.documents.length;
+          DocumentSnapshot ds = snapshot.data.documents[length - 1];
+          return Container(
+            padding: EdgeInsets.fromLTRB(0.0, 8.0, 8.0, 0.0),
+            child: Row(
+              children: <Widget>[
+                Container(
+                  width: 336.0,
+                  child: DropdownButton(
+                    value: _dropdownValueProduto,
+                    hint: Text("Selecionar produto"),
+                    onChanged: (String newValue) {
+                      setState(() {
+                        _dropdownValueProduto = newValue;
+                      });
+                    },
+                    items: snapshot.data.documents
+                        .map((DocumentSnapshot document) {
+                      return DropdownMenuItem<String>(
+                          value: document.data['descricao'],
+                          child: Container(
+                            child: Text(document.data['descricao'],
+                                style: TextStyle(color: Colors.black)),
+                          ));
+                    }).toList(),
+                  ),
                 ),
+              ],
             ),
-          ],
-        ),
-      );
-    }
-);
+          );
+            }
+        });
   }
 }

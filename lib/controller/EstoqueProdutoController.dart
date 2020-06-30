@@ -12,7 +12,9 @@ class EstoqueProdutoController {
   String proxID(Pedido p, String idItem, DateTime data) {
     //obtem o id pedido, id item e a hora, minutos e segundos atuais pra formar o id do estoque do item
     return p.id +
+        "-" +
         idItem +
+        "-" +
         data.day.toString() +
         data.month.toString() +
         data.year.toString() +
