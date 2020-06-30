@@ -39,6 +39,7 @@ class _TelaCRUDPedidoCompraState extends State<TelaCRUDPedidoCompra> {
   final _controllerVlTotal = TextEditingController();
   final _controllerVlTotalDesc = TextEditingController();
   final _controllerData = TextEditingController();
+  final _controllerDataFinal = TextEditingController();
   final _controllerIdPedido = TextEditingController();
   final _controllerPercentDesc = TextEditingController();
   final _controllerVendedor = TextEditingController();
@@ -68,7 +69,8 @@ class _TelaCRUDPedidoCompraState extends State<TelaCRUDPedidoCompra> {
       _controllerVlTotalDesc.text = pedidoCompra.valorComDesconto.toString();
       _novocadastro = false;
       _vlCheckBox = pedidoCompra.pedidoFinalizado;
-      _controllerData.text = _formatarData();
+      _controllerData.text = _formatarData(pedidoCompra.dataPedido);
+      if(pedidoCompra.dataFinalPedido != null) _controllerDataFinal.text = _formatarData(pedidoCompra.dataFinalPedido);
       if (pedidoCompra.pedidoFinalizado == true) _permiteEditar = false;
     } else {
       _nomeTela = "Novo Pedido";
@@ -78,7 +80,7 @@ class _TelaCRUDPedidoCompraState extends State<TelaCRUDPedidoCompra> {
       pedidoCompra.valorTotal = 0.0;
       pedidoCompra.percentualDesconto = 0.0;
       //formatar data
-      _controllerData.text = _formatarData();
+      _controllerData.text = _formatarData(pedidoCompra.dataPedido);
       _novocadastro = true;
       _vlCheckBox = false;
       pedidoCompra.pedidoFinalizado = false;
@@ -119,11 +121,13 @@ class _TelaCRUDPedidoCompraState extends State<TelaCRUDPedidoCompra> {
             vendedor = _controllerUsuario.usuario;
             pedidoCompra.pedidoFinalizado = _vlCheckBox;
 
-            if (pedidoCompra.pedidoFinalizado == true) {
+            if (pedidoCompra.pedidoFinalizado == true && pedidoCompra.dataFinalPedido == null) {
               await _controllerPedido.verificarSePedidoTemItens(pedidoCompra);
 
               if (_controllerPedido.podeFinalizar == true) {
                 _controllerEstoque.gerarEstoque(pedidoCompra);
+                pedidoCompra.dataFinalPedido = DateTime.now();
+                _controllerDataFinal.text = _formatarData(pedidoCompra.dataFinalPedido);
                 _codigoBotaoSalvar();
               } else {
                 _scaffold.currentState.showSnackBar(SnackBar(
@@ -148,6 +152,8 @@ class _TelaCRUDPedidoCompraState extends State<TelaCRUDPedidoCompra> {
                   "Vendedor", _controllerVendedor, TextInputType.text),
               _criarCampoTexto(
                   "Data Pedido", _controllerData, TextInputType.text),
+              _criarCampoTexto(
+                  "Data Finalização", _controllerDataFinal, TextInputType.text),
               _campoFornecedor(),
               _campoTipoPgto(),
               _criarCampoTexto(
@@ -331,14 +337,14 @@ class _TelaCRUDPedidoCompraState extends State<TelaCRUDPedidoCompra> {
     }
   }
 
-  String _formatarData() {
-    return (pedidoCompra.dataPedido.day.toString() +
+  String _formatarData(DateTime data) {
+    return (data.day.toString() +
         "/" +
-        pedidoCompra.dataPedido.month.toString() +
+        data.month.toString() +
         "/" +
-        pedidoCompra.dataPedido.year.toString() +
+        data.year.toString() +
         " " +
-        (new DateFormat.Hms().format(pedidoCompra.dataPedido)));
+        (new DateFormat.Hms().format(data)));
   }
 
   Widget _campoTipoPgto() {
