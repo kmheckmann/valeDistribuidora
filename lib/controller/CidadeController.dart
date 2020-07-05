@@ -79,13 +79,13 @@ class CidadeController{
     QuerySnapshot eventsQuery2 = await ref
     .where("estado", isEqualTo: c.estado)
     .getDocuments();
+
     eventsQuery2.documents.forEach((document){
       print(document.data["nome"]);
       print(document.data["estado"]);
-      if(document.data["nome"] == c.nome && document.data["estado"] == c.estado){
+      if(document.data["nome"] == c.nome){
         existeCadastro = true;
-      }
-      if(document.data["nome"] != c.nome || document.data["estado"] != c.estado){
+      }else {
         existeCadastro = false;
       }
     });
