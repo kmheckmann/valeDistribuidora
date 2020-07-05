@@ -1,8 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:tcc_2/model/Cidade.dart';
 
-class CidadeController{
-
+class CidadeController {
   String proxID;
   Cidade cidade = Cidade();
   bool existeCadastro;
@@ -11,7 +10,6 @@ class CidadeController{
 
   Map<String, dynamic> dadosCidade = Map();
 
-  
   Map<String, dynamic> converterParaMapa(Cidade c) {
     return {
       "nome": c.nome,
@@ -28,7 +26,8 @@ class CidadeController{
         .setData(dadosCidade);
   }
 
-  Future<Null> editarCidade(Map<String, dynamic> dadosCidade, String idFirebase) async {
+  Future<Null> editarCidade(
+      Map<String, dynamic> dadosCidade, String idFirebase) async {
     this.dadosCidade = dadosCidade;
     await Firestore.instance
         .collection("cidades")
@@ -36,59 +35,61 @@ class CidadeController{
         .setData(dadosCidade);
   }
 
-  Future<Null> obterProxID() async{
+  Future<Null> obterProxID() async {
     int idTemp = 0;
     int docID;
     CollectionReference ref = Firestore.instance.collection("cidades");
     QuerySnapshot eventsQuery = await ref.getDocuments();
 
-    eventsQuery.documents.forEach((document){
+    eventsQuery.documents.forEach((document) {
       docID = int.parse(document.documentID);
-      if(eventsQuery.documents.length == 0){
+      if (eventsQuery.documents.length == 0) {
         idTemp = 1;
         proxID = idTemp.toString();
-      }else{
-        if(docID > idTemp){
+      } else {
+        if (docID > idTemp) {
           idTemp = docID;
         }
       }
     });
 
-    idTemp = idTemp+1;
+    idTemp = idTemp + 1;
     proxID = idTemp.toString();
   }
 
-  Future<Null> obterCidadePorNome(String nome) async {
-  CollectionReference ref = Firestore.instance.collection("cidades");
-  QuerySnapshot eventsQuery = await ref
-    .where("nome", isEqualTo: nome)
-    .getDocuments();
-
-  eventsQuery.documents.forEach((document) {
-  Cidade c = Cidade.buscarFirebase(document);
-  c.id = document.documentID;
-  cidade = c;
-  });
-}
-
-  Future<Null> verificarExistenciaCidade(Cidade c) async {
-    //Busca todas as cidades cadastradas
+  Future<Null> obterCidadePorNome(String nomeEestado) async {
+    var array = nomeEestado.split(" - ");
+    String nome = array[0];
+    String estado = array[1];
     CollectionReference ref = Firestore.instance.collection("cidades");
-  //Nas cidades cadastradas verifica se existe alguma com o mesmo nome e estado informados no cadastro atual
-  //se houver atribui true para a variável _existeCadastro
-    QuerySnapshot eventsQuery2 = await ref
-    .where("estado", isEqualTo: c.estado)
-    .getDocuments();
+    QuerySnapshot eventsQuery =
+        await ref.where("nome", isEqualTo: nome).getDocuments();
 
-    eventsQuery2.documents.forEach((document){
-      print(document.data["nome"]);
-      print(document.data["estado"]);
-      if(document.data["nome"] == c.nome){
-        existeCadastro = true;
-      }else {
-        existeCadastro = false;
+    eventsQuery.documents.forEach((document) {
+      if (document.data['estado'] == estado) {
+        Cidade c = Cidade.buscarFirebase(document);
+        c.id = document.documentID;
+        cidade = c;
       }
     });
   }
 
+  Future<Null> verificarExistenciaCidade(Cidade c) async {
+    //Busca todas as cidades cadastradas
+    CollectionReference ref = Firestore.instance.collection("cidades");
+    //Nas cidades cadastradas verifica se existe alguma com o mesmo nome e estado informados no cadastro atual
+    //se houver atribui true para a variável _existeCadastro
+    QuerySnapshot eventsQuery2 =
+        await ref.where("estado", isEqualTo: c.estado).getDocuments();
+
+    eventsQuery2.documents.forEach((document) {
+      print(document.data["nome"]);
+      print(document.data["estado"]);
+      if (document.data["nome"] == c.nome) {
+        existeCadastro = true;
+      } else {
+        existeCadastro = false;
+      }
+    });
+  }
 }
