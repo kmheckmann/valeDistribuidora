@@ -74,7 +74,8 @@ class CidadeController {
     });
   }
 
-  Future<Null> verificarExistenciaCidade(Cidade c) async {
+  Future<Null> verificarExistenciaCidade(Cidade c, bool novoCad) async {
+    int qtde = 0;
     //Busca todas as cidades cadastradas
     CollectionReference ref = Firestore.instance.collection("cidades");
     //Nas cidades cadastradas verifica se existe alguma com o mesmo nome e estado informados no cadastro atual
@@ -83,13 +84,25 @@ class CidadeController {
         await ref.where("estado", isEqualTo: c.estado).getDocuments();
 
     eventsQuery2.documents.forEach((document) {
-      print(document.data["nome"]);
-      print(document.data["estado"]);
+      print(document.data['nome']);
       if (document.data["nome"] == c.nome) {
-        existeCadastro = true;
-      } else {
-        existeCadastro = false;
+        qtde += 1;
       }
     });
+    
+    print(qtde);
+    if(novoCad == true){
+      if(qtde == 1){
+        existeCadastro = true;
+      } else{
+        existeCadastro = false;
+      }
+    }else{
+      if(qtde > 1){
+        existeCadastro = true;
+      } else{
+        existeCadastro = false;
+      }
+    }
   }
 }

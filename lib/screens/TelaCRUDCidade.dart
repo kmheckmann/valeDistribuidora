@@ -56,7 +56,7 @@ class _TelaCRUDCidadeState extends State<TelaCRUDCidade> {
             child: Icon(Icons.save),
             backgroundColor: Colors.blue,
             onPressed: () async {
-              await _controllerCidade.verificarExistenciaCidade(cidade);
+              await _controllerCidade.verificarExistenciaCidade(cidade,_novocadastro);
               _existeCadastro = _controllerCidade.existeCadastro;
               //verifica se os campos estão validados antes de salvar
               if (_validadorCampos.currentState.validate()) {
