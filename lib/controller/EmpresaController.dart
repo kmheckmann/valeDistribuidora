@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:tcc_2/model/Cidade.dart';
 import 'package:tcc_2/model/Empresa.dart';
+import 'package:cpfcnpj/cpfcnpj.dart';
 
 class EmpresaController{
 

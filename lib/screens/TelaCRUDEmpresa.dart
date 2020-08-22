@@ -1,22 +1,22 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:tcc_2/controller/CidadeController.dart';
 import 'package:tcc_2/controller/EmpresaController.dart';
 import 'package:tcc_2/model/Cidade.dart';
 import 'package:tcc_2/model/Empresa.dart';
 
 class TelaCRUDEmpresa extends StatefulWidget {
-
   final Empresa empresa;
   final DocumentSnapshot snapshot;
 
   TelaCRUDEmpresa({this.empresa, this.snapshot});
 
   @override
-  _TelaCRUDEmpresaState createState() => _TelaCRUDEmpresaState(empresa, snapshot);
+  _TelaCRUDEmpresaState createState() =>
+      _TelaCRUDEmpresaState(empresa, snapshot);
 }
 
 class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
-
   Empresa empresa;
   final DocumentSnapshot snapshot;
   bool _novocadastro;
@@ -26,6 +26,7 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
   String _nomeTela;
   Cidade cidade = Cidade();
   EmpresaController _controllerEmpresa = EmpresaController();
+  CidadeController _controllerCidade = CidadeController();
   String _dropdownValue;
   bool _existeCadastroIE;
   bool _existeCadastroCNPJ;
@@ -49,7 +50,10 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
     super.initState();
     _existeCadastroIE = false;
     _existeCadastroCNPJ = false;
-    _streamCidade = Firestore.instance.collection('cidades').snapshots();
+    _streamCidade = Firestore.instance
+        .collection('cidades')
+        .where('ativa', isEqualTo: true)
+        .snapshots();
     if (empresa != null) {
       _nomeTela = "Editar Empresa";
       _controllerRazaoSocial.text = empresa.razaoSocial;
@@ -62,7 +66,7 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
       _controllerNumero.text = empresa.numero.toString();
       _controllerTelefone.text = empresa.telefone;
       _controllerEmail.text = empresa.email;
-      _dropdownValue = empresa.cidade.nome;
+      _dropdownValue = (empresa.cidade.nome + ' - ' + empresa.cidade.estado);
       _novocadastro = false;
     } else {
       _nomeTela = "Cadastrar Empresa";
@@ -76,133 +80,68 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      key: _scaffold,
-      appBar: AppBar(
-        title: Text(_nomeTela),
-        centerTitle: true,
-      ),
-      floatingActionButton: FloatingActionButton(
-          child: Icon(Icons.save),
-          backgroundColor: Colors.blue,
-          onPressed: () async{
-            _controllerEmpresa.verificarExistenciaEmpresa(empresa);
-            _existeCadastroCNPJ = _controllerEmpresa.existeCadastroCNPJ;           
-            _existeCadastroIE = _controllerEmpresa.existeCadastroIE;
+        key: _scaffold,
+        appBar: AppBar(
+          title: Text(_nomeTela),
+          centerTitle: true,
+        ),
+        floatingActionButton: FloatingActionButton(
+            child: Icon(Icons.save),
+            backgroundColor: Colors.blue,
+            onPressed: () async {
+              _controllerEmpresa.verificarExistenciaEmpresa(empresa);
+              _existeCadastroCNPJ = _controllerEmpresa.existeCadastroCNPJ;
+              _existeCadastroIE = _controllerEmpresa.existeCadastroIE;
 
-            if(_validadorCampos.currentState.validate()){
-              if(_dropdownValue != null && empresa.email.contains("@") && empresa.email.contains(".com")){
-                Map<String, dynamic> mapa = _controllerEmpresa.converterParaMapa(empresa);
-                Map<String, dynamic> mapaCidade = Map();
-                mapaCidade["id"] = cidade.id;
-                if(_novocadastro){
-                  _controllerEmpresa.salvarEmpresa(mapa, mapaCidade);
-                }else{
-                  _controllerEmpresa.editarEmpresa(mapa, mapaCidade, empresa.id);
+              if (_validadorCampos.currentState.validate()) {
+                if (_dropdownValue != null) {
+                  await _controllerCidade.obterCidadePorNome(_dropdownValue);
+                  empresa.cidade = _controllerCidade.cidade;
+                  Map<String, dynamic> mapa =
+                  _controllerEmpresa.converterParaMapa(empresa);
+                  Map<String, dynamic> mapaCidade = Map();
+                  mapaCidade["id"] = cidade.id;
+                  if (_novocadastro) {
+                    _controllerEmpresa.salvarEmpresa(mapa, mapaCidade);
+                  } else {
+                    _controllerEmpresa.editarEmpresa(
+                        mapa, mapaCidade, empresa.id);
+                  }
+                  Navigator.of(context).pop();
+                } else {
+                  if (_dropdownValue == null) {
+                    _scaffold.currentState.showSnackBar(SnackBar(
+                      content: Text("É necessário selecionar uma cidade!"),
+                      backgroundColor: Colors.red,
+                      duration: Duration(seconds: 5),
+                    ));
+                  }
+                }
               }
-            Navigator.of(context).pop();
-            }else{
-                if(!empresa.email.contains("@") || !empresa.email.contains(".com")){
-                _scaffold.currentState.showSnackBar(
-                SnackBar(content: Text("E-mail inválido!"),
-                backgroundColor: Colors.red,
-                duration: Duration(seconds: 5),)
-              );
-              }
-              if(_dropdownValue == null){
-                _scaffold.currentState.showSnackBar(
-                SnackBar(content: Text("É necessário selecionar uma cidade!"),
-                backgroundColor: Colors.red,
-                duration: Duration(seconds: 5),)
-              );
-              }
-              
-            }
-              }
-          }),
-      body: Form(
-        key: _validadorCampos,
-        child: ListView(
-          padding: EdgeInsets.all(8.0),
-          children: <Widget>[
-            _criarCampoRazaoSocial(),
-                _criarCampoNomFantasia(),
+            }),
+        body: Form(
+            key: _validadorCampos,
+            child: ListView(
+              padding: EdgeInsets.all(8.0),
+              children: <Widget>[
+                _criarCampo(_controllerRazaoSocial, TextInputType.text, 200, "Razão Social"),
+                _criarCampo(_controllerNomeFantasia, TextInputType.text, 200, "Nome Fantasia"),
                 _criarCampoIE(),
                 _criarCampoCNPJ(),
-                _criarCampoCEP(),
+                _criarCampo(_controllerCep, TextInputType.number, 8, "CEP"),
                 _criarDropDownCidade(),
                 _criarCampoBairro(),
-                _criarCampoLogradouro(),
+                _criarCampo(_controllerlogradouro, TextInputType.text, 100, "Logradouro"),
                 _criarCampoNumero(),
                 _criarCampoTelefone(),
                 _criarCampoEmail(),
                 _criarCampoCheckBox(),
                 _criarCampoCheckBoxFornecedor(),
-          ],
-        )));
+              ],
+            )));
   }
 
-  
-Widget _criarCampoRazaoSocial(){
-    return Container(
-        padding: EdgeInsets.all(6.0),
-        child: TextFormField(
-          controller: _controllerRazaoSocial,
-          keyboardType: TextInputType.text,
-          maxLength: 200,
-          decoration: InputDecoration(
-            hintText: "Razão Social",
-          ),
-          style: TextStyle(color: Colors.black, fontSize: 17.0),
-          validator: (text) {
-              if(text.isEmpty) return "É necessário informar este campo!";      
-              },
-          onChanged: (texto) {
-                empresa.razaoSocial = texto;
-          },
-        ));
-  }
-
-Widget _criarCampoNomFantasia(){
-    return Container(
-        padding: EdgeInsets.all(6.0),
-        child: TextFormField(
-          controller: _controllerNomeFantasia,
-          keyboardType: TextInputType.text,
-          maxLength: 200,
-          decoration: InputDecoration(
-            hintText: "Nome Fantasia",
-          ),
-          style: TextStyle(color: Colors.black, fontSize: 17.0),
-          validator: (text) {
-              if(text.isEmpty) return "É necessário informar  este campo!";  
-              },
-          onChanged: (texto) {
-                empresa.nomeFantasia = texto;
-          },
-        ));
-  }
-
-  Widget _criarCampoCEP(){
-    return Container(
-        padding: EdgeInsets.all(6.0),
-        child: TextFormField(
-          controller: _controllerCep,
-          keyboardType: TextInputType.number,
-          maxLength: 8,
-          decoration: InputDecoration(
-            hintText: "CEP",
-          ),
-          style: TextStyle(color: Colors.black, fontSize: 17.0),
-          validator: (text) {
-              if(text.isEmpty || text.length < 8) return "É necessário informar corretamente este campo!";  
-              },
-          onChanged: (texto) {
-                empresa.cep = texto;
-          },
-        ));
-  }
-
-  Widget _criarCampoEmail(){
+  Widget _criarCampoEmail() {
     return Container(
         padding: EdgeInsets.all(6.0),
         child: TextFormField(
@@ -214,16 +153,17 @@ Widget _criarCampoNomFantasia(){
           ),
           style: TextStyle(color: Colors.black, fontSize: 17.0),
           validator: (text) {
-              if(text.isEmpty) return "É necessário informar este campo!";  
-              if(text.isNotEmpty && !text.contains("@") || !text.contains(".com")) return "E-mail inválido!";
-              },
+            if (text.isEmpty) return "É necessário informar este campo!";
+            if (text.isNotEmpty && !text.contains("@") ||
+                !text.contains(".com")) return "E-mail inválido!";
+          },
           onChanged: (texto) {
-                empresa.email = texto;
+            empresa.email = texto;
           },
         ));
   }
 
-  Widget _criarCampoNumero(){
+  Widget _criarCampoNumero() {
     return Container(
         padding: EdgeInsets.all(6.0),
         child: TextFormField(
@@ -235,15 +175,15 @@ Widget _criarCampoNomFantasia(){
           ),
           style: TextStyle(color: Colors.black, fontSize: 17.0),
           validator: (text) {
-              if(text.isEmpty) return "É necessário informar este campo!";  
-              },
+            if (text.isEmpty) return "É necessário informar este campo!";
+          },
           onChanged: (texto) {
-                empresa.numero = int.parse(texto);
+            empresa.numero = int.parse(texto);
           },
         ));
   }
 
-  Widget _criarCampoTelefone(){
+  Widget _criarCampoTelefone() {
     return Container(
         padding: EdgeInsets.all(6.0),
         child: TextFormField(
@@ -255,15 +195,15 @@ Widget _criarCampoNomFantasia(){
           ),
           style: TextStyle(color: Colors.black, fontSize: 17.0),
           validator: (text) {
-              if(text.isEmpty) return "É necessário informar este campo!";  
-              },
+            if (text.isEmpty) return "É necessário informar este campo!";
+          },
           onChanged: (texto) {
-                empresa.telefone = texto;
+            empresa.telefone = texto;
           },
         ));
   }
 
-  Widget _criarCampoBairro(){
+  Widget _criarCampoBairro() {
     return Container(
         padding: EdgeInsets.all(6.0),
         child: TextFormField(
@@ -275,35 +215,53 @@ Widget _criarCampoNomFantasia(){
           ),
           style: TextStyle(color: Colors.black, fontSize: 17.0),
           validator: (text) {
-              if(text.isEmpty) return "É necessário informar este campo!";  
-              },
+            if (text.isEmpty) return "É necessário informar este campo!";
+          },
           onChanged: (texto) {
-                empresa.bairro = texto;
+            empresa.bairro = texto;
           },
         ));
   }
 
-  Widget _criarCampoLogradouro(){
+    Widget _criarCampo(TextEditingController _controller, TextInputType tipo, int tamanho, String nome) {
     return Container(
         padding: EdgeInsets.all(6.0),
         child: TextFormField(
-          controller: _controllerlogradouro,
-          keyboardType: TextInputType.text,
-          maxLength: 100,
+          controller: _controller,
+          keyboardType: tipo,
+          maxLength: tamanho,
           decoration: InputDecoration(
-            hintText: "Logradouro",
+            hintText: nome,
           ),
           style: TextStyle(color: Colors.black, fontSize: 17.0),
           validator: (text) {
-              if(text.isEmpty) return "É necessário informar este campo!";  
-              },
+            if (text.isEmpty) return "É necessário informar este campo!";
+            if(nome == "CEP" && text.length < 8) return "Valor inválido, verifique!";
+          },
           onChanged: (texto) {
-                empresa.logradouro = texto;
+            switch(nome){
+              case "Logradouro": {empresa.logradouro = texto;}
+              break;
+
+              case "Razão Social": {empresa.razaoSocial = texto;}
+              break;
+
+              case "Nome Fantasia": {empresa.nomeFantasia = texto;}
+              break;
+
+              case "CEP": {empresa.cep = texto;}
+              break;
+
+
+
+
+            }
+            
           },
         ));
   }
 
-Widget _criarCampoCNPJ(){
+  Widget _criarCampoCNPJ() {
     return Container(
         padding: EdgeInsets.all(6.0),
         child: TextFormField(
@@ -315,15 +273,18 @@ Widget _criarCampoCNPJ(){
           ),
           style: TextStyle(color: Colors.black, fontSize: 17.0),
           validator: (text) {
-              if(text.isEmpty || text.length < 14) return "É necessário informar corretamente este campo!";  
-              if(_existeCadastroCNPJ && text.isNotEmpty) return "Já existe empresa com esse CNPJ, verifique!";
-              },
+            if (text.isEmpty || text.length < 14)
+              return "É necessário informar corretamente este campo!";
+            if (_existeCadastroCNPJ && text.isNotEmpty)
+              return "Já existe empresa com esse CNPJ, verifique!";
+          },
           onChanged: (texto) {
-                empresa.cnpj = texto;
+            empresa.cnpj = texto;
           },
         ));
   }
-  Widget _criarCampoIE(){
+
+  Widget _criarCampoIE() {
     return Container(
         padding: EdgeInsets.all(6.0),
         child: TextFormField(
@@ -335,15 +296,16 @@ Widget _criarCampoCNPJ(){
           ),
           style: TextStyle(color: Colors.black, fontSize: 17.0),
           validator: (text) {
-              if(text.isEmpty || text.length < 9) return "É necessário informar corretamente este campo!";  
-              if(_existeCadastroIE && text.isNotEmpty) return "Já existe empresa com essa IE, verifique!";    
-              },
+            if (text.isEmpty || text.length < 9)
+              return "É necessário informar corretamente este campo!";
+            if (_existeCadastroIE && text.isNotEmpty)
+              return "Já existe empresa com essa IE, verifique!";
+          },
           onChanged: (texto) {
-                empresa.inscEstadual = texto;
+            empresa.inscEstadual = texto;
           },
         ));
   }
-
 
   Widget _criarCampoCheckBox() {
     return Container(
@@ -397,58 +359,46 @@ Widget _criarCampoCNPJ(){
     );
   }
 
-  Widget _criarDropDownCidade(){
-   return StreamBuilder<QuerySnapshot>(
-    stream: _streamCidade,
-    builder: (context, snapshot){
-      var length = snapshot.data.documents.length;
-      DocumentSnapshot ds = snapshot.data.documents[length - 1];
-      return Container(
-        padding: EdgeInsets.all(8.0),
-        child: Row(
-          children: <Widget>[
-            Container(
-              width: 300.0,
-                child: DropdownButton(
-                  value: _dropdownValue,
-                  hint: Text("Selecionar cidade"),
-                  onChanged: (String newValue) {
-                    setState(() {
-                      _dropdownValue = newValue;
-                      _obterCidadeDropDow();
-                      print(cidade.nome);
-                    });
-                  },
-                  items: snapshot.data.documents.map((DocumentSnapshot document) {
-                    return DropdownMenuItem<String>(
-                        value: document.data['nome'],
-                        child: Container(
-                          child:Text(document.data['nome'],style: TextStyle(color: Colors.black)),
-                        )
-                    );
-                  }).toList(),
-                ),
-            ),
-          ],
-        ),
-      );
-    }
-);
+  Widget _criarDropDownCidade() {
+    return StreamBuilder<QuerySnapshot>(
+        stream: _streamCidade,
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          } else {
+            var length = snapshot.data.documents.length;
+            DocumentSnapshot ds = snapshot.data.documents[length - 1];
+            return Container(
+              padding: EdgeInsets.all(8.0),
+              child: Row(
+                children: <Widget>[
+                  Container(
+                    width: 300.0,
+                    child: DropdownButton(
+                      value: _dropdownValue,
+                      hint: Text("Selecionar cidade"),
+                      onChanged: (String newValue) {
+                        setState(() {
+                          _dropdownValue = newValue;
+                        });
+                      },
+                      items: snapshot.data.documents
+                          .map((DocumentSnapshot document) {
+                        return DropdownMenuItem<String>(
+                            value: document.data['nome']+ ' - '+document.data['estado'],
+                            child: Container(
+                              child: Text(document.data['nome']+ ' - '+document.data['estado'],
+                                  style: TextStyle(color: Colors.black)),
+                            ));
+                      }).toList(),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+        });
   }
-
-Future<Cidade> _obterCidadeDropDow() async {
-CollectionReference ref = Firestore.instance.collection('cidades');
-QuerySnapshot eventsQuery = await ref
-    .where("nome", isEqualTo: _dropdownValue)
-    .getDocuments();
-
-eventsQuery.documents.forEach((document) {
-  cidade.id = document.documentID;
-  cidade.nome = document.data["nome"];
-  cidade.ativa = document.data["ativa"];
-});
-
-return cidade;
-}
-
 }
