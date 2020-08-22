@@ -12,19 +12,18 @@ class _TelaCidadesState extends State<TelaCidades> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      //Botao para adicionar registros
       floatingActionButton: FloatingActionButton(
           child: Icon(Icons.add),
           backgroundColor: Theme.of(context).primaryColor,
           onPressed: () {
+            //Direciona para a tela de cadastro
             Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => TelaCRUDCidade())
-            );
-          }
-      ),
+                MaterialPageRoute(builder: (context) => TelaCRUDCidade()));
+          }),
       body: FutureBuilder<QuerySnapshot>(
-        //O sistema ira acessar o documento "cidades"
-          future: Firestore.instance
-              .collection("cidades").getDocuments(),
+          //O sistema ira acessar o documento "cidades"
+          future: Firestore.instance.collection("cidades").getDocuments(),
           builder: (context, snapshot) {
             //Como os dados serao buscados do firebase, pode ser que demore para obter
             //entao, enquanto os dados nao sao obtidos sera apresentado um circulo na tela
@@ -41,14 +40,16 @@ class _TelaCidadesState extends State<TelaCidades> {
                   //Ira pegar cada cidade no firebase e retornar
                   itemBuilder: (context, index) {
                     Cidade cidade =
-                    Cidade.buscarFirebase(snapshot.data.documents[index]);
-                    return _construirListaCidades(context, cidade, snapshot.data.documents[index]);
+                        Cidade.buscarFirebase(snapshot.data.documents[index]);
+                    return _construirListaCidades(
+                        context, cidade, snapshot.data.documents[index]);
                   });
           }),
     );
   }
 
-  Widget _construirListaCidades(contexto, Cidade c, DocumentSnapshot snapshot){
+  Widget _construirListaCidades(contexto, Cidade c, DocumentSnapshot snapshot) {
+    //Pega cada cidade existe e monta um card com o nome e status da cidade
     return InkWell(
       //InkWell eh pra dar uma animacao quando clicar no produto
       child: Card(
@@ -56,33 +57,40 @@ class _TelaCidadesState extends State<TelaCidades> {
           children: <Widget>[
             //Flexible eh para quebrar a linha caso a descricao do produto seja maior que a largura da tela
             Flexible(
-              //padding: EdgeInsets.all(8.0),
+                //padding: EdgeInsets.all(8.0),
                 child: Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Text(
-                        c.nome,
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Color.fromARGB(255, 0, 120, 189),
-                            fontSize: 20.0),
-                      ),
-                      Text(
-                        c.ativa ? "Ativa" : "Inativa",
-                        style: TextStyle(
-                            fontSize: 16.0,
-                            fontWeight: FontWeight.w500),
-                      ),
-                    ],
+              padding: EdgeInsets.all(8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    c.nome,
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Color.fromARGB(255, 0, 120, 189),
+                        fontSize: 20.0),
                   ),
-                ))
+                  Text(
+                    c.estado,
+                    style:
+                        TextStyle(fontSize: 16.0, fontWeight: FontWeight.w500),
+                  ),
+                  Text(
+                    c.ativa ? "Ativa" : "Inativa",
+                    style:
+                        TextStyle(fontSize: 16.0, fontWeight: FontWeight.w500),
+                  ),
+                ],
+              ),
+            ))
           ],
         ),
       ),
-      onTap: (){
-        Navigator.of(contexto).push(MaterialPageRoute(builder: (contexto)=>TelaCRUDCidade(cidade: c,snapshot: snapshot)));
+      onTap: () {
+        //ao clicar sobre o card direciona para a página de edição
+        Navigator.of(contexto).push(MaterialPageRoute(
+            builder: (contexto) =>
+                TelaCRUDCidade(cidade: c, snapshot: snapshot)));
       },
     );
   }

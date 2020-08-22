@@ -4,13 +4,13 @@ import 'package:tcc_2/controller/CategoriaController.dart';
 import 'package:tcc_2/model/Categoria.dart';
 
 class TelaCRUDCategoria extends StatefulWidget {
-
   final Categoria categoria;
   DocumentSnapshot snapshot;
 
   TelaCRUDCategoria({this.categoria, this.snapshot});
   @override
-  _TelaCRUDCategoriaState createState() => _TelaCRUDCategoriaState(categoria,snapshot);
+  _TelaCRUDCategoriaState createState() =>
+      _TelaCRUDCategoriaState(categoria, snapshot);
 }
 
 class _TelaCRUDCategoriaState extends State<TelaCRUDCategoria> {
@@ -35,7 +35,6 @@ class _TelaCRUDCategoriaState extends State<TelaCRUDCategoria> {
       _nomeTela = "Editar Categoria";
       _controllerDescricao.text = categoria.descricao;
       _novocadastro = false;
-      
     } else {
       _nomeTela = "Cadastrar Categoria";
       categoria = Categoria();
@@ -43,7 +42,7 @@ class _TelaCRUDCategoriaState extends State<TelaCRUDCategoria> {
       _novocadastro = true;
     }
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -54,54 +53,54 @@ class _TelaCRUDCategoriaState extends State<TelaCRUDCategoria> {
       ),
       //Botao para salvar
       floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.save),
-        backgroundColor: Colors.blue,
-        onPressed: () async{
+          child: Icon(Icons.save),
+          backgroundColor: Colors.blue,
+          onPressed: () async {
+            //Verifica se já existe um categoria com as mesmas informações
+            await controllerCategoria.verificarExistenciaCategoria(
+                categoria.descricao.toUpperCase(), _novocadastro);
+            _existeCadastro = controllerCategoria.existeCadastro;
 
-          //Verifica se já existe um categoria com as mesmas informações
-          await controllerCategoria.verificarExistenciaCategoria(categoria.descricao.toUpperCase(), _novocadastro);
-          _existeCadastro = controllerCategoria.existeCadastro;
+            //verifica se os criterios para permitir salvar um registro foram preenchidos
+            if (_validadorCampos.currentState.validate()) {
+              Map<String, dynamic> mapa =
+                  controllerCategoria.converterParaMapa(categoria);
 
-          //verifica se os criterios para permitir salvar um registro foram preenchidos
-          if(_validadorCampos.currentState.validate()){
-            Map<String, dynamic> mapa = controllerCategoria.converterParaMapa(categoria);
-
-            if(_novocadastro){
-              await controllerCategoria.obterProxID();
-              categoria.id = controllerCategoria.proxID;
-              controllerCategoria.salvarCategoria(mapa,categoria.id);
-            }else{
-              controllerCategoria.editarCategoria(mapa, categoria.id);
+              if (_novocadastro) {
+                await controllerCategoria.obterProxID();
+                categoria.id = controllerCategoria.proxID;
+                controllerCategoria.salvarCategoria(mapa, categoria.id);
+              } else {
+                controllerCategoria.editarCategoria(mapa, categoria.id);
+              }
+              //volta para a listagem de categorias após salvar
+              Navigator.of(context).pop();
             }
-            //volta para a listagem de categorias após salvar
-            Navigator.of(context).pop();
-          }
-        }),
-        //corpo da tela
+          }),
+      //corpo da tela
       body: Form(
-        key: _validadorCampos,
-        child: ListView(
-          padding: EdgeInsets.all(8.0),
-          children: <Widget>[
-            TextFormField(
-              controller: _controllerDescricao,
-              decoration: InputDecoration(
-                hintText: "Descrição da categoria"
+          key: _validadorCampos,
+          child: ListView(
+            padding: EdgeInsets.all(8.0),
+            children: <Widget>[
+              TextFormField(
+                controller: _controllerDescricao,
+                decoration: InputDecoration(hintText: "Descrição da categoria"),
+                style: TextStyle(color: Colors.black, fontSize: 17.0),
+                keyboardType: TextInputType.text,
+                //Onde é realizada a validação do form
+                validator: (text) {
+                  //verifica se o campo está preenchidoe se a categoria já existe, se sim, retorna mensagem
+                  if (_existeCadastro) return "Categoria já existe. Verifique!";
+                  if (text.isEmpty) return "Informe a descrição!";
+                },
+                onChanged: (text) async {
+                  categoria.descricao = text.toUpperCase();
+                },
               ),
-              style: TextStyle(color: Colors.black, fontSize: 17.0),
-              keyboardType: TextInputType.text,
-              validator: (text){
-                //verifica se o campo está preenchidoe se a categoria já existe, se sim, retorna mensagem
-                if(_existeCadastro) return "Categoria já existe. Verifique!";
-                if(text.isEmpty) return "Informe a descrição!";
-              },
-              onChanged: (text) async{
-                categoria.descricao = text.toUpperCase();
-              },
-            ),
-            _criarCampoCheckBox()
-          ],
-        )),
+              _criarCampoCheckBox()
+            ],
+          )),
     );
   }
 

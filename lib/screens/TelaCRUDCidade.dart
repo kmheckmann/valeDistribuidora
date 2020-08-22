@@ -48,28 +48,34 @@ class _TelaCRUDCidadeState extends State<TelaCRUDCidade> {
   Widget build(BuildContext context) {
     return Scaffold(
         key: _scaffold,
+        //barra com o titulo da tela
         appBar: AppBar(
           title: Text(_nomeTela),
           centerTitle: true,
         ),
+        //botao para salvar
         floatingActionButton: FloatingActionButton(
             child: Icon(Icons.save),
             backgroundColor: Colors.blue,
             onPressed: () async {
-              await _controllerCidade.verificarExistenciaCidade(cidade,_novocadastro);
+              //verifica se a já existe uma cidade com as mesma informações
+              await _controllerCidade.verificarExistenciaCidade(
+                  cidade, _novocadastro);
               _existeCadastro = _controllerCidade.existeCadastro;
-              //verifica se os campos estão validados antes de salvar
+              //Faz a validação do form
               if (_validadorCampos.currentState.validate()) {
                 if (_dropdownValue != null) {
-                  //Ao savar é executada a validação do form é feita, caso exista uma cidade com mesmo nome
+                  //Se o estado nao for informado, não será salvar o cadastro
+                  //Caso exista uma cidade com mesmo nome
                   //ou o nome esteja vazio o cadastro não é realizado e é apresentada a mensagem
                   if (_existeCadastro) {
                     _scaffold.currentState.showSnackBar(SnackBar(
                       content: Text("Essa cidade já está cadastrada!"),
                       backgroundColor: Colors.red,
                       duration: Duration(seconds: 5),
-                    ));                    
+                    ));
                   } else {
+                    //converte para mapa para salvar no banco
                     Map<String, dynamic> mapa =
                         _controllerCidade.converterParaMapa(cidade);
                     if (_novocadastro) {
@@ -79,6 +85,7 @@ class _TelaCRUDCidadeState extends State<TelaCRUDCidade> {
                     } else {
                       _controllerCidade.editarCidade(mapa, cidade.id);
                     }
+                    //retorna para a listagem das cidades
                     Navigator.of(context).pop();
                   }
                 } else {
@@ -98,21 +105,22 @@ class _TelaCRUDCidadeState extends State<TelaCRUDCidade> {
               padding: EdgeInsets.all(8.0),
               //ListView para adicionar scroll quando abrir o teclado em vez de ocultar os campos
               children: <Widget>[
+                _criarDropDownEstado(),
                 TextFormField(
                   controller: _controllerNome,
                   decoration: InputDecoration(hintText: "Nome Cidade"),
                   style: TextStyle(color: Colors.black, fontSize: 17.0),
                   keyboardType: TextInputType.text,
+                  //Onde é realizada a validação do form
                   validator: (text) {
                     //no validator consiste se a cidade informada já existe
                     //se existir retorna a mensagem
                     if (text.isEmpty) return "Informe o nome da cidade!";
                   },
                   onChanged: (texto) {
-                    cidade.nome = texto;
+                    cidade.nome = texto.toUpperCase();
                   },
                 ),
-                _criarDropDownEstado(),
                 _criarCampoCheckBox()
               ],
             )));

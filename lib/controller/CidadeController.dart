@@ -58,6 +58,7 @@ class CidadeController {
   }
 
   Future<Null> obterCidadePorNome(String nomeEestado) async {
+    //Utilizado pelo cadastro de empresas, para saber qual o codigo da cidade selecionada no comboBox do cadastroF
     var array = nomeEestado.split(" - ");
     String nome = array[0];
     String estado = array[1];
@@ -83,23 +84,28 @@ class CidadeController {
     QuerySnapshot eventsQuery2 =
         await ref.where("estado", isEqualTo: c.estado).getDocuments();
 
+    //Verificacao adicionada para contemplar o caso do usuario estar editando um registro existente
+    //e alterar o texto e depois retornar ao original
     eventsQuery2.documents.forEach((document) {
-      print(document.data['nome']);
       if (document.data["nome"] == c.nome) {
         qtde += 1;
       }
     });
-  
-    if(novoCad == true){
-      if(qtde == 1){
+
+    //Se for um novo cadastro a quantidade de registros nao pode ser maior que zero
+    //pois não pode existir registros com a mesma descricao
+    if (novoCad == true) {
+      if (qtde == 1) {
         existeCadastro = true;
-      } else{
+      } else {
         existeCadastro = false;
       }
-    }else{
-      if(qtde > 1){
+    } else {
+      //Se não for um novo cadastro, já existe 1 registro,
+      //então caso o usuario altere o texto e depois tente voltar ao original e salvar não será impedido
+      if (qtde > 1) {
         existeCadastro = true;
-      } else{
+      } else {
         existeCadastro = false;
       }
     }
