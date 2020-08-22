@@ -12,10 +12,12 @@ class _TelaCategoriasState extends State<TelaCategorias> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      //Botao para ir para a tela para adicionar novos registros
       floatingActionButton: FloatingActionButton(
           child: Icon(Icons.add),
           backgroundColor: Theme.of(context).primaryColor,
           onPressed: () {
+            //Direciona para a tela para adicionar novos registros
             Navigator.of(context).push(
                 MaterialPageRoute(builder: (context) => TelaCRUDCategoria())
             );
@@ -48,6 +50,7 @@ class _TelaCategoriasState extends State<TelaCategorias> {
   }
 
   Widget _construirListaCidades(contexto, Categoria c, DocumentSnapshot snapshot){
+    //Para cada categoria existente adicionar um card com a descricao e com o status da categoria
     return InkWell(
       //InkWell eh pra dar uma animacao quando clicar no produto
       child: Card(
@@ -81,6 +84,7 @@ class _TelaCategoriasState extends State<TelaCategorias> {
         ),
       ),
       onTap: (){
+        //Ao clicar sobre o card direciona para a tela de edição
         Navigator.of(contexto).push(MaterialPageRoute(builder: (contexto)=>TelaCRUDCategoria(categoria: c,snapshot: snapshot)));
       },
     );

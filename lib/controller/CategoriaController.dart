@@ -10,6 +10,7 @@ class CategoriaController {
 
   Map<String, dynamic> dadosCategoria = Map();
 
+  //converte para mapa para ser possível salvar no banco
   Map<String, dynamic> converterParaMapa(Categoria categoria) {
     return {
       "descricao": categoria.descricao,
@@ -17,7 +18,7 @@ class CategoriaController {
     };
   }
 
-    Future<Null> salvarCategoaria(Map<String, dynamic> dadosCategoria, String id) async {
+    Future<Null> salvarCategoria(Map<String, dynamic> dadosCategoria, String id) async {
     this.dadosCategoria = dadosCategoria;
     await Firestore.instance
         .collection("categorias")
@@ -55,18 +56,31 @@ class CategoriaController {
     proxID = idTemp.toString();
   }
 
-  Future<Null> verificarExistenciaCategoria(String descricao) async {
+  Future<Null> verificarExistenciaCategoria(String descricao, bool novoCad) async {
     //Busca todas as categoria cadastradas
     CollectionReference ref = Firestore.instance.collection("categorias");
   //Nas categorias cadastradas verifica se existe alguma com o mesmo nome e estado informados no cadastro atual
     QuerySnapshot eventsQuery = await ref
     .where("descricao", isEqualTo: descricao).getDocuments(); 
-    print(eventsQuery.documents.length);   
-
-    if(eventsQuery.documents.length > 0){
+  
+    //Verificacao adicionada para contemplar o caso do usuario estar editando um registro existente
+    //e alterar o texto e depois retornar ao original
+    if(novoCad){
+      //Se for um novo cadastro a quantidade de registros nao pode ser maior que zero
+      //pois não pode existir registros com a mesma descricao
+      if(eventsQuery.documents.length > 0){
       existeCadastro = true;
     }else{
       existeCadastro = false;
+    }
+    }else{
+      //Se não for um novo cadastro, já existe 1 registro, 
+      //então caso o usuario altere o texto e depois tente voltar ao original e salvar não será impedido
+      if(eventsQuery.documents.length > 1){
+      existeCadastro = true;
+    }else{
+      existeCadastro = false;
+    }
     }
   }
 

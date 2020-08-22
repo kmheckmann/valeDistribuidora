@@ -89,8 +89,7 @@ class CidadeController {
         qtde += 1;
       }
     });
-    
-    print(qtde);
+  
     if(novoCad == true){
       if(qtde == 1){
         existeCadastro = true;

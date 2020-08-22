@@ -52,28 +52,32 @@ class _TelaCRUDCategoriaState extends State<TelaCRUDCategoria> {
         title: Text(_nomeTela),
         centerTitle: true,
       ),
+      //Botao para salvar
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.save),
         backgroundColor: Colors.blue,
         onPressed: () async{
-          if(_validadorCampos.currentState.validate()){
 
+          //Verifica se já existe um categoria com as mesmas informações
+          await controllerCategoria.verificarExistenciaCategoria(categoria.descricao.toUpperCase(), _novocadastro);
+          _existeCadastro = controllerCategoria.existeCadastro;
+
+          //verifica se os criterios para permitir salvar um registro foram preenchidos
+          if(_validadorCampos.currentState.validate()){
             Map<String, dynamic> mapa = controllerCategoria.converterParaMapa(categoria);
 
             if(_novocadastro){
               await controllerCategoria.obterProxID();
               categoria.id = controllerCategoria.proxID;
-              print(categoria.id);
-              controllerCategoria.salvarCategoaria(mapa,categoria.id);
+              controllerCategoria.salvarCategoria(mapa,categoria.id);
             }else{
-
               controllerCategoria.editarCategoria(mapa, categoria.id);
             }
-
+            //volta para a listagem de categorias após salvar
             Navigator.of(context).pop();
           }
-
         }),
+        //corpo da tela
       body: Form(
         key: _validadorCampos,
         child: ListView(
@@ -92,9 +96,7 @@ class _TelaCRUDCategoriaState extends State<TelaCRUDCategoria> {
                 if(text.isEmpty) return "Informe a descrição!";
               },
               onChanged: (text) async{
-                categoria.descricao = text;
-                await controllerCategoria.verificarExistenciaCategoria(categoria.descricao);
-                _existeCadastro = controllerCategoria.existeCadastro;
+                categoria.descricao = text.toUpperCase();
               },
             ),
             _criarCampoCheckBox()

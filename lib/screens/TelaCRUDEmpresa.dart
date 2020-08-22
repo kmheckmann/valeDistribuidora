@@ -124,14 +124,14 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
             child: ListView(
               padding: EdgeInsets.all(8.0),
               children: <Widget>[
-                _criarCampoRazaoSocial(),
-                _criarCampoNomFantasia(),
+                _criarCampo(_controllerRazaoSocial, TextInputType.text, 200, "Razão Social"),
+                _criarCampo(_controllerNomeFantasia, TextInputType.text, 200, "Nome Fantasia"),
                 _criarCampoIE(),
                 _criarCampoCNPJ(),
-                _criarCampoCEP(),
+                _criarCampo(_controllerCep, TextInputType.number, 8, "CEP"),
                 _criarDropDownCidade(),
                 _criarCampoBairro(),
-                _criarCampoLogradouro(),
+                _criarCampo(_controllerlogradouro, TextInputType.text, 100, "Logradouro"),
                 _criarCampoNumero(),
                 _criarCampoTelefone(),
                 _criarCampoEmail(),
@@ -139,67 +139,6 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
                 _criarCampoCheckBoxFornecedor(),
               ],
             )));
-  }
-
-  Widget _criarCampoRazaoSocial() {
-    return Container(
-        padding: EdgeInsets.all(6.0),
-        child: TextFormField(
-          controller: _controllerRazaoSocial,
-          keyboardType: TextInputType.text,
-          maxLength: 200,
-          decoration: InputDecoration(
-            hintText: "Razão Social",
-          ),
-          style: TextStyle(color: Colors.black, fontSize: 17.0),
-          validator: (text) {
-            if (text.isEmpty) return "É necessário informar este campo!";
-          },
-          onChanged: (texto) {
-            empresa.razaoSocial = texto;
-          },
-        ));
-  }
-
-  Widget _criarCampoNomFantasia() {
-    return Container(
-        padding: EdgeInsets.all(6.0),
-        child: TextFormField(
-          controller: _controllerNomeFantasia,
-          keyboardType: TextInputType.text,
-          maxLength: 200,
-          decoration: InputDecoration(
-            hintText: "Nome Fantasia",
-          ),
-          style: TextStyle(color: Colors.black, fontSize: 17.0),
-          validator: (text) {
-            if (text.isEmpty) return "É necessário informar  este campo!";
-          },
-          onChanged: (texto) {
-            empresa.nomeFantasia = texto;
-          },
-        ));
-  }
-
-  Widget _criarCampoCEP() {
-    return Container(
-        padding: EdgeInsets.all(6.0),
-        child: TextFormField(
-          controller: _controllerCep,
-          keyboardType: TextInputType.number,
-          maxLength: 8,
-          decoration: InputDecoration(
-            hintText: "CEP",
-          ),
-          style: TextStyle(color: Colors.black, fontSize: 17.0),
-          validator: (text) {
-            if (text.isEmpty || text.length < 8)
-              return "É necessário informar corretamente este campo!";
-          },
-          onChanged: (texto) {
-            empresa.cep = texto;
-          },
-        ));
   }
 
   Widget _criarCampoEmail() {
@@ -284,22 +223,40 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
         ));
   }
 
-  Widget _criarCampoLogradouro() {
+    Widget _criarCampo(TextEditingController _controller, TextInputType tipo, int tamanho, String nome) {
     return Container(
         padding: EdgeInsets.all(6.0),
         child: TextFormField(
-          controller: _controllerlogradouro,
-          keyboardType: TextInputType.text,
-          maxLength: 100,
+          controller: _controller,
+          keyboardType: tipo,
+          maxLength: tamanho,
           decoration: InputDecoration(
-            hintText: "Logradouro",
+            hintText: nome,
           ),
           style: TextStyle(color: Colors.black, fontSize: 17.0),
           validator: (text) {
             if (text.isEmpty) return "É necessário informar este campo!";
+            if(nome == "CEP" && text.length < 8) return "Valor inválido, verifique!";
           },
           onChanged: (texto) {
-            empresa.logradouro = texto;
+            switch(nome){
+              case "Logradouro": {empresa.logradouro = texto;}
+              break;
+
+              case "Razão Social": {empresa.razaoSocial = texto;}
+              break;
+
+              case "Nome Fantasia": {empresa.nomeFantasia = texto;}
+              break;
+
+              case "CEP": {empresa.cep = texto;}
+              break;
+
+
+
+
+            }
+            
           },
         ));
   }
@@ -425,7 +382,6 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
                       onChanged: (String newValue) {
                         setState(() {
                           _dropdownValue = newValue;
-                          //_obterCidadeDropDow();
                         });
                       },
                       items: snapshot.data.documents
@@ -445,18 +401,4 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
           }
         });
   }
-
-  /*Future<Cidade> _obterCidadeDropDow() async {
-    CollectionReference ref = Firestore.instance.collection('cidades');
-    QuerySnapshot eventsQuery =
-        await ref.where("nome", isEqualTo: _dropdownValue).getDocuments();
-
-    eventsQuery.documents.forEach((document) {
-      cidade.id = document.documentID;
-      cidade.nome = document.data["nome"];
-      cidade.ativa = document.data["ativa"];
-    });
-
-    return cidade;
-  }*/
 }
