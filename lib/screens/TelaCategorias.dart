@@ -19,12 +19,10 @@ class _TelaCategoriasState extends State<TelaCategorias> {
           onPressed: () {
             //Direciona para a tela para adicionar novos registros
             Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => TelaCRUDCategoria())
-            );
-          }
-      ),
+                MaterialPageRoute(builder: (context) => TelaCRUDCategoria()));
+          }),
       body: FutureBuilder<QuerySnapshot>(
-        //O sistema ira acessar o documento "categorias"
+          //O sistema ira acessar o documento "categorias"
           future: Firestore.instance.collection("categorias").getDocuments(),
           builder: (context, snapshot) {
             //Como os dados serao buscados do firebase, pode ser que demore para obter
@@ -41,15 +39,17 @@ class _TelaCategoriasState extends State<TelaCategorias> {
                   itemCount: snapshot.data.documents.length,
                   //Ira pegar cada cidade no firebase e retornar
                   itemBuilder: (context, index) {
-                    Categoria categoria =
-                    Categoria.buscarFirebase(snapshot.data.documents[index]);
-                    return _construirListaCidades(context, categoria, snapshot.data.documents[index]);
+                    Categoria categoria = Categoria.buscarFirebase(
+                        snapshot.data.documents[index]);
+                    return _construirListaCidades(
+                        context, categoria, snapshot.data.documents[index]);
                   });
           }),
     );
   }
 
-  Widget _construirListaCidades(contexto, Categoria c, DocumentSnapshot snapshot){
+  Widget _construirListaCidades(
+      contexto, Categoria c, DocumentSnapshot snapshot) {
     //Para cada categoria existente adicionar um card com a descricao e com o status da categoria
     return InkWell(
       //InkWell eh pra dar uma animacao quando clicar no produto
@@ -58,34 +58,35 @@ class _TelaCategoriasState extends State<TelaCategorias> {
           children: <Widget>[
             //Flexible eh para quebrar a linha caso a descricao do produto seja maior que a largura da tela
             Flexible(
-              //padding: EdgeInsets.all(8.0),
+                //padding: EdgeInsets.all(8.0),
                 child: Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Text(
-                        c.descricao,
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Color.fromARGB(255, 0, 120, 189),
-                            fontSize: 20.0),
-                      ),
-                      Text(
-                        c.ativa ? "Ativa" : "Inativa",
-                        style: TextStyle(
-                            fontSize: 16.0,
-                            fontWeight: FontWeight.w500),
-                      ),
-                    ],
+              padding: EdgeInsets.all(8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    c.descricao,
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Color.fromARGB(255, 0, 120, 189),
+                        fontSize: 20.0),
                   ),
-                ))
+                  Text(
+                    c.ativa ? "Ativa" : "Inativa",
+                    style:
+                        TextStyle(fontSize: 16.0, fontWeight: FontWeight.w500),
+                  ),
+                ],
+              ),
+            ))
           ],
         ),
       ),
-      onTap: (){
+      onTap: () {
         //Ao clicar sobre o card direciona para a tela de edição
-        Navigator.of(contexto).push(MaterialPageRoute(builder: (contexto)=>TelaCRUDCategoria(categoria: c,snapshot: snapshot)));
+        Navigator.of(contexto).push(MaterialPageRoute(
+            builder: (contexto) =>
+                TelaCRUDCategoria(categoria: c, snapshot: snapshot)));
       },
     );
   }

@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class Cidade{
-
+class Cidade {
   //ID do documento no firebase
   String id;
 
@@ -11,7 +10,7 @@ class Cidade{
 
   Cidade();
 
-  Cidade.buscarFirebase(DocumentSnapshot snapshot){
+  Cidade.buscarFirebase(DocumentSnapshot snapshot) {
     id = snapshot.documentID;
     nome = snapshot.data["nome"];
     estado = snapshot.data["estado"];

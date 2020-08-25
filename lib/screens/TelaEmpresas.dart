@@ -86,7 +86,6 @@ class _TelaEmpresasState extends State<TelaEmpresas> {
         EmpresaController _empresaController = EmpresaController();
         await _empresaController.obterCidadeEmpresa(e.id);
         e.cidade = _empresaController.cidade;
-        print(e.cidade.nome);
         Navigator.of(contexto).push(MaterialPageRoute(builder: (contexto)=>TelaCRUDEmpresa(empresa: e,snapshot: snapshot)));
       },
     );

@@ -89,7 +89,7 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
             child: Icon(Icons.save),
             backgroundColor: Colors.blue,
             onPressed: () async {
-              _controllerEmpresa.verificarExistenciaEmpresa(empresa);
+              await _controllerEmpresa.verificarExistenciaEmpresa(empresa, _novocadastro);
               _existeCadastroCNPJ = _controllerEmpresa.existeCadastroCNPJ;
               _existeCadastroIE = _controllerEmpresa.existeCadastroIE;
 
@@ -97,10 +97,10 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
                 if (_dropdownValue != null) {
                   await _controllerCidade.obterCidadePorNome(_dropdownValue);
                   empresa.cidade = _controllerCidade.cidade;
-                  Map<String, dynamic> mapa =
-                  _controllerEmpresa.converterParaMapa(empresa);
                   Map<String, dynamic> mapaCidade = Map();
-                  mapaCidade["id"] = cidade.id;
+                  mapaCidade["id"] = empresa.cidade.id;
+                  Map<String, dynamic> mapa =
+                      _controllerEmpresa.converterParaMapa(empresa);
                   if (_novocadastro) {
                     _controllerEmpresa.salvarEmpresa(mapa, mapaCidade);
                   } else {
@@ -124,14 +124,17 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
             child: ListView(
               padding: EdgeInsets.all(8.0),
               children: <Widget>[
-                _criarCampo(_controllerRazaoSocial, TextInputType.text, 200, "Razão Social"),
-                _criarCampo(_controllerNomeFantasia, TextInputType.text, 200, "Nome Fantasia"),
+                _criarCampo(_controllerRazaoSocial, TextInputType.text, 200,
+                    "Razão Social"),
+                _criarCampo(_controllerNomeFantasia, TextInputType.text, 200,
+                    "Nome Fantasia"),
                 _criarCampoIE(),
                 _criarCampoCNPJ(),
                 _criarCampo(_controllerCep, TextInputType.number, 8, "CEP"),
                 _criarDropDownCidade(),
                 _criarCampoBairro(),
-                _criarCampo(_controllerlogradouro, TextInputType.text, 100, "Logradouro"),
+                _criarCampo(_controllerlogradouro, TextInputType.text, 100,
+                    "Logradouro"),
                 _criarCampoNumero(),
                 _criarCampoTelefone(),
                 _criarCampoEmail(),
@@ -223,7 +226,8 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
         ));
   }
 
-    Widget _criarCampo(TextEditingController _controller, TextInputType tipo, int tamanho, String nome) {
+  Widget _criarCampo(TextEditingController _controller, TextInputType tipo,
+      int tamanho, String nome) {
     return Container(
         padding: EdgeInsets.all(6.0),
         child: TextFormField(
@@ -236,27 +240,35 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
           style: TextStyle(color: Colors.black, fontSize: 17.0),
           validator: (text) {
             if (text.isEmpty) return "É necessário informar este campo!";
-            if(nome == "CEP" && text.length < 8) return "Valor inválido, verifique!";
+            if (nome == "CEP" && text.length < 8)
+              return "Valor inválido, verifique!";
           },
           onChanged: (texto) {
-            switch(nome){
-              case "Logradouro": {empresa.logradouro = texto;}
-              break;
+            switch (nome) {
+              case "Logradouro":
+                {
+                  empresa.logradouro = texto;
+                }
+                break;
 
-              case "Razão Social": {empresa.razaoSocial = texto;}
-              break;
+              case "Razão Social":
+                {
+                  empresa.razaoSocial = texto;
+                }
+                break;
 
-              case "Nome Fantasia": {empresa.nomeFantasia = texto;}
-              break;
+              case "Nome Fantasia":
+                {
+                  empresa.nomeFantasia = texto;
+                }
+                break;
 
-              case "CEP": {empresa.cep = texto;}
-              break;
-
-
-
-
+              case "CEP":
+                {
+                  empresa.cep = texto;
+                }
+                break;
             }
-            
           },
         ));
   }
@@ -275,7 +287,7 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
           validator: (text) {
             if (text.isEmpty || text.length < 14)
               return "É necessário informar corretamente este campo!";
-            if (_existeCadastroCNPJ && text.isNotEmpty)
+            if (_existeCadastroCNPJ)
               return "Já existe empresa com esse CNPJ, verifique!";
           },
           onChanged: (texto) {
@@ -298,7 +310,7 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
           validator: (text) {
             if (text.isEmpty || text.length < 9)
               return "É necessário informar corretamente este campo!";
-            if (_existeCadastroIE && text.isNotEmpty)
+            if (_existeCadastroIE)
               return "Já existe empresa com essa IE, verifique!";
           },
           onChanged: (texto) {
@@ -387,9 +399,14 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
                       items: snapshot.data.documents
                           .map((DocumentSnapshot document) {
                         return DropdownMenuItem<String>(
-                            value: document.data['nome']+ ' - '+document.data['estado'],
+                            value: document.data['nome'] +
+                                ' - ' +
+                                document.data['estado'],
                             child: Container(
-                              child: Text(document.data['nome']+ ' - '+document.data['estado'],
+                              child: Text(
+                                  document.data['nome'] +
+                                      ' - ' +
+                                      document.data['estado'],
                                   style: TextStyle(color: Colors.black)),
                             ));
                       }).toList(),
