@@ -57,31 +57,33 @@ class CategoriaController {
     proxID = idTemp.toString();
   }
 
-  Future<Null> verificarExistenciaCategoria(
-      String descricao, bool novoCad) async {
+  Future<Null> verificarExistenciaCategoria(Categoria categoria, bool novoCad) async {
+    existeCadastro = false;
     //Busca todas as categoria cadastradas
     CollectionReference ref = Firestore.instance.collection("categorias");
     //Nas categorias cadastradas verifica se existe alguma com o mesmo nome e estado informados no cadastro atual
-    QuerySnapshot eventsQuery =
-        await ref.where("descricao", isEqualTo: descricao).getDocuments();
+    QuerySnapshot eventsQuery = await ref
+        .where("descricao", isEqualTo: categoria.descricao)
+        .getDocuments();
 
-    //Verificacao adicionada para contemplar o caso do usuario estar editando um registro existente
-    //e alterar o texto e depois retornar ao original
     if (novoCad) {
       //Se for um novo cadastro a quantidade de registros nao pode ser maior que zero
       //pois não pode existir registros com a mesma descricao
       if (eventsQuery.documents.length > 0) {
         existeCadastro = true;
-      } else {
-        existeCadastro = false;
       }
     } else {
       //Se não for um novo cadastro, já existe 1 registro,
-      //então caso o usuario altere o texto e depois tente voltar ao original e salvar não será impedido
-      if (eventsQuery.documents.length > 1) {
-        existeCadastro = true;
-      } else {
-        existeCadastro = false;
+      //Existe a possibilidade do usuario alterar o texto e depois tentar voltar ao original
+      //Para tratar isso será comparado o ID do cadastro existente com o que esta sendo alterado
+      //Se forem diferentes, será informado que o cadastro já existe e não será possível salvar
+      //Se forem iguais, permite salvar
+      if (eventsQuery.documents.length == 1) {
+        eventsQuery.documents.forEach((document) {
+          if (document.documentID != categoria.id) {
+            existeCadastro = true;
+          }
+        });
       }
     }
   }

@@ -58,7 +58,7 @@ class _TelaCRUDCategoriaState extends State<TelaCRUDCategoria> {
           onPressed: () async {
             //Verifica se já existe um categoria com as mesmas informações
             await controllerCategoria.verificarExistenciaCategoria(
-                categoria.descricao.toUpperCase(), _novocadastro);
+                categoria, _novocadastro);
             _existeCadastro = controllerCategoria.existeCadastro;
 
             //verifica se os criterios para permitir salvar um registro foram preenchidos

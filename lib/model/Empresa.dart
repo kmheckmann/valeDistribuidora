@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:tcc_2/model/Cidade.dart';
 
-class Empresa{
+class Empresa {
   //ID do documento no firebase
   String id;
   String razaoSocial;

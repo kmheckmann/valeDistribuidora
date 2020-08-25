@@ -3,8 +3,7 @@ import 'package:tcc_2/model/Cidade.dart';
 import 'package:tcc_2/model/Empresa.dart';
 import 'package:cpfcnpj/cpfcnpj.dart';
 
-class EmpresaController{
-
+class EmpresaController {
   EmpresaController();
   Empresa empresa = Empresa();
   Cidade cidade = Cidade();
@@ -31,26 +30,25 @@ class EmpresaController{
     };
   }
 
-  Future<Null> salvarEmpresa(Map<String, dynamic> dadosEmpresa, Map<String, dynamic> dadosCidade) async {
+  Future<Null> salvarEmpresa(Map<String, dynamic> dadosEmpresa,
+      Map<String, dynamic> dadosCidade) async {
     this.dadosEmpresa = dadosEmpresa;
     this.dadosCidade = dadosCidade;
-    print(dadosCidade["id"]);
     await Firestore.instance
         .collection("empresas")
         .document(dadosEmpresa["cnpj"])
         .setData(dadosEmpresa);
 
     await Firestore.instance
-    .collection("empresas")
-    .document(dadosEmpresa["cnpj"])
-    .collection("cidade")
-    .document("IDcidade")
-    .setData(dadosCidade);
+        .collection("empresas")
+        .document(dadosEmpresa["cnpj"])
+        .collection("cidade")
+        .document("IDcidade")
+        .setData(dadosCidade);
   }
 
-  Future<Null> editarEmpresa(
-      Map<String, dynamic> dadosEmpresa, Map<String, dynamic> dadosCidade, 
-      String idFirebase) async {
+  Future<Null> editarEmpresa(Map<String, dynamic> dadosEmpresa,
+      Map<String, dynamic> dadosCidade, String idFirebase) async {
     this.dadosEmpresa = dadosEmpresa;
     this.dadosCidade = dadosCidade;
     await Firestore.instance
@@ -67,63 +65,69 @@ class EmpresaController{
   }
 
   //Método para buscar os valores da cidade na subcoleção dentro da empresa
-Future<Null> obterCidadeEmpresa(String idEmpresa) async {
-  Cidade c = Cidade();
-  CollectionReference ref = Firestore.instance.collection('empresas').document(idEmpresa).collection('cidade');
-  QuerySnapshot obterCidadeDaEmpresa = await ref.getDocuments();
+  Future<Null> obterCidadeEmpresa(String idEmpresa) async {
+    Cidade c = Cidade();
+    CollectionReference ref = Firestore.instance
+        .collection('empresas')
+        .document(idEmpresa)
+        .collection('cidade');
+    QuerySnapshot obterCidadeDaEmpresa = await ref.getDocuments();
 
-  CollectionReference refCidade = Firestore.instance.collection('cidades');
-  QuerySnapshot obterDadosCidade = await refCidade.getDocuments();
+    CollectionReference refCidade = Firestore.instance.collection('cidades');
+    QuerySnapshot obterDadosCidade = await refCidade.getDocuments();
 
-  obterCidadeDaEmpresa.documents.forEach((document) {
-  c.id = document.data["id"];
+    obterCidadeDaEmpresa.documents.forEach((document) {
+      c.id = document.data["id"];
 
-  obterDadosCidade.documents.forEach((document1){
-  if(c.id == document1.documentID){
-    c = Cidade.buscarFirebase(document1);
+      obterDadosCidade.documents.forEach((document1) {
+        if (c.id == document1.documentID) {
+          c = Cidade.buscarFirebase(document1);
+        }
+      });
+    });
+    this.cidade = c;
   }
-});
-});
-  this.cidade = c;
- }
 
- Future<Null> verificarExistenciaEmpresa(Empresa e) async {
+  Future<Null> verificarExistenciaEmpresa(Empresa e, bool novoCadastro) async {
     //Busca todas as empresas cadastradas
     CollectionReference ref = Firestore.instance.collection("empresas");
-  //Nas empresas cadastradas verifica se existe alguma com o mesmo cnpj e IE do cadastro atual
-  //se houver atribui true para a variável _existeCadastro
+    //Nas empresas cadastradas verifica se existe alguma com o mesmo cnpj e IE do cadastro atual
     QuerySnapshot eventsQuery = await ref
-    .where("inscEstadual", isEqualTo: e.inscEstadual)
-    .getDocuments();
+        .where("inscEstadual", isEqualTo: e.inscEstadual)
+        .getDocuments();
 
-    QuerySnapshot eventsQuery1 = await ref
-    .where("cnpj", isEqualTo: e.cnpj)
-    .getDocuments();
+    QuerySnapshot eventsQuery1 =
+        await ref.where("cnpj", isEqualTo: e.cnpj).getDocuments();
 
-    if(eventsQuery.documents.length > 0){
+    int _qtde;
+    if (novoCadastro) {
+      _qtde = 0;
+    } else {
+      _qtde = 1;
+    }
+    print(_qtde);
+    if (eventsQuery.documents.length > _qtde) {
       existeCadastroIE = true;
-    }else{
+    } else {
       existeCadastroIE = false;
     }
-
-    if(eventsQuery1.documents.length > 0){
+print(eventsQuery1.documents.length);
+    if (eventsQuery1.documents.length > _qtde) {
       existeCadastroCNPJ = true;
-    }else{
+    } else {
       existeCadastroCNPJ = false;
     }
   }
 
   Future<Null> obterEmpresaPorDescricao(String nomeEmpresa) async {
-  CollectionReference ref = Firestore.instance.collection('empresas');
-  QuerySnapshot eventsQuery = await ref
-    .where("nomeFantasia", isEqualTo: nomeEmpresa)
-    .getDocuments();
+    CollectionReference ref = Firestore.instance.collection('empresas');
+    QuerySnapshot eventsQuery =
+        await ref.where("nomeFantasia", isEqualTo: nomeEmpresa).getDocuments();
 
-  eventsQuery.documents.forEach((document) {
-  Empresa e = Empresa.buscarFirebase(document);
-  e.id = document.documentID;
-  empresa = e;
-  });
-
-}
+    eventsQuery.documents.forEach((document) {
+      Empresa e = Empresa.buscarFirebase(document);
+      e.id = document.documentID;
+      empresa = e;
+    });
+  }
 }
