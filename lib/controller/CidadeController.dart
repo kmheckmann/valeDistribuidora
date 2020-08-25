@@ -75,39 +75,39 @@ class CidadeController {
     });
   }
 
-  Future<Null> verificarExistenciaCidade(Cidade c, bool novoCad) async {
-    int qtde = 0;
+  Future<Null> verificarExistenciaCidade(Cidade cid, bool novoCad) async {
+    existeCadastro = true;
+    Cidade c = Cidade();
+    List<Cidade> cidades = List<Cidade>();
+
     //Busca todas as cidades cadastradas
     CollectionReference ref = Firestore.instance.collection("cidades");
-    //Nas cidades cadastradas verifica se existe alguma com o mesmo nome e estado informados no cadastro atual
-    //se houver atribui true para a variável _existeCadastro
+    //Pega todas as cidades com o mesmo nome
     QuerySnapshot eventsQuery2 =
-        await ref.where("estado", isEqualTo: c.estado).getDocuments();
+        await ref.where("nome", isEqualTo: cid.nome).getDocuments();
 
-    //Verificacao adicionada para contemplar o caso do usuario estar editando um registro existente
-    //e alterar o texto e depois retornar ao original
+    //Para todas cidades com o mesmo nome encontradas verifica se possuem o mesmo estado
+    //Se sim, adiciona numa lista
     eventsQuery2.documents.forEach((document) {
-      if (document.data["nome"] == c.nome) {
-        qtde += 1;
+      if (document.data["estado"] == cid.estado) {
+        c.nome = document.data["nome"];
+        c.estado = document.data["estado"];
+        c.id = document.documentID;
+        cidades.add(c);
       }
     });
-
-    //Se for um novo cadastro a quantidade de registros nao pode ser maior que zero
-    //pois não pode existir registros com a mesma descricao
-    if (novoCad == true) {
-      if (qtde == 1) {
-        existeCadastro = true;
-      } else {
-        existeCadastro = false;
-      }
+    if (novoCad) {
+      //Quando for um novo cadastro não pode existir nenhuma outra cidade com o mesmo nome e stado
+      //entao o tamanho da lista da cidade deve ser 0 para permitir adicionar o registro
+      if (cidades.length == 0 || cidades.isEmpty) existeCadastro = false;
     } else {
       //Se não for um novo cadastro, já existe 1 registro,
-      //então caso o usuario altere o texto e depois tente voltar ao original e salvar não será impedido
-      if (qtde > 1) {
-        existeCadastro = true;
-      } else {
+      //Existe a possibilidade do usuario alterar o texto e depois tentar voltar ao original
+      //Para tratar isso será comparado o ID do cadastro existente com o que esta sendo alterado
+      //Se forem diferentes, será informado que o cadastro já existe e não será possível salvar
+      //Se forem iguais, permite salvar
+      if (cidades.length == 1 && cidades[0].id == cid.id)
         existeCadastro = false;
-      }
     }
   }
 }

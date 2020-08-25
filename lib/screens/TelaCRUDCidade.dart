@@ -15,7 +15,7 @@ class TelaCRUDCidade extends StatefulWidget {
 
 class _TelaCRUDCidadeState extends State<TelaCRUDCidade> {
   final DocumentSnapshot snapshot;
-  final _controllerNome = TextEditingController();
+  final _controllerNome = TextEditingController(); //controlador de texto do campo nome para ser possível pegar o que foi digitado
   final _validadorCampos = GlobalKey<FormState>();
   final _scaffold = GlobalKey<ScaffoldState>();
   bool _existeCadastro;
@@ -59,15 +59,14 @@ class _TelaCRUDCidadeState extends State<TelaCRUDCidade> {
             backgroundColor: Colors.blue,
             onPressed: () async {
               //verifica se a já existe uma cidade com as mesma informações
-              await _controllerCidade.verificarExistenciaCidade(
-                  cidade, _novocadastro);
+              await _controllerCidade.verificarExistenciaCidade(cidade, _novocadastro);
               _existeCadastro = _controllerCidade.existeCadastro;
-              //Faz a validação do form
+
+              //Faz a validação do form (propriedade validador do FormTextField)
               if (_validadorCampos.currentState.validate()) {
                 if (_dropdownValue != null) {
-                  //Se o estado nao for informado, não será salvar o cadastro
-                  //Caso exista uma cidade com mesmo nome
-                  //ou o nome esteja vazio o cadastro não é realizado e é apresentada a mensagem
+                  //Se o estado nao for informado, não será permitido salvar o cadastro
+                  //Caso exista uma cidade com mesmo nome o cadastro não é realizado e é apresentada a mensagem
                   if (_existeCadastro) {
                     _scaffold.currentState.showSnackBar(SnackBar(
                       content: Text("Essa cidade já está cadastrada!"),
@@ -75,7 +74,7 @@ class _TelaCRUDCidadeState extends State<TelaCRUDCidade> {
                       duration: Duration(seconds: 5),
                     ));
                   } else {
-                    //converte para mapa para salvar no banco
+                    //Se estiver tudo certo converte para mapa para salvar no banco
                     Map<String, dynamic> mapa =
                         _controllerCidade.converterParaMapa(cidade);
                     if (_novocadastro) {
