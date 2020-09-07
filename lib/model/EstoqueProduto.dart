@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:tcc_2/model/Produto.dart';
 
 class EstoqueProduto{
 
