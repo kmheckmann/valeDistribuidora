@@ -7,8 +7,8 @@ class EmpresaController {
   EmpresaController();
   Empresa empresa = Empresa();
   Cidade cidade = Cidade();
-  bool existeCadastroCNPJ;
-  bool existeCadastroIE;
+  bool existeCadastroCNPJ = true;
+  bool existeCadastroIE = true;
 
   Map<String, dynamic> dadosEmpresa = Map();
   Map<String, dynamic> dadosCidade = Map();
@@ -89,36 +89,54 @@ class EmpresaController {
   }
 
   Future<Null> verificarExistenciaEmpresa(Empresa e, bool novoCadastro) async {
+    Empresa emp;
+    //Duas listas criadas para indicar corretamente ao usuario se já existe uma empresa com só com o mesmo CNPJ
+    //Se existe uma empresa só com a mesma Inscrição Estadual ou ambos
+    List<Empresa> empresasMesmoCNPJ = List<Empresa>();
+    List<Empresa> empresasMesmaInscEstadual = List<Empresa>();
     //Busca todas as empresas cadastradas
     CollectionReference ref = Firestore.instance.collection("empresas");
-    //Nas empresas cadastradas verifica se existe alguma com o mesmo cnpj e IE do cadastro atual
-    QuerySnapshot eventsQuery = await ref
-        .where("inscEstadual", isEqualTo: e.inscEstadual)
-        .getDocuments();
+    QuerySnapshot eventsQuery = await ref.getDocuments();
 
-    QuerySnapshot eventsQuery1 =
-        await ref.where("cnpj", isEqualTo: e.cnpj).getDocuments();
+    eventsQuery.documents.forEach((document) {
+      //Para cada empresa retornada verificar se o CNPJ ou inscrição estadual
+      //são iguais ao que está tentando ser atribuído ao novo cadastro
+      //Se for, adiciona na lista correspondente
+      if (document.data["cnpj"] == e.cnpj) {
+        emp = Empresa.buscarFirebase(document);
+        emp.id = document.documentID;
+        empresasMesmoCNPJ.add(emp);
+      }
 
-    int _qtde;
+      if (document.data["inscEstadual"] == e.inscEstadual) {
+        emp = Empresa.buscarFirebase(document);
+        emp.id = document.documentID;
+        empresasMesmaInscEstadual.add(emp);
+      }
+    });
+
     if (novoCadastro) {
-      _qtde = 0;
+      //Quando for um novo cadastro não pode existir nenhuma outra empresa com o mesmo cnpj e inscrição estadual
+      //entao o tamanho da lista da empresa deve ser 0 para permitir adicionar o registro
+      if (empresasMesmoCNPJ.length == 0 || empresasMesmoCNPJ.isEmpty)
+        existeCadastroCNPJ = false;
+      if (empresasMesmaInscEstadual.length == 0 ||
+          empresasMesmaInscEstadual.isEmpty) existeCadastroIE = false;
     } else {
-      _qtde = 1;
-    }
-    print(_qtde);
-    if (eventsQuery.documents.length > _qtde) {
-      existeCadastroIE = true;
-    } else {
-      existeCadastroIE = false;
-    }
-print(eventsQuery1.documents.length);
-    if (eventsQuery1.documents.length > _qtde) {
-      existeCadastroCNPJ = true;
-    } else {
-      existeCadastroCNPJ = false;
+      //Se não for um novo cadastro, já existe 1 registro,
+      //Existe a possibilidade do usuario alterar o valor e depois tentar voltar ao original
+      //Para tratar isso será comparado o ID do cadastro existente com o que esta sendo alterado
+      //Se forem diferentes, será informado que o cadastro já existe e não será possível salvar
+      //Se forem iguais, permite salvar
+      if (empresasMesmaInscEstadual.length == 1 &&
+          empresasMesmaInscEstadual[0].id == e.id) existeCadastroIE = false;
+      if (empresasMesmoCNPJ.length == 1 && empresasMesmoCNPJ[0].id == e.id)
+        existeCadastroCNPJ = false;
     }
   }
 
+  //Método utilizado pela tela te pedidos
+  //seleciona-se a empresa no comboBox e pelo nome fantasia busca os outros dados da empresa
   Future<Null> obterEmpresaPorDescricao(String nomeEmpresa) async {
     CollectionReference ref = Firestore.instance.collection('empresas');
     QuerySnapshot eventsQuery =

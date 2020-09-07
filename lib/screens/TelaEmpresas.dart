@@ -13,10 +13,12 @@ class _TelaEmpresasState extends State<TelaEmpresas> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      //Cria botão para adicionar registro
       floatingActionButton: FloatingActionButton(
           child: Icon(Icons.add),
           backgroundColor: Theme.of(context).primaryColor,
           onPressed: () {
+            //Ao pressionar o botão encaminha para a tela de cadastro/edição
             Navigator.of(context).push(
                 MaterialPageRoute(builder: (context) => TelaCRUDEmpresa())
             );
@@ -39,7 +41,7 @@ class _TelaEmpresasState extends State<TelaEmpresas> {
                   padding: EdgeInsets.all(4.0),
                   //Pega a quantidade de cidades
                   itemCount: snapshot.data.documents.length,
-                  //Ira pegar cada cidade no firebase e retornar
+                  //Ira pegar cada cidade no firebase e retornar na ela dentro de um card
                   itemBuilder: (context, index) {
                     Empresa empresa =
                     Empresa.buscarFirebase(snapshot.data.documents[index]);
@@ -61,6 +63,7 @@ class _TelaEmpresasState extends State<TelaEmpresas> {
                 child: Padding(
                   padding: EdgeInsets.all(8.0),
                   child: Column(
+                    //Lista as informações da empresa dentro de um card
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
                       Text(
@@ -83,6 +86,8 @@ class _TelaEmpresasState extends State<TelaEmpresas> {
         ),
       ),
       onTap: ()async {
+        //Ao clicar no card encaminha para a tela de edição
+        //Busca algumas informações necessárias da empresa antes de ir para a tela de edição
         EmpresaController _empresaController = EmpresaController();
         await _empresaController.obterCidadeEmpresa(e.id);
         e.cidade = _empresaController.cidade;
