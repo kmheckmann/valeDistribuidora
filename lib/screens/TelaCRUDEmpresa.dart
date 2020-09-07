@@ -32,6 +32,7 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
   bool _existeCadastroCNPJ;
   Stream<QuerySnapshot> _streamCidade;
 
+  //Usa-se controladores de textos para colocar texto nos componentes e obter o que está no componente
   final _scaffold = GlobalKey<ScaffoldState>();
   final _validadorCampos = GlobalKey<FormState>();
   final _controllerRazaoSocial = TextEditingController();
@@ -46,6 +47,7 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
   final _controllerEmail = TextEditingController();
 
   @override
+  //Ao chamar esta classe popula-se alguns campos da tela
   void initState() {
     super.initState();
     _existeCadastroIE = false;
@@ -85,30 +87,42 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
           title: Text(_nomeTela),
           centerTitle: true,
         ),
+        //Botão para salvar
         floatingActionButton: FloatingActionButton(
             child: Icon(Icons.save),
             backgroundColor: Colors.blue,
             onPressed: () async {
+              //Ao clicar pra salvar realiza a verificação de CNPJ e Inscrição Estadual
               await _controllerEmpresa.verificarExistenciaEmpresa(empresa, _novocadastro);
-              _existeCadastroCNPJ = _controllerEmpresa.existeCadastroCNPJ;
-              _existeCadastroIE = _controllerEmpresa.existeCadastroIE;
+              print(_controllerEmpresa.existeCadastroCNPJ);
+              print(_controllerEmpresa.existeCadastroIE);
 
+              //Roda o validator de cada campo e verifica se os conteúdos estão de acordo com esperado
               if (_validadorCampos.currentState.validate()) {
+
+                //Verifica se o dropdown da cidade tem valor
                 if (_dropdownValue != null) {
+                  //Obtém todas as informações da cidade do dropdown
                   await _controllerCidade.obterCidadePorNome(_dropdownValue);
                   empresa.cidade = _controllerCidade.cidade;
+
+                  //Transforma as informações da empresa e da cidade para mapa para salvar no firebase
                   Map<String, dynamic> mapaCidade = Map();
                   mapaCidade["id"] = empresa.cidade.id;
                   Map<String, dynamic> mapa =
                       _controllerEmpresa.converterParaMapa(empresa);
+
+                  //Verifica qual método para persistir as alterações deve-se chamar    
                   if (_novocadastro) {
                     _controllerEmpresa.salvarEmpresa(mapa, mapaCidade);
                   } else {
                     _controllerEmpresa.editarEmpresa(
                         mapa, mapaCidade, empresa.id);
                   }
+                  //Fecha a tela atual e volta para a anterior
                   Navigator.of(context).pop();
                 } else {
+                  //Se a cidade não for selecionada apresenta uma mensagem e não salva as alterações
                   if (_dropdownValue == null) {
                     _scaffold.currentState.showSnackBar(SnackBar(
                       content: Text("É necessário selecionar uma cidade!"),
@@ -124,6 +138,7 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
             child: ListView(
               padding: EdgeInsets.all(8.0),
               children: <Widget>[
+                //Faz as chamadas de todos os componentes necessários para criar a tela
                 _criarCampo(_controllerRazaoSocial, TextInputType.text, 200,
                     "Razão Social"),
                 _criarCampo(_controllerNomeFantasia, TextInputType.text, 200,
@@ -144,6 +159,8 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
             )));
   }
 
+//A propriedade validator dentro de cada campo faz algumas verificações e se o conteúdo não estiver como esperado
+//Irá retornar uma mensagem em vermelho logo abaixo do campo
   Widget _criarCampoEmail() {
     return Container(
         padding: EdgeInsets.all(6.0),
@@ -161,7 +178,7 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
                 !text.contains(".com")) return "E-mail inválido!";
           },
           onChanged: (texto) {
-            empresa.email = texto;
+            empresa.email = texto.toUpperCase();
           },
         ));
   }
@@ -181,7 +198,7 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
             if (text.isEmpty) return "É necessário informar este campo!";
           },
           onChanged: (texto) {
-            empresa.numero = int.parse(texto);
+            empresa.numero = int.parse(texto.toUpperCase());
           },
         ));
   }
@@ -201,7 +218,7 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
             if (text.isEmpty) return "É necessário informar este campo!";
           },
           onChanged: (texto) {
-            empresa.telefone = texto;
+            empresa.telefone = texto.toUpperCase();
           },
         ));
   }
@@ -221,7 +238,7 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
             if (text.isEmpty) return "É necessário informar este campo!";
           },
           onChanged: (texto) {
-            empresa.bairro = texto;
+            empresa.bairro = texto.toUpperCase();
           },
         ));
   }
@@ -247,25 +264,25 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
             switch (nome) {
               case "Logradouro":
                 {
-                  empresa.logradouro = texto;
+                  empresa.logradouro = texto.toUpperCase();
                 }
                 break;
 
               case "Razão Social":
                 {
-                  empresa.razaoSocial = texto;
+                  empresa.razaoSocial = texto.toUpperCase();
                 }
                 break;
 
               case "Nome Fantasia":
                 {
-                  empresa.nomeFantasia = texto;
+                  empresa.nomeFantasia = texto.toUpperCase();
                 }
                 break;
 
               case "CEP":
                 {
-                  empresa.cep = texto;
+                  empresa.cep = texto.toUpperCase();
                 }
                 break;
             }
@@ -280,10 +297,12 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
           controller: _controllerCnpj,
           keyboardType: TextInputType.number,
           maxLength: 14,
+          //Se não for um novo cadastro o campo fica desabilitado
+          enabled: _novocadastro,
           decoration: InputDecoration(
             hintText: "CNPJ",
           ),
-          style: TextStyle(color: Colors.black, fontSize: 17.0),
+          style: _style(),
           validator: (text) {
             if (text.isEmpty || text.length < 14)
               return "É necessário informar corretamente este campo!";
@@ -291,7 +310,7 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
               return "Já existe empresa com esse CNPJ, verifique!";
           },
           onChanged: (texto) {
-            empresa.cnpj = texto;
+            empresa.cnpj = texto.toUpperCase();
           },
         ));
   }
@@ -314,7 +333,7 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
               return "Já existe empresa com essa IE, verifique!";
           },
           onChanged: (texto) {
-            empresa.inscEstadual = texto;
+            empresa.inscEstadual = texto.toUpperCase();
           },
         ));
   }
@@ -417,5 +436,14 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
             );
           }
         });
+  }
+
+  //Define a cor da fonte de campos que serão desabilitados ao se tratar de uma edição
+  TextStyle _style() {
+    if (_novocadastro) {
+      return TextStyle(color: Colors.black, fontSize: 17.0);
+    } else {
+      return TextStyle(color: Colors.grey, fontSize: 17.0);
+    }
   }
 }
