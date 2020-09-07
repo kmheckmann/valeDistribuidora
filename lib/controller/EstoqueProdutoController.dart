@@ -42,11 +42,14 @@ class EstoqueProdutoController {
         .setData(dadosEstoqueProduto);
   }
 
+//Método chamado ao finalizar o pedido de compra
   Future<Null> gerarEstoque(Pedido p) async{
+    //Busca os dados do pedido
     CollectionReference ref = Firestore.instance.collection("pedidos").document(p.id).collection("itens");
     QuerySnapshot _obterItens = await ref.getDocuments();
-    print(_obterItens.documents.length);
 
+//Para cada item do pedido obtem a quantidade e o preço da compra e salva um novo lote do produto
+//Aumentando a quantidade em estoque deste item
     _obterItens.documents.forEach((item){
       EstoqueProduto estoque = EstoqueProduto();
       estoque.dataAquisicao = DateTime.now();
@@ -58,10 +61,14 @@ class EstoqueProdutoController {
     });
   }
 
+//Método usado na consulta de estoque
   Future<Null> obterEstoqueProduto(Produto p) async{
     estoques  = List<EstoqueProduto>();
+    //Obtém todos os estoque disponiveis
     CollectionReference ref = Firestore.instance.collection("produtos").document(p.id).collection("estoque");
     QuerySnapshot _obterEstoque = await ref.getDocuments();
+
+    //Adiciona cada registro na lista
     _obterEstoque.documents.forEach((document){
       EstoqueProduto e = EstoqueProduto();
       e.id = document.documentID;

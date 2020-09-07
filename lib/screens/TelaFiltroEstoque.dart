@@ -28,15 +28,19 @@ class _TelaFiltroEstoqueState extends State<TelaFiltroEstoque> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      //Botão para consultar
       floatingActionButton: FloatingActionButton(
           child: Icon(Icons.arrow_forward),
           backgroundColor: Theme.of(context).primaryColor,
           onPressed: () async {
+            //Ao clicar no botão para consultar, se houver algo selecionado vai buscar as informações do produto
+            //E direcionar para a tela que apresenta os resultados com o produto filtrado
             await _controllerProduto
                 .obterProdutoPorDescricao(_dropdownValueProduto);
             p = _controllerProduto.produto;
             await _controllerEstoque.obterEstoqueProduto(p);
             this.estoques = _controllerEstoque.estoques;
+            //Se nenhum produto for selecionado, vai apresentar na tela todos os produtos existentes
             Navigator.of(context).push(MaterialPageRoute(
                 builder: (context) => TelaEstoque(
                       estoques: estoques,

@@ -25,6 +25,7 @@ class _TelaEstoqueState extends State<TelaEstoque> {
         title: Text("Consulta de Estoque"),
             centerTitle: true,
       ),
+      //Botão para retornar a tela de filtro
             floatingActionButton: FloatingActionButton(
             child: Icon(Icons.filter_list),
             backgroundColor: Theme.of(context).primaryColor,
@@ -42,6 +43,7 @@ class _TelaEstoqueState extends State<TelaEstoque> {
     );
   }
 
+//Coloca em cards todos os lotes de produtos com as informações de cada lote
   Widget _construirListaEstoque(estoques, index){
     EstoqueProduto e = estoques[index];
     print(e.precoCompra);
