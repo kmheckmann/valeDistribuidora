@@ -65,18 +65,21 @@ class PedidoController {
     this.dadosPedido = dadosPedido;
     this.dadosEmpresa = dadosEmpresa;
     this.dadosUsuario = dadosUsuario;
+
+    //Grava os dados do pedido
     await Firestore.instance
         .collection("pedidos")
         .document(idPedido)
         .setData(dadosPedido);
 
+    //Salva dentro da collection pedido o ID do cliente do pedido
     await Firestore.instance
         .collection("pedidos")
         .document(idPedido)
         .collection("cliente")
         .document("IDcliente")
         .setData(dadosEmpresa);
-
+    //Salva dentro da collection pedido o ID do vendedor
     await Firestore.instance
         .collection("pedidos")
         .document(idPedido)
@@ -113,23 +116,27 @@ class PedidoController {
         .setData(dadosUsuario);
   }
 
+//Método que grava os itens do pedido
   void adicionarItem(ItemPedido item, String idPedido, String idProduto,
       Map<String, dynamic> dadosPedido) {
     this.dadosPedido = dadosPedido;
 
+//Grava as informações do item do pedido
     Firestore.instance
         .collection("pedidos")
         .document(idPedido)
         .collection("itens")
         .document(item.id)
         .setData(item.converterParaMapa(idProduto));
-
+//Informações do item podem influenciar em valores da capa do pedido, como preço total, ao salvar os itens
+//salva também as atualizações que podem ter tido no pedido em si
     Firestore.instance
         .collection("pedidos")
         .document(idPedido)
         .setData(dadosPedido);
   }
 
+//Grava as edições do item do pedido e consequentemente edições do pedido em si também
   void editarItem(ItemPedido item, String idPedido, String idProduto,
       Map<String, dynamic> dadosPedido) {
     this.dadosPedido = dadosPedido;
@@ -146,6 +153,7 @@ class PedidoController {
         .setData(dadosPedido);
   }
 
+//Método para remover um item do pedido
   void removerItem(ItemPedido item, String idItem, String idPedido,
       Map<String, dynamic> dadosPedido) {
     Firestore.instance
@@ -155,23 +163,30 @@ class PedidoController {
         .document(idItem)
         .delete();
 
+//Ao remover um item atualiza as informações do pedido em si
     Firestore.instance
         .collection("pedidos")
         .document(idPedido)
         .setData(dadosPedido);
   }
 
+//Busca os dados da empresa vinculada ao pedido
   Future<Null> obterEmpresa(String idPedido) async {
     Empresa e = Empresa();
+    //Acessa a collection em que a empresa está
     CollectionReference ref = Firestore.instance
         .collection('pedidos')
         .document(idPedido)
         .collection('cliente');
+//Obtem a empresa
     QuerySnapshot obterEmpresaPedido = await ref.getDocuments();
 
+//Acessa a collection de todas as empresas cadastradas e pega todas as empresas
     CollectionReference refCliente = Firestore.instance.collection('empresas');
     QuerySnapshot obterDadosEmpresa = await refCliente.getDocuments();
 
+//Compara o ID da empresa vinculada ao pedido com as existentes até encontrar o correspondente
+//Após isso busca as outras informações além do ID
     obterEmpresaPedido.documents.forEach((document) {
       e.id = document.data["id"];
 
@@ -184,17 +199,22 @@ class PedidoController {
     empresa = e;
   }
 
+//Método para obter as informações do vendedor do pedido
   Future<Null> obterUsuario(String idPedido) async {
     Usuario user = Usuario();
+    //Obtem o ID do vendedor do pedido
     CollectionReference ref = Firestore.instance
         .collection('pedidos')
         .document(idPedido)
         .collection('vendedor');
     QuerySnapshot obterUsuario = await ref.getDocuments();
 
+//Obtem todos os usuarios cadastrados
     CollectionReference refCliente = Firestore.instance.collection('usuarios');
     QuerySnapshot obterDadosUsuario = await refCliente.getDocuments();
 
+//Compara o ID do vendedor do pedido com todos os cadastrados até encontrar um igual
+//Após isso obtém as demais informações do vendedor
     obterUsuario.documents.forEach((document) {
       user.id = document.data["id"];
 
@@ -207,17 +227,20 @@ class PedidoController {
     usuario = user;
   }
 
+//Aplica no valor total do pedido o desconto informado
   void calcularDesconto(Pedido p) {
     if (p.valorTotal != 0 || p.valorTotal == 0) {
       double vlDesc = (p.percentualDesconto / 100) * p.valorTotal;
       pedidoCompra.valorComDesconto = (p.valorTotal - vlDesc);
       pedidoVenda.valorComDesconto = (p.valorTotal - vlDesc);
     } else {
+      //Exceção para o caso de o desconto ser informado antes do pedido ter algum valor
       pedidoVenda.valorComDesconto = 0;
       pedidoCompra.valorComDesconto = 0;
     }
   }
 
+//Método chamado para atualizar regularmente o valor total do pedido
   void somarPrecoNoVlTotal(Pedido p, ItemPedido novoItem) {
     double valorTotalItem = novoItem.preco * novoItem.quantidade;
     p.valorTotal += valorTotalItem;
@@ -226,12 +249,16 @@ class PedidoController {
     calcularDesconto(p);
   }
 
+//Método utilizado quando é realizada uma alteração num item do pedido
   void atualizarPrecoNoVlTotal(double precoAntigo, Pedido p, ItemPedido item) {
+    //Diminui o valor total antigo obtido com a soma das quantidade do item
     double vlTotalItemAntigo = precoAntigo * item.quantidade;
     p.valorTotal -= vlTotalItemAntigo;
+    //Após diminuir, chama o método abaixo para somar o novo valor no pedido
     somarPrecoNoVlTotal(p, item);
   }
 
+//Método utilizado quando um item é removido, para diminuir seu valor do valor total do pedido
   void subtrairPrecoVlTotal(Pedido p, ItemPedido itemExcluido) {
     double valorTotalItem = itemExcluido.preco * itemExcluido.quantidade;
     p.valorTotal -= valorTotalItem;
@@ -240,6 +267,7 @@ class PedidoController {
     calcularDesconto(p);
   }
 
+//Método chamado ao utilizar o botão de atualizar na capa do pedido
   Future<Null> atualizarCapaPedido(String idPedido) async {
     CollectionReference ref = Firestore.instance.collection('pedidos');
     QuerySnapshot _obterPedido = await ref.getDocuments();
@@ -253,11 +281,15 @@ class PedidoController {
   }
 
   Future<Null> verificarSePedidoTemItens(Pedido p) async {
-    //este método tem o objetivo de verificar se o pedido possui itens cadastrados para poder finalizar o pedido
+    //este método tem o objetivo de verificar se o pedido possui itens cadastrados
+    //para poder finalizar o pedido
+
+    //Acessa a coleção onde os iens ficam salvos
     CollectionReference ref = Firestore.instance
         .collection("pedidos")
         .document(p.id)
         .collection("itens");
+    //Obtém todos os documentos da coleção
     QuerySnapshot _obterItens = await ref.getDocuments();
 
     if (_obterItens.documents.length > 0) {

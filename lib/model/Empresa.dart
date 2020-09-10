@@ -20,6 +20,10 @@ class Empresa {
 
   Empresa();
 
+//Snapshot é como se fosse uma foto da coleção existente no banco
+//Esse construtor usa o snapshot para obter o ID do documento e demais informações
+//Isso é usado quando há um componente do tipo builder que vai consultar alguma colletion
+//E para cada item nessa colletion terá um snapshot e será possível atribuir isso a um objeto
   Empresa.buscarFirebase(DocumentSnapshot snapshot) {
     id = snapshot.documentID;
     razaoSocial = snapshot.data["razaoSocial"];
