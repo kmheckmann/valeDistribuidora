@@ -31,6 +31,10 @@ class Usuario extends Model {
 
   Usuario();
 
+//Snapshot é como se fosse uma foto da coleção existente no banco
+//Esse construtor usa o snapshot para obter o ID do documento e demais informações
+//Isso é usado quando há um componente do tipo builder que vai consultar alguma colletion
+//E para cada item nessa colletion terá um snapshot e será possível atribuir isso a um objeto
   Usuario.buscarFirebase(DocumentSnapshot snapshot) {
     id = snapshot.documentID;
     nome = snapshot.data["nome"];
@@ -40,14 +44,11 @@ class Usuario extends Model {
     ativo = snapshot.data["ativo"];
   }
 
-
   @override
   void addListener(VoidCallback listener) {
-
     super.addListener(listener);
     _carregarDadosUsuario();
   }
-
 
   //VoidCallBack uma funcao passada que sera chamado de dentro do metodo
   void cadastrarUsuario(
@@ -60,7 +61,7 @@ class Usuario extends Model {
         .createUserWithEmailAndPassword(
             email: dadosUser["email"], password: senha)
         .then((user) async {
-      //se der certo a criacao do usuario, pego os dados e salvo no firebase      
+      //se der certo a criacao do usuario, pego os dados e salvo no firebase
       await _salvarUsuario(dadosUser, user);
       cadastradoSucesso();
       carregando = false;
@@ -70,29 +71,35 @@ class Usuario extends Model {
     });
   }
 
+//Faz com que o login do usuario seja efetuado no sistema
   void efetuarLogin(
       {@required String email,
       @required String senha,
       @required VoidCallback sucessoLogin,
       @required VoidCallback falhaLogin}) async {
     carregando = true;
-    //"avisar" sobre as mudancas que ocorreram
+    //"avisar" todas as classes coonfiguradas para receber notificação sobre as mudancas que ocorreram no usuario
     notifyListeners();
 
-    _autenticar.signInWithEmailAndPassword(email: email, password: senha).then((usuario) async{
+//Usa uma propriedade nativa do firebase para fazer a autenticação
+    _autenticar
+        .signInWithEmailAndPassword(email: email, password: senha)
+        .then((usuario) async {
       usuarioFirebase = usuario;
+      //Carrega os dados do usuario
       await _carregarDadosUsuario();
       sucessoLogin();
       carregando = false;
       notifyListeners();
-    }).catchError((e){
+    }).catchError((e) {
       falhaLogin();
       carregando = false;
       notifyListeners();
     });
   }
 
-  Future<Null> _salvarUsuario(Map<String, dynamic> dadosUsuario,FirebaseUser user) async {
+  Future<Null> _salvarUsuario(
+      Map<String, dynamic> dadosUsuario, FirebaseUser user) async {
     this.dadosNovoUsuario = dadosUsuario;
     await Firestore.instance
         .collection("usuarios")
@@ -100,10 +107,12 @@ class Usuario extends Model {
         .setData(dadosUsuario);
   }
 
+//Verifica se existe algum usuario logado
   bool usuarioLogado() {
     return usuarioFirebase != null;
   }
 
+//Efetua o logou to usuário no sistema
   void sair() async {
     await _autenticar.signOut();
     dadosUsuarioAtual = Map();
@@ -111,17 +120,23 @@ class Usuario extends Model {
     notifyListeners();
   }
 
-  void recuperarSenha(String email){
+//utiliza uma propriedade nativa do firebase que dispara um email para redefinir a senha
+  void recuperarSenha(String email) {
     _autenticar.sendPasswordResetEmail(email: email);
   }
 
-  Future<Null> _carregarDadosUsuario()async{
-    if(usuarioFirebase == null)
+//Carrega todos os dados do usuário que efetuou o login
+//Notifica todas as classes que estão configurada para receber qualquer alteração do usuario
+  Future<Null> _carregarDadosUsuario() async {
+    if (usuarioFirebase == null)
       usuarioFirebase = await _autenticar.currentUser();
 
-    if(usuarioFirebase != null){
-      if(dadosUsuarioAtual["name"] == null){
-        DocumentSnapshot docUsuario = await Firestore.instance.collection("usuarios").document(usuarioFirebase.uid).get();
+    if (usuarioFirebase != null) {
+      if (dadosUsuarioAtual["name"] == null) {
+        DocumentSnapshot docUsuario = await Firestore.instance
+            .collection("usuarios")
+            .document(usuarioFirebase.uid)
+            .get();
         dadosUsuarioAtual = docUsuario.data;
         dadosNovoUsuario = docUsuario.data;
       }

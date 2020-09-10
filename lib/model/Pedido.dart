@@ -3,8 +3,10 @@ import 'package:tcc_2/model/Empresa.dart';
 import 'package:tcc_2/model/ItemPedido.dart';
 import 'package:tcc_2/model/Usuario.dart';
 
-abstract class Pedido extends Model{
-
+//Classe abstrata do pedido
+//o extends Modelpermite que outras classes vejam modificações nas classes de pedido
+//e se atualizem conforme isso (Usa-se alguma extensões nas outras classes para permitir isso)
+abstract class Pedido extends Model {
   String id;
   //A empresa será o cliente em pedidos de venda e o fornecedor em pedidos de compra
   Empresa empresa = Empresa();

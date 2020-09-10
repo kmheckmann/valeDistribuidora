@@ -11,8 +11,8 @@ import 'package:tcc_2/screens/TelaUsuarios.dart';
 import 'package:tcc_2/tabs/HomeTab.dart';
 import 'package:tcc_2/widgets/Menu.dart';
 
+//Tela inicial do aplicativo após o login
 class HomeScreen extends StatelessWidget {
-
   final _pageController = PageController();
 
   @override
