@@ -3,8 +3,8 @@ import 'package:tcc_2/screens/TelaCategorias.dart';
 import 'package:tcc_2/screens/TelaCidades.dart';
 import 'package:tcc_2/screens/TelaEmpresas.dart';
 import 'package:tcc_2/screens/TelaFiltroEstoque.dart';
-import 'package:tcc_2/screens/TelaPedidos.dart';
 import 'package:tcc_2/screens/TelaPedidosCompra.dart';
+import 'package:tcc_2/screens/TelaPedidosVenda.dart';
 import 'package:tcc_2/screens/TelaProdutos.dart';
 import 'package:tcc_2/screens/TelaRotas.dart';
 import 'package:tcc_2/screens/TelaUsuarios.dart';
@@ -33,7 +33,7 @@ class HomeScreen extends StatelessWidget {
             centerTitle: true,
           ),
           drawer: Menu(_pageController),
-          body: TelaPedidos(),
+          body: TelaPedidosVenda(),
         ),
         Scaffold(
           appBar: AppBar(
