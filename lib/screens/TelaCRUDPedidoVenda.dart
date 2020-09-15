@@ -1,40 +1,39 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 import 'package:tcc_2/controller/EmpresaController.dart';
 import 'package:tcc_2/controller/EstoqueProdutoController.dart';
 import 'package:tcc_2/controller/PedidoController.dart';
 import 'package:tcc_2/controller/UsuarioController.dart';
 import 'package:tcc_2/model/Empresa.dart';
-import 'package:tcc_2/model/EstoqueProduto.dart';
-import 'package:tcc_2/model/PedidoCompra.dart';
+import 'package:tcc_2/model/PedidoVenda.dart';
 import 'package:tcc_2/model/Usuario.dart';
-import 'package:tcc_2/screens/TelaItensPedidoCompra.dart';
-import 'package:intl/intl.dart';
+import 'package:tcc_2/screens/TelaItensPedidoVenda.dart';
 
-class TelaCRUDPedidoCompra extends StatefulWidget {
-  final PedidoCompra pedidoCompra;
+class TelaCRUDPedidoVenda extends StatefulWidget {
+  final PedidoVenda pedidoVenda;
   final DocumentSnapshot snapshot;
   final Usuario vendedor;
 
-  TelaCRUDPedidoCompra({this.pedidoCompra, this.snapshot, this.vendedor});
+  TelaCRUDPedidoVenda({this.pedidoVenda, this.snapshot, this.vendedor});
 
   @override
-  _TelaCRUDPedidoCompraState createState() => _TelaCRUDPedidoCompraState(
-      this.pedidoCompra, this.snapshot, this.vendedor);
+  _TelaCRUDPedidoVendaState createState() =>
+      _TelaCRUDPedidoVendaState(this.pedidoVenda, this.snapshot, this.vendedor);
 }
 
-class _TelaCRUDPedidoCompraState extends State<TelaCRUDPedidoCompra> {
+class _TelaCRUDPedidoVendaState extends State<TelaCRUDPedidoVenda> {
   final DocumentSnapshot snapshot;
-  PedidoCompra pedidoCompra;
+  PedidoVenda pedidoVenda;
   Usuario vendedor;
-  EstoqueProduto estoque;
 
-  _TelaCRUDPedidoCompraState(this.pedidoCompra, this.snapshot, this.vendedor);
+  _TelaCRUDPedidoVendaState(this.pedidoVenda, this.snapshot, this.vendedor);
 
   final _validadorCampos = GlobalKey<FormState>();
   final _scaffold = GlobalKey<ScaffoldState>();
   Stream<QuerySnapshot> empresas;
   String _dropdownValueTipoPgto;
+  String _dropdownValueTipoPedido;
   String _dropdownValueFornecedor;
   final _controllerVlTotal = TextEditingController();
   final _controllerVlTotalDesc = TextEditingController();
@@ -45,6 +44,7 @@ class _TelaCRUDPedidoCompraState extends State<TelaCRUDPedidoCompra> {
   final _controllerVendedor = TextEditingController();
   final _controllerFormaPgto = TextEditingController();
   final _controllerFornecedor = TextEditingController();
+  final _controllerTipoPedido = TextEditingController();
   bool _novocadastro;
   bool _permiteEditar = true;
   bool _vlCheckBox;
@@ -54,36 +54,48 @@ class _TelaCRUDPedidoCompraState extends State<TelaCRUDPedidoCompra> {
   EmpresaController _controllerEmpresa = EmpresaController();
   UsuarioController _controllerUsuario = UsuarioController();
   EstoqueProdutoController _controllerEstoque = EstoqueProdutoController();
+  List<String> tipoPagamento = List<String>();
+  List<String> tipoPedido = List<String>();
 
   @override
   void initState() {
+    tipoPagamento.add('À Vista');
+    tipoPagamento.add('Cheque');
+    tipoPagamento.add('Boleto');
+    tipoPagamento.add('Duplicata');
+
+    tipoPedido.add("Normal");
+    tipoPedido.add("Troca");
+    tipoPedido.add("Bonificação");
+
     super.initState();
-    if (pedidoCompra != null) {
+    if (pedidoVenda != null) {
       _nomeTela = "Editar Pedido";
-      _controllerVlTotal.text = pedidoCompra.valorTotal.toString();
-      _controllerIdPedido.text = pedidoCompra.id;
-      _controllerPercentDesc.text = pedidoCompra.percentualDesconto.toString();
-      _controllerVendedor.text = pedidoCompra.user.nome;
-      _dropdownValueTipoPgto = pedidoCompra.tipoPagamento;
-      _dropdownValueFornecedor = pedidoCompra.empresa.nomeFantasia;
-      _controllerVlTotalDesc.text = pedidoCompra.valorComDesconto.toString();
+      _controllerVlTotal.text = pedidoVenda.valorTotal.toString();
+      _controllerIdPedido.text = pedidoVenda.id;
+      _controllerPercentDesc.text = pedidoVenda.percentualDesconto.toString();
+      _controllerVendedor.text = pedidoVenda.user.nome;
+      _dropdownValueTipoPgto = pedidoVenda.tipoPagamento;
+      _dropdownValueFornecedor = pedidoVenda.empresa.nomeFantasia;
+      _controllerVlTotalDesc.text = pedidoVenda.valorComDesconto.toString();
       _novocadastro = false;
-      _vlCheckBox = pedidoCompra.pedidoFinalizado;
-      _controllerData.text = _formatarData(pedidoCompra.dataPedido);
-      if(pedidoCompra.dataFinalPedido != null) _controllerDataFinal.text = _formatarData(pedidoCompra.dataFinalPedido);
-      if (pedidoCompra.pedidoFinalizado == true) _permiteEditar = false;
+      _vlCheckBox = pedidoVenda.pedidoFinalizado;
+      _controllerData.text = _formatarData(pedidoVenda.dataPedido);
+      if (pedidoVenda.dataFinalPedido != null)
+        _controllerDataFinal.text = _formatarData(pedidoVenda.dataFinalPedido);
+      if (pedidoVenda.pedidoFinalizado == true) _permiteEditar = false;
     } else {
       _nomeTela = "Novo Pedido";
-      pedidoCompra = PedidoCompra();
-      pedidoCompra.dataPedido = DateTime.now();
-      pedidoCompra.ehPedidoVenda = false;
-      pedidoCompra.valorTotal = 0.0;
-      pedidoCompra.percentualDesconto = 0.0;
+      pedidoVenda = PedidoVenda();
+      pedidoVenda.dataPedido = DateTime.now();
+      pedidoVenda.ehPedidoVenda = true;
+      pedidoVenda.valorTotal = 0.0;
+      pedidoVenda.percentualDesconto = 0.0;
       //formatar data
-      _controllerData.text = _formatarData(pedidoCompra.dataPedido);
+      _controllerData.text = _formatarData(pedidoVenda.dataPedido);
       _novocadastro = true;
       _vlCheckBox = false;
-      pedidoCompra.pedidoFinalizado = false;
+      pedidoVenda.pedidoFinalizado = false;
       _controllerVendedor.text = vendedor.nome;
     }
   }
@@ -99,14 +111,14 @@ class _TelaCRUDPedidoCompraState extends State<TelaCRUDPedidoCompra> {
           IconButton(
               icon: Icon(Icons.loop),
               onPressed: () async {
-                await _controllerPedido.atualizarCapaPedido(pedidoCompra.id);
-                _controllerVlTotal.text = pedidoCompra.valorTotal.toString();
+                await _controllerPedido.atualizarCapaPedido(pedidoVenda.id);
+                _controllerVlTotal.text = pedidoVenda.valorTotal.toString();
                 _controllerVlTotalDesc.text =
-                    pedidoCompra.valorComDesconto.toString();
+                    pedidoVenda.valorComDesconto.toString();
                 _controllerPercentDesc.text =
-                    pedidoCompra.percentualDesconto.toString();
+                    pedidoVenda.percentualDesconto.toString();
                 _controllerFornecedor.text = _dropdownValueFornecedor;
-                _controllerFormaPgto.text = pedidoCompra.tipoPagamento;
+                _controllerFormaPgto.text = pedidoVenda.tipoPagamento;
               })
         ],
       ),
@@ -119,15 +131,17 @@ class _TelaCRUDPedidoCompraState extends State<TelaCRUDPedidoCompra> {
             empresa = _controllerEmpresa.empresa;
             await _controllerUsuario.obterUsuarioPorCPF(vendedor.cpf);
             vendedor = _controllerUsuario.usuario;
-            pedidoCompra.pedidoFinalizado = _vlCheckBox;
+            pedidoVenda.pedidoFinalizado = _vlCheckBox;
 
-            if (pedidoCompra.pedidoFinalizado == true && pedidoCompra.dataFinalPedido == null) {
-              await _controllerPedido.verificarSePedidoTemItens(pedidoCompra);
+            if (pedidoVenda.pedidoFinalizado == true &&
+                pedidoVenda.dataFinalPedido == null) {
+              await _controllerPedido.verificarSePedidoTemItens(pedidoVenda);
 
               if (_controllerPedido.podeFinalizar == true) {
-                _controllerEstoque.gerarEstoque(pedidoCompra);
-                pedidoCompra.dataFinalPedido = DateTime.now();
-                _controllerDataFinal.text = _formatarData(pedidoCompra.dataFinalPedido);
+                //AQUI DEVO COLOCAR METODO PRA TIRAR ESTOQUE
+                pedidoVenda.dataFinalPedido = DateTime.now();
+                _controllerDataFinal.text =
+                    _formatarData(pedidoVenda.dataFinalPedido);
                 _codigoBotaoSalvar();
               } else {
                 _scaffold.currentState.showSnackBar(SnackBar(
@@ -156,6 +170,7 @@ class _TelaCRUDPedidoCompraState extends State<TelaCRUDPedidoCompra> {
                   "Data Finalização", _controllerDataFinal, TextInputType.text),
               _campoFornecedor(),
               _campoTipoPgto(),
+              _campoTipoPedido(),
               _criarCampoTexto(
                   "Valor Total", _controllerVlTotal, TextInputType.number),
               _criarCampoTexto("Valor Total Com Desconto",
@@ -167,13 +182,13 @@ class _TelaCRUDPedidoCompraState extends State<TelaCRUDPedidoCompra> {
                 decoration: InputDecoration(hintText: "% Desconto"),
                 style: _style(),
                 onChanged: (texto) {
-                  pedidoCompra.percentualDesconto = double.parse(texto);
+                  pedidoVenda.percentualDesconto = double.parse(texto);
                   setState(() {
-                    _controllerPedido.calcularDesconto(pedidoCompra);
-                    pedidoCompra.valorComDesconto =
+                    _controllerPedido.calcularDesconto(pedidoVenda);
+                    pedidoVenda.valorComDesconto =
                         _controllerPedido.pedidoCompra.valorComDesconto;
                     _controllerVlTotalDesc.text =
-                        pedidoCompra.valorComDesconto.toString();
+                        pedidoVenda.valorComDesconto.toString();
                   });
                 },
               ),
@@ -196,7 +211,7 @@ class _TelaCRUDPedidoCompraState extends State<TelaCRUDPedidoCompra> {
     );
   }
 
-  Widget _criarDropDownTipoPgto() {
+  Widget _criarDropDown(List<String> lista, String item, String textoHint) {
     return Container(
       padding: EdgeInsets.fromLTRB(0.0, 8.0, 8.0, 0.0),
       child: Row(
@@ -206,15 +221,19 @@ class _TelaCRUDPedidoCompraState extends State<TelaCRUDPedidoCompra> {
             child: DropdownButton<String>(
               value: _dropdownValueTipoPgto,
               style: TextStyle(color: Colors.black),
-              hint: Text("Selecionar Tipo Pagamento"),
+              hint: Text(textoHint),
               onChanged: (String newValue) {
                 setState(() {
-                  _dropdownValueTipoPgto = newValue;
-                  pedidoCompra.tipoPagamento = _dropdownValueTipoPgto;
+                  if (item == "TipoPgto") {
+                    _dropdownValueTipoPgto = newValue;
+                    pedidoVenda.tipoPagamento = _dropdownValueTipoPgto;
+                  } else {
+                    _dropdownValueTipoPedido = newValue;
+                    pedidoVenda.tipoPedido = _dropdownValueTipoPedido;
+                  }
                 });
               },
-              items: <String>['À Vista', 'Cheque', 'Boleto', 'Duplicata']
-                  .map<DropdownMenuItem<String>>((String value) {
+              items: lista.map<DropdownMenuItem<String>>((String value) {
                 return DropdownMenuItem<String>(
                   value: value,
                   child: Text(value),
@@ -247,8 +266,7 @@ class _TelaCRUDPedidoCompraState extends State<TelaCRUDPedidoCompra> {
                     onChanged: (String newValue) {
                       setState(() {
                         _dropdownValueFornecedor = newValue;
-                        pedidoCompra.labelTelaPedidos =
-                            _dropdownValueFornecedor;
+                        pedidoVenda.labelTelaPedidos = _dropdownValueFornecedor;
                       });
                     },
                     items: snapshot.data.documents
@@ -275,7 +293,7 @@ class _TelaCRUDPedidoCompraState extends State<TelaCRUDPedidoCompra> {
         children: <Widget>[
           Checkbox(
             value: _vlCheckBox == true,
-            onChanged: pedidoCompra.pedidoFinalizado
+            onChanged: pedidoVenda.pedidoFinalizado
                 ? null
                 : (bool novoValor) {
                     setState(() {
@@ -300,27 +318,27 @@ class _TelaCRUDPedidoCompraState extends State<TelaCRUDPedidoCompra> {
     // método criado para não precisar repetir duas vezes o mesmo codigo na hora que clica no salvar
     if (_dropdownValueTipoPgto != null && _dropdownValueFornecedor != null) {
       Map<String, dynamic> mapa =
-          _controllerPedido.converterParaMapa(pedidoCompra);
+          _controllerPedido.converterParaMapa(pedidoVenda);
       print(vendedor.id);
       Map<String, dynamic> mapaVendedor = Map();
       mapaVendedor["id"] = vendedor.id;
       Map<String, dynamic> mapaEmpresa = Map();
       mapaEmpresa["id"] = empresa.id;
-      pedidoCompra.pedidoFinalizado = _vlCheckBox;
+      pedidoVenda.pedidoFinalizado = _vlCheckBox;
 
       if (_novocadastro) {
         _novocadastro = false;
         await _controllerPedido.obterProxID();
-        pedidoCompra.id = _controllerPedido.proxID;
+        pedidoVenda.id = _controllerPedido.proxID;
         _controllerPedido.salvarPedido(
-            mapa, mapaEmpresa, mapaVendedor, pedidoCompra.id);
+            mapa, mapaEmpresa, mapaVendedor, pedidoVenda.id);
       } else {
         _controllerPedido.editarPedido(
-            mapa, mapaEmpresa, mapaVendedor, pedidoCompra.id);
+            mapa, mapaEmpresa, mapaVendedor, pedidoVenda.id);
       }
       Navigator.of(context).push(MaterialPageRoute(
-          builder: (contexto) => TelaItensPedidoCompra(
-                pedidoCompra: pedidoCompra,
+          builder: (contexto) => TelaItensPedidovenda(
+                pedidoVenda: pedidoVenda,
                 snapshot: snapshot,
               )));
     } else {
@@ -333,7 +351,7 @@ class _TelaCRUDPedidoCompraState extends State<TelaCRUDPedidoCompra> {
   }
 
   TextStyle _style() {
-    if (pedidoCompra.pedidoFinalizado) {
+    if (pedidoVenda.pedidoFinalizado) {
       return TextStyle(color: Colors.grey, fontSize: 17.0);
     } else {
       return TextStyle(color: Colors.black, fontSize: 17.0);
@@ -351,22 +369,34 @@ class _TelaCRUDPedidoCompraState extends State<TelaCRUDPedidoCompra> {
   }
 
   Widget _campoTipoPgto() {
-    _controllerFormaPgto.text = pedidoCompra.tipoPagamento;
+    _controllerFormaPgto.text = pedidoVenda.tipoPagamento;
     //se o pedido estiver finalizado sera criado um TextField com o valor
     //se não estiver, sera criado o dropDown
-    if (pedidoCompra.pedidoFinalizado) {
+    if (pedidoVenda.pedidoFinalizado) {
       return _criarCampoTexto(
           "Tipo Pagamento", _controllerFormaPgto, TextInputType.text);
     } else {
-      return _criarDropDownTipoPgto();
+      return _criarDropDown(tipoPagamento, "TipoPgto", "Selecionar Forma Pagamento");
+    }
+  }
+
+    Widget _campoTipoPedido() {
+    _controllerTipoPedido.text = pedidoVenda.tipoPedido;
+    //se o pedido estiver finalizado sera criado um TextField com o valor
+    //se não estiver, sera criado o dropDown
+    if (pedidoVenda.pedidoFinalizado) {
+      return _criarCampoTexto(
+          "Tipo Pedido", _controllerTipoPedido, TextInputType.text);
+    } else {
+      return _criarDropDown(tipoPedido, "TipoPedido", "Selecionar Tipo Pedido");
     }
   }
 
   Widget _campoFornecedor() {
-    _controllerFornecedor.text = pedidoCompra.empresa.nomeFantasia;
+    _controllerFornecedor.text = pedidoVenda.empresa.nomeFantasia;
     //se o pedido estiver finalizado sera criado um TextField com o valor
     //se não estiver, sera criado o dropDown
-    if (pedidoCompra.pedidoFinalizado) {
+    if (pedidoVenda.pedidoFinalizado) {
       return _criarCampoTexto(
           "Fornecedor", _controllerFornecedor, TextInputType.text);
     } else {

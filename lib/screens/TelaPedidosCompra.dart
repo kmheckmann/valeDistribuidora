@@ -43,7 +43,7 @@ DateFormat format = DateFormat();
       body: FutureBuilder<QuerySnapshot>(
         //O sistema ira acessar o documento "pedidos"
           future: Firestore.instance
-              .collection("pedidos").getDocuments(),
+              .collection("pedidos").where("ehPedidoVenda", isEqualTo: false).getDocuments(),
           builder: (context, snapshot) {
             //Como os dados serao buscados do firebase, pode ser que demore para obter
             //entao, enquanto os dados nao sao obtidos sera apresentado um circulo na tela
