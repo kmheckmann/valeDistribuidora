@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:tcc_2/model/Pedido.dart';
 import 'package:tcc_2/model/PedidoCompra.dart';
 import 'package:tcc_2/model/PedidoVenda.dart';
 import 'package:tcc_2/model/Produto.dart';
@@ -15,8 +16,9 @@ class ItemPedido {
 
   Map<String, dynamic> dadosItemPedido = Map();
 
-  ItemPedido(PedidoCompra p) {
+  ItemPedido(Pedido p) {
     pedidoCompra = p;
+    pedidoVenda = p;
   }
 
 //Snapshot é como se fosse uma foto da coleção existente no banco

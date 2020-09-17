@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:tcc_2/controller/EstoqueProdutoController.dart';
 import 'package:tcc_2/model/Categoria.dart';
 import 'package:tcc_2/model/Produto.dart';
 
@@ -7,6 +8,7 @@ class ProdutoController {
   bool existeCadastroCodigoBarra;
   String proxID;
   Produto produto = Produto();
+  EstoqueProdutoController _estoqueController = EstoqueProdutoController();
 
   ProdutoController();
 
