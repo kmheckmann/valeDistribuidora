@@ -76,6 +76,7 @@ class _TelaCRUDPedidoVendaState extends State<TelaCRUDPedidoVenda> {
       _controllerPercentDesc.text = pedidoVenda.percentualDesconto.toString();
       _controllerVendedor.text = pedidoVenda.user.nome;
       _dropdownValueTipoPgto = pedidoVenda.tipoPagamento;
+      _dropdownValueTipoPedido = pedidoVenda.tipoPedido;
       _dropdownValueFornecedor = pedidoVenda.empresa.nomeFantasia;
       _controllerVlTotalDesc.text = pedidoVenda.valorComDesconto.toString();
       _novocadastro = false;
@@ -119,6 +120,7 @@ class _TelaCRUDPedidoVendaState extends State<TelaCRUDPedidoVenda> {
                     pedidoVenda.percentualDesconto.toString();
                 _controllerFornecedor.text = _dropdownValueFornecedor;
                 _controllerFormaPgto.text = pedidoVenda.tipoPagamento;
+                _controllerTipoPedido.text = pedidoVenda.tipoPedido;
               })
         ],
       ),
@@ -203,9 +205,11 @@ class _TelaCRUDPedidoVendaState extends State<TelaCRUDPedidoVenda> {
     return TextFormField(
       controller: controller,
       keyboardType: tipo,
-      decoration: InputDecoration(hintText: nome, 
-                                  labelText: nome,
-                                  labelStyle:TextStyle(color: Colors.blueGrey, fontWeight: FontWeight.w400)),
+      decoration: InputDecoration(
+          hintText: nome,
+          labelText: nome,
+          labelStyle:
+              TextStyle(color: Colors.blueGrey, fontWeight: FontWeight.w400)),
       style: TextStyle(color: Colors.grey, fontSize: 17.0),
       enabled: false,
     );
@@ -316,7 +320,9 @@ class _TelaCRUDPedidoVendaState extends State<TelaCRUDPedidoVenda> {
 
   void _codigoBotaoSalvar() async {
     // método criado para não precisar repetir duas vezes o mesmo codigo na hora que clica no salvar
-    if (_dropdownValueTipoPgto != null && _dropdownValueFornecedor != null) {
+    if (_dropdownValueTipoPgto != null &&
+        _dropdownValueFornecedor != null &&
+        _dropdownValueTipoPedido != null) {
       Map<String, dynamic> mapa =
           _controllerPedido.converterParaMapa(pedidoVenda);
       print(vendedor.id);
@@ -376,11 +382,12 @@ class _TelaCRUDPedidoVendaState extends State<TelaCRUDPedidoVenda> {
       return _criarCampoTexto(
           "Tipo Pagamento", _controllerFormaPgto, TextInputType.text);
     } else {
-      return _criarDropDown(tipoPagamento, "TipoPgto", "Selecionar Forma Pagamento");
+      return _criarDropDown(
+          tipoPagamento, "TipoPgto", "Selecionar Forma Pagamento");
     }
   }
 
-    Widget _campoTipoPedido() {
+  Widget _campoTipoPedido() {
     _controllerTipoPedido.text = pedidoVenda.tipoPedido;
     //se o pedido estiver finalizado sera criado um TextField com o valor
     //se não estiver, sera criado o dropDown
