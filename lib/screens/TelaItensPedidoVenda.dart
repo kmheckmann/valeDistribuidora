@@ -14,7 +14,7 @@ class TelaItensPedidovenda extends StatefulWidget {
   TelaItensPedidovenda({this.pedidoVenda, this.itemPedido, this.snapshot});
 
   @override
-  _TelaItensPedidovendaState createState() => _TelaItensPedidovendaState(this.snapshot, this.pedidoVenda, this.itemPedido);
+  _TelaItensPedidovendaState createState() => _TelaItensPedidovendaState(snapshot, pedidoVenda, itemPedido);
 }
 
 class _TelaItensPedidovendaState extends State<TelaItensPedidovenda> {
@@ -29,7 +29,7 @@ class _TelaItensPedidovendaState extends State<TelaItensPedidovenda> {
 
   @override
   Widget build(BuildContext context) {
-    Scaffold(
+    return Scaffold(
       appBar: AppBar(
         title: Text("Itens do Pedido"),
         centerTitle: true,

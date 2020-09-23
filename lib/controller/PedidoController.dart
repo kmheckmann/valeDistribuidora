@@ -53,7 +53,7 @@ class PedidoController {
       "pedidoFinalizado": p.pedidoFinalizado,
       "label": p.labelTelaPedidos,
       "valorComDesconto": p.valorComDesconto,
-      "dataFinalPedido": p.dataFinalPedido
+      "dataFinalPedido": p.dataFinalPedido,
     };
   }
 

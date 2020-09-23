@@ -30,7 +30,8 @@ class PedidoVenda extends Pedido{
       "tipoPedido": tipoPedido,
       "dataPedido": dataPedido,
       "pedidoFinalizado": pedidoFinalizado,
-      "dataFinalPedido": dataFinalPedido
+      "dataFinalPedido": dataFinalPedido,
+      "label": labelTelaPedidos,
     };
   }
 

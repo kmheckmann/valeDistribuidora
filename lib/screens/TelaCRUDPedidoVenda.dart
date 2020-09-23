@@ -54,19 +54,9 @@ class _TelaCRUDPedidoVendaState extends State<TelaCRUDPedidoVenda> {
   EmpresaController _controllerEmpresa = EmpresaController();
   UsuarioController _controllerUsuario = UsuarioController();
   EstoqueProdutoController _controllerEstoque = EstoqueProdutoController();
-  List<String> tipoPagamento = List<String>();
-  List<String> tipoPedido = List<String>();
 
   @override
   void initState() {
-    tipoPagamento.add('À Vista');
-    tipoPagamento.add('Cheque');
-    tipoPagamento.add('Boleto');
-    tipoPagamento.add('Duplicata');
-
-    tipoPedido.add("Normal");
-    tipoPedido.add("Troca");
-    tipoPedido.add("Bonificação");
 
     super.initState();
     if (pedidoVenda != null) {
@@ -140,6 +130,7 @@ class _TelaCRUDPedidoVendaState extends State<TelaCRUDPedidoVenda> {
               await _controllerPedido.verificarSePedidoTemItens(pedidoVenda);
 
               if (_controllerPedido.podeFinalizar == true) {
+                
                 //AQUI DEVO COLOCAR METODO PRA TIRAR ESTOQUE
                 pedidoVenda.dataFinalPedido = DateTime.now();
                 _controllerDataFinal.text =
@@ -215,7 +206,7 @@ class _TelaCRUDPedidoVendaState extends State<TelaCRUDPedidoVenda> {
     );
   }
 
-  Widget _criarDropDown(List<String> lista, String item, String textoHint) {
+  Widget _criarDropDownTipoPedido() {
     return Container(
       padding: EdgeInsets.fromLTRB(0.0, 8.0, 8.0, 0.0),
       child: Row(
@@ -223,21 +214,17 @@ class _TelaCRUDPedidoVendaState extends State<TelaCRUDPedidoVenda> {
           Container(
             width: 336.0,
             child: DropdownButton<String>(
-              value: _dropdownValueTipoPgto,
+              value: _dropdownValueTipoPedido,
               style: TextStyle(color: Colors.black),
-              hint: Text(textoHint),
+              hint: Text("Selecionar Tipo Pedido"),
               onChanged: (String newValue) {
                 setState(() {
-                  if (item == "TipoPgto") {
-                    _dropdownValueTipoPgto = newValue;
-                    pedidoVenda.tipoPagamento = _dropdownValueTipoPgto;
-                  } else {
-                    _dropdownValueTipoPedido = newValue;
-                    pedidoVenda.tipoPedido = _dropdownValueTipoPedido;
-                  }
+                  _dropdownValueTipoPedido = newValue;
+                  pedidoVenda.tipoPedido = _dropdownValueTipoPedido;
                 });
               },
-              items: lista.map<DropdownMenuItem<String>>((String value) {
+              items: <String>['Normal', 'Troca', 'Bonificação']
+                  .map<DropdownMenuItem<String>>((String value) {
                 return DropdownMenuItem<String>(
                   value: value,
                   child: Text(value),
@@ -324,7 +311,7 @@ class _TelaCRUDPedidoVendaState extends State<TelaCRUDPedidoVenda> {
         _dropdownValueFornecedor != null &&
         _dropdownValueTipoPedido != null) {
       Map<String, dynamic> mapa =
-          _controllerPedido.converterParaMapa(pedidoVenda);
+          pedidoVenda.converterParaMapa();
       print(vendedor.id);
       Map<String, dynamic> mapaVendedor = Map();
       mapaVendedor["id"] = vendedor.id;
@@ -374,6 +361,37 @@ class _TelaCRUDPedidoVendaState extends State<TelaCRUDPedidoVenda> {
         (new DateFormat.Hms().format(data)));
   }
 
+  Widget _criarDropDownTipoPgto() {
+    return Container(
+      padding: EdgeInsets.fromLTRB(0.0, 8.0, 8.0, 0.0),
+      child: Row(
+        children: <Widget>[
+          Container(
+            width: 336.0,
+            child: DropdownButton<String>(
+              value: _dropdownValueTipoPgto,
+              style: TextStyle(color: Colors.black),
+              hint: Text("Selecionar Tipo Pagamento"),
+              onChanged: (String newValue) {
+                setState(() {
+                  _dropdownValueTipoPgto = newValue;
+                  pedidoVenda.tipoPagamento = _dropdownValueTipoPgto;
+                });
+              },
+              items: <String>['À Vista', 'Cheque', 'Boleto', 'Duplicata']
+                  .map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
   Widget _campoTipoPgto() {
     _controllerFormaPgto.text = pedidoVenda.tipoPagamento;
     //se o pedido estiver finalizado sera criado um TextField com o valor
@@ -382,8 +400,7 @@ class _TelaCRUDPedidoVendaState extends State<TelaCRUDPedidoVenda> {
       return _criarCampoTexto(
           "Tipo Pagamento", _controllerFormaPgto, TextInputType.text);
     } else {
-      return _criarDropDown(
-          tipoPagamento, "TipoPgto", "Selecionar Forma Pagamento");
+      return _criarDropDownTipoPgto();
     }
   }
 
@@ -395,7 +412,7 @@ class _TelaCRUDPedidoVendaState extends State<TelaCRUDPedidoVenda> {
       return _criarCampoTexto(
           "Tipo Pedido", _controllerTipoPedido, TextInputType.text);
     } else {
-      return _criarDropDown(tipoPedido, "TipoPedido", "Selecionar Tipo Pedido");
+      return _criarDropDownTipoPedido();
     }
   }
 
