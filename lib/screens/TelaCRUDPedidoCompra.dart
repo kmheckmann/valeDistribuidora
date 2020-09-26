@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:tcc_2/controller/EmpresaController.dart';
 import 'package:tcc_2/controller/EstoqueProdutoController.dart';
-import 'package:tcc_2/controller/PedidoController.dart';
+import 'package:tcc_2/controller/PedidoCompraController.dart';
 import 'package:tcc_2/controller/UsuarioController.dart';
 import 'package:tcc_2/model/Empresa.dart';
 import 'package:tcc_2/model/EstoqueProduto.dart';
@@ -50,7 +50,7 @@ class _TelaCRUDPedidoCompraState extends State<TelaCRUDPedidoCompra> {
   bool _vlCheckBox;
   String _nomeTela;
   Empresa empresa = Empresa();
-  PedidoController _controllerPedido = PedidoController();
+  PedidoCompraController _controllerPedido = PedidoCompraController();
   EmpresaController _controllerEmpresa = EmpresaController();
   UsuarioController _controllerUsuario = UsuarioController();
   EstoqueProdutoController _controllerEstoque = EstoqueProdutoController();
@@ -70,7 +70,8 @@ class _TelaCRUDPedidoCompraState extends State<TelaCRUDPedidoCompra> {
       _novocadastro = false;
       _vlCheckBox = pedidoCompra.pedidoFinalizado;
       _controllerData.text = _formatarData(pedidoCompra.dataPedido);
-      if(pedidoCompra.dataFinalPedido != null) _controllerDataFinal.text = _formatarData(pedidoCompra.dataFinalPedido);
+      if (pedidoCompra.dataFinalPedido != null)
+        _controllerDataFinal.text = _formatarData(pedidoCompra.dataFinalPedido);
       if (pedidoCompra.pedidoFinalizado == true) _permiteEditar = false;
     } else {
       _nomeTela = "Novo Pedido";
@@ -121,13 +122,15 @@ class _TelaCRUDPedidoCompraState extends State<TelaCRUDPedidoCompra> {
             vendedor = _controllerUsuario.usuario;
             pedidoCompra.pedidoFinalizado = _vlCheckBox;
 
-            if (pedidoCompra.pedidoFinalizado == true && pedidoCompra.dataFinalPedido == null) {
+            if (pedidoCompra.pedidoFinalizado == true &&
+                pedidoCompra.dataFinalPedido == null) {
               await _controllerPedido.verificarSePedidoTemItens(pedidoCompra);
 
               if (_controllerPedido.podeFinalizar == true) {
                 _controllerEstoque.gerarEstoque(pedidoCompra);
                 pedidoCompra.dataFinalPedido = DateTime.now();
-                _controllerDataFinal.text = _formatarData(pedidoCompra.dataFinalPedido);
+                _controllerDataFinal.text =
+                    _formatarData(pedidoCompra.dataFinalPedido);
                 _codigoBotaoSalvar();
               } else {
                 _scaffold.currentState.showSnackBar(SnackBar(
@@ -188,9 +191,11 @@ class _TelaCRUDPedidoCompraState extends State<TelaCRUDPedidoCompra> {
     return TextFormField(
       controller: controller,
       keyboardType: tipo,
-      decoration: InputDecoration(hintText: nome, 
-                                  labelText: nome,
-                                  labelStyle:TextStyle(color: Colors.blueGrey, fontWeight: FontWeight.w400)),
+      decoration: InputDecoration(
+          hintText: nome,
+          labelText: nome,
+          labelStyle:
+              TextStyle(color: Colors.blueGrey, fontWeight: FontWeight.w400)),
       style: TextStyle(color: Colors.grey, fontSize: 17.0),
       enabled: false,
     );
@@ -228,7 +233,7 @@ class _TelaCRUDPedidoCompraState extends State<TelaCRUDPedidoCompra> {
   }
 
   Widget _criarDropDownFornecedor() {
-    empresas = Firestore.instance.collection('empresas').snapshots();
+    empresas = Firestore.instance.collection('empresas').where('ehFornecedor', isEqualTo: true).snapshots();
     return StreamBuilder<QuerySnapshot>(
         stream: empresas,
         builder: (context, snapshot) {

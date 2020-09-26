@@ -1,8 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:tcc_2/controller/ItemPedidoController.dart';
+import 'package:tcc_2/controller/ItemPedidoVendaController.dart';
 import 'package:tcc_2/controller/PedidoController.dart';
+import 'package:tcc_2/controller/PedidoVendaController.dart';
 import 'package:tcc_2/model/ItemPedido.dart';
+import 'package:tcc_2/model/ItemPedidoVenda.dart';
 import 'package:tcc_2/model/PedidoVenda.dart';
 import 'package:tcc_2/screens/TelaCRUDItemPedidoVenda.dart';
 
@@ -22,8 +25,8 @@ class _TelaItensPedidovendaState extends State<TelaItensPedidovenda> {
   ItemPedido itemPedido;
   PedidoVenda pedidoVenda;
   ItemPedido itemRemovido;
-  ItemPedidoController _controller = ItemPedidoController();
-  PedidoController _controllerPedido = PedidoController();
+  ItemPedidoVendaController _controller = ItemPedidoVendaController();
+  PedidoVendaController _controllerPedido = PedidoVendaController();
 
   _TelaItensPedidovendaState(this.snapshot, this.pedidoVenda, this.itemPedido);
 
@@ -67,7 +70,7 @@ class _TelaItensPedidovendaState extends State<TelaItensPedidovenda> {
                   //Ira pegar cada cidade no firebase e retornar
                   itemBuilder: (context, index){
                     _controller.obterProduto(pedidoVenda.id);
-                    ItemPedido itemPedido = ItemPedido.buscarFirebase(snapshot.data.documents[index]);
+                    ItemPedidoVenda itemPedido = ItemPedidoVenda.buscarFirebase(snapshot.data.documents[index]);
                     itemPedido.produto = _controller.produto;
                     return _construirListaPedidos(context, itemPedido, snapshot.data.documents[index], pedidoVenda);
                   });
@@ -100,7 +103,7 @@ class _TelaItensPedidovendaState extends State<TelaItensPedidovenda> {
       _controllerPedido.subtrairPrecoVlTotal(pedido, itemRemovido);
       pedido.valorTotal = _controllerPedido.pedidoVenda.valorTotal;
       pedido.valorComDesconto = _controllerPedido.pedidoVenda.valorComDesconto;
-      _controllerPedido.removerItem(p,snapshot.documentID, pedido.id, _controllerPedido.converterParaMapa(pedido));
+      _controller.removerItem(p,snapshot.documentID, pedido.id, _controllerPedido.converterParaMapa(pedido));
     },
     );
   }

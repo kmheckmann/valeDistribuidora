@@ -1,11 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:tcc_2/model/ItemPedido.dart';
 import 'package:tcc_2/model/Produto.dart';
 
-class ItemPedidoController {
-  ItemPedidoController();
-
+abstract class ItemPedidoController {
   String proxID;
   Produto produto = Produto();
+  Map<String, dynamic> dadosPedido = Map();
 
   Future<Null> obterProxID(String idPedido) async {
     int idTemp = 0;
@@ -31,6 +31,12 @@ class ItemPedidoController {
     idTemp = idTemp + 1;
     proxID = idTemp.toString();
   }
+
+  void persistirItem(ItemPedido item, String idPedido, String idProduto,
+      Map<String, dynamic> dadosPedido);
+
+  void removerItem(ItemPedido item, String idItem, String idPedido,
+      Map<String, dynamic> dadosPedido);
 
 //Método utilizado para pegar as demais informações do produto selecionado na tela de cadastro do item do pedido
   Future<Null> obterProduto(String idPedido) async {

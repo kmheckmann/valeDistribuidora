@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:tcc_2/controller/EmpresaController.dart';
 import 'package:tcc_2/controller/EstoqueProdutoController.dart';
 import 'package:tcc_2/controller/PedidoController.dart';
+import 'package:tcc_2/controller/PedidoVendaController.dart';
 import 'package:tcc_2/controller/UsuarioController.dart';
 import 'package:tcc_2/model/Empresa.dart';
 import 'package:tcc_2/model/PedidoVenda.dart';
@@ -50,7 +51,7 @@ class _TelaCRUDPedidoVendaState extends State<TelaCRUDPedidoVenda> {
   bool _vlCheckBox;
   String _nomeTela;
   Empresa empresa = Empresa();
-  PedidoController _controllerPedido = PedidoController();
+  PedidoVendaController _controllerPedido = PedidoVendaController();
   EmpresaController _controllerEmpresa = EmpresaController();
   UsuarioController _controllerUsuario = UsuarioController();
   EstoqueProdutoController _controllerEstoque = EstoqueProdutoController();
@@ -215,10 +216,10 @@ class _TelaCRUDPedidoVendaState extends State<TelaCRUDPedidoVenda> {
         children: <Widget>[
           Container(
             width: 336.0,
-            child: DropdownButton<String>(
+            child: DropdownButtonFormField<String>(
+              decoration: InputDecoration(labelText: "Tipo Pedido",labelStyle: TextStyle(color: Colors.blueGrey) ),
               value: _dropdownValueTipoPedido,
               style: TextStyle(color: Colors.black),
-              hint: Text("Selecionar Tipo Pedido"),
               onChanged: (String newValue) {
                 setState(() {
                   _dropdownValueTipoPedido = newValue;
@@ -246,15 +247,16 @@ class _TelaCRUDPedidoVendaState extends State<TelaCRUDPedidoVenda> {
           var length = snapshot.data.documents.length;
           DocumentSnapshot ds = snapshot.data.documents[length - 1];
           return Container(
-            padding: EdgeInsets.fromLTRB(0.0, 8.0, 8.0, 0.0),
             child: Row(
               children: <Widget>[
                 Container(
                   width: 336.0,
-                  child: DropdownButton(
+                  height: 88.0,
+                  child: DropdownButtonFormField(
+                   decoration: InputDecoration(labelText: "Fornecedor",labelStyle: TextStyle(color: Colors.blueGrey) ),
                     value: _dropdownValueFornecedor,
                     style: TextStyle(color: Colors.black),
-                    hint: Text("Selecionar fornecedor"),
+                    //hint: Text("Selecionar fornecedor"),
                     onChanged: (String newValue) {
                       setState(() {
                         _dropdownValueFornecedor = newValue;
@@ -368,10 +370,11 @@ class _TelaCRUDPedidoVendaState extends State<TelaCRUDPedidoVenda> {
         children: <Widget>[
           Container(
             width: 336.0,
-            child: DropdownButton<String>(
+            height: 88.0,
+            child: DropdownButtonFormField<String>(
+              decoration: InputDecoration(labelText: "Tipo Pagamento",labelStyle: TextStyle(color: Colors.blueGrey) ),
               value: _dropdownValueTipoPgto,
               style: TextStyle(color: Colors.black),
-              hint: Text("Selecionar Tipo Pagamento"),
               onChanged: (String newValue) {
                 setState(() {
                   _dropdownValueTipoPgto = newValue;
