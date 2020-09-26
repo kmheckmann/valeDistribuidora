@@ -29,7 +29,7 @@ class HomeScreen extends StatelessWidget {
         ),
         Scaffold(
           appBar: AppBar(
-            title: Text("Pedido de Venda"),
+            title: Text("Pedidos Venda"),
             centerTitle: true,
           ),
           drawer: Menu(_pageController),
