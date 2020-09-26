@@ -57,7 +57,7 @@ class _TelaCRUDPedidoVendaState extends State<TelaCRUDPedidoVenda> {
 
   @override
   void initState() {
-
+    empresas = Firestore.instance.collection('empresas').snapshots();
     super.initState();
     if (pedidoVenda != null) {
       _nomeTela = "Editar Pedido";
@@ -81,6 +81,7 @@ class _TelaCRUDPedidoVendaState extends State<TelaCRUDPedidoVenda> {
       pedidoVenda.dataPedido = DateTime.now();
       pedidoVenda.ehPedidoVenda = true;
       pedidoVenda.valorTotal = 0.0;
+      pedidoVenda.valorComDesconto = 0.0;
       pedidoVenda.percentualDesconto = 0.0;
       //formatar data
       _controllerData.text = _formatarData(pedidoVenda.dataPedido);
@@ -88,6 +89,8 @@ class _TelaCRUDPedidoVendaState extends State<TelaCRUDPedidoVenda> {
       _vlCheckBox = false;
       pedidoVenda.pedidoFinalizado = false;
       _controllerVendedor.text = vendedor.nome;
+      _controllerVlTotalDesc.text = pedidoVenda.valorComDesconto.toString();
+      _controllerVlTotal.text = pedidoVenda.valorTotal.toString();
     }
   }
 
@@ -130,7 +133,6 @@ class _TelaCRUDPedidoVendaState extends State<TelaCRUDPedidoVenda> {
               await _controllerPedido.verificarSePedidoTemItens(pedidoVenda);
 
               if (_controllerPedido.podeFinalizar == true) {
-                
                 //AQUI DEVO COLOCAR METODO PRA TIRAR ESTOQUE
                 pedidoVenda.dataFinalPedido = DateTime.now();
                 _controllerDataFinal.text =
@@ -179,7 +181,7 @@ class _TelaCRUDPedidoVendaState extends State<TelaCRUDPedidoVenda> {
                   setState(() {
                     _controllerPedido.calcularDesconto(pedidoVenda);
                     pedidoVenda.valorComDesconto =
-                        _controllerPedido.pedidoCompra.valorComDesconto;
+                        _controllerPedido.pedidoVenda.valorComDesconto;
                     _controllerVlTotalDesc.text =
                         pedidoVenda.valorComDesconto.toString();
                   });
@@ -238,7 +240,6 @@ class _TelaCRUDPedidoVendaState extends State<TelaCRUDPedidoVenda> {
   }
 
   Widget _criarDropDownFornecedor() {
-    empresas = Firestore.instance.collection('empresas').snapshots();
     return StreamBuilder<QuerySnapshot>(
         stream: empresas,
         builder: (context, snapshot) {
@@ -310,8 +311,7 @@ class _TelaCRUDPedidoVendaState extends State<TelaCRUDPedidoVenda> {
     if (_dropdownValueTipoPgto != null &&
         _dropdownValueFornecedor != null &&
         _dropdownValueTipoPedido != null) {
-      Map<String, dynamic> mapa =
-          pedidoVenda.converterParaMapa();
+      Map<String, dynamic> mapa = pedidoVenda.converterParaMapa();
       print(vendedor.id);
       Map<String, dynamic> mapaVendedor = Map();
       mapaVendedor["id"] = vendedor.id;
