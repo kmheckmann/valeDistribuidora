@@ -38,7 +38,6 @@ class _TelaUsuarioState extends State<TelaUsuario> {
     super.initState();
     bool _existeCadastro = false;
     if (usuario != null) {
-      print(usuario.id);
       _nomeTela = "Editar Usuário";
       _controllerNome.text = usuario.nome;
       _controllerCPF.text = usuario.cpf;
@@ -222,7 +221,6 @@ class _TelaUsuarioState extends State<TelaUsuario> {
     QuerySnapshot eventsQuery = await ref
     .where("cpf", isEqualTo: usuario.cpf)
     .getDocuments();
-    print(eventsQuery.documents.length);
     if(eventsQuery.documents.length > 0){
       _existeCadastro = true;
     }else{

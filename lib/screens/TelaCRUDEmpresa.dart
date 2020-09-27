@@ -94,8 +94,6 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
             onPressed: () async {
               //Ao clicar pra salvar realiza a verificação de CNPJ e Inscrição Estadual
               await _controllerEmpresa.verificarExistenciaEmpresa(empresa, _novocadastro);
-              print(_controllerEmpresa.existeCadastroCNPJ);
-              print(_controllerEmpresa.existeCadastroIE);
 
               //Roda o validator de cada campo e verifica se os conteúdos estão de acordo com esperado
               if (_validadorCampos.currentState.validate()) {

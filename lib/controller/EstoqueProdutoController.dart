@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:tcc_2/controller/ProdutoController.dart';
 import 'package:tcc_2/model/EstoqueProduto.dart';
 import 'package:tcc_2/model/Pedido.dart';
 import 'package:tcc_2/model/Produto.dart';
@@ -7,7 +8,8 @@ class EstoqueProdutoController {
   EstoqueProdutoController();
 
   Map<String, dynamic> dadosEstoqueProduto = Map();
-  List<EstoqueProduto> estoques;
+  ProdutoController _controllerProduto = ProdutoController();
+  List<EstoqueProduto> estoques  = List<EstoqueProduto>();
   bool produtoTemEstoque = false;
   int qtdeExistente;
 
@@ -68,13 +70,12 @@ class EstoqueProdutoController {
 
 //Método usado na consulta de estoque
   Future<Null> obterEstoqueProduto(Produto p) async {
-    estoques = List<EstoqueProduto>();
     //Obtém todos os estoque disponiveis
     CollectionReference ref = Firestore.instance
         .collection("produtos")
         .document(p.id)
         .collection("estoque");
-    QuerySnapshot _obterEstoque = await ref.getDocuments();
+    QuerySnapshot _obterEstoque = await ref.where("quantidade", isGreaterThan: 0).getDocuments();
 
     //Adiciona cada registro na lista
     _obterEstoque.documents.forEach((document) {
@@ -108,33 +109,44 @@ class EstoqueProdutoController {
   }
 
 //Esse método será utilizado no pedido de venda após constatar que existe estoque suficiente disponivel do produto desejado
-  Future<Null> descontarEstoqueProduto(
-      Produto p, int quantidadeDesejada) async {
-    //Contador da lista
-    int contador = 0;
-    //recebe a quantidade desejada do produto
-    int qtdeDesejada = quantidadeDesejada;
+  Future<Null> descontarEstoqueProduto(Pedido p) async {
+    int contador;
+    CollectionReference ref = Firestore.instance
+        .collection("pedidos")
+        .document(p.id)
+        .collection("itens");
 
-//Obtem todo o estoque do produto
-    await obterEstoqueProduto(p);
+    QuerySnapshot _obterItens = await ref.getDocuments();
 
-    //Enquanto a quantidade desejada nao estiver zerada será realizado a ação abaixo
-    do {
-      //Se o lote verificado possuir quantidade maior do que a qtde desejada
-      //Subtrai o valor da quantidade desejada e salva a quantidade restante no banco
-      if (estoques[contador].quantidade > qtdeDesejada) {
-        estoques[contador].quantidade -= qtdeDesejada;
-        qtdeDesejada = 0;
-      } else {
-        //Caso o lote tenha quantidade menor que a qtde desejada
-        //Remove-se da quantidade desejada o que o produto tem de quantidade no estoque
-        //Zera a quantidade de estoque do item e salva isso no banco
-        //Repete o processo até a quantidade desejada ficar zerada
-        qtdeDesejada -= estoques[contador].quantidade;
-        estoques[contador].quantidade = 0;
-      }
-      Map<String, dynamic> mapa = converterParaMapa(estoques[contador]);
-      salvarEstoqueProduto(mapa, p.id, estoques[contador].id);
-    } while (quantidadeDesejada != 0);
+    _obterItens.documents.forEach((item) async {
+      contador = 0;
+      await _controllerProduto.obterProdutoPorID(item.data["id"]);
+      Produto prod = _controllerProduto.produto;
+      //Contador da lista
+      //recebe a quantidade desejada do produto
+      int qtdeDesejada = item.data["quantidade"];
+
+      //Obtem todo o estoque do produto
+      await obterEstoqueProduto(prod);
+      //Enquanto a quantidade desejada nao estiver zerada será realizado a ação abaixo
+      do {
+        //Se o lote verificado possuir quantidade maior do que a qtde desejada
+        //Subtrai o valor da quantidade desejada e salva a quantidade restante no banco
+        if (estoques[contador].quantidade > qtdeDesejada) {
+          estoques[contador].quantidade -= qtdeDesejada;
+          qtdeDesejada = 0;
+        } else {
+          //Caso o lote tenha quantidade menor que a qtde desejada
+          //Remove-se da quantidade desejada o que o produto tem de quantidade no estoque
+          //Zera a quantidade de estoque do item e salva isso no banco
+          //Repete o processo até a quantidade desejada ficar zerada
+          qtdeDesejada -= estoques[contador].quantidade;
+          estoques[contador].quantidade = 0;
+        }
+        Map<String, dynamic> mapa = converterParaMapa(estoques[contador]);
+        salvarEstoqueProduto(mapa, prod.id, estoques[contador].id);
+        contador += 1;
+      } while (qtdeDesejada != 0);
+    });
   }
 }

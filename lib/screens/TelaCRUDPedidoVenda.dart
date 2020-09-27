@@ -3,7 +3,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:tcc_2/controller/EmpresaController.dart';
 import 'package:tcc_2/controller/EstoqueProdutoController.dart';
-import 'package:tcc_2/controller/PedidoController.dart';
 import 'package:tcc_2/controller/PedidoVendaController.dart';
 import 'package:tcc_2/controller/UsuarioController.dart';
 import 'package:tcc_2/model/Empresa.dart';
@@ -134,7 +133,7 @@ class _TelaCRUDPedidoVendaState extends State<TelaCRUDPedidoVenda> {
               await _controllerPedido.verificarSePedidoTemItens(pedidoVenda);
 
               if (_controllerPedido.podeFinalizar == true) {
-                //AQUI DEVO COLOCAR METODO PRA TIRAR ESTOQUE
+                await _controllerEstoque.descontarEstoqueProduto(pedidoVenda);
                 pedidoVenda.dataFinalPedido = DateTime.now();
                 _controllerDataFinal.text =
                     _formatarData(pedidoVenda.dataFinalPedido);
@@ -217,7 +216,9 @@ class _TelaCRUDPedidoVendaState extends State<TelaCRUDPedidoVenda> {
           Container(
             width: 336.0,
             child: DropdownButtonFormField<String>(
-              decoration: InputDecoration(labelText: "Tipo Pedido",labelStyle: TextStyle(color: Colors.blueGrey) ),
+              decoration: InputDecoration(
+                  labelText: "Tipo Pedido",
+                  labelStyle: TextStyle(color: Colors.blueGrey)),
               value: _dropdownValueTipoPedido,
               style: TextStyle(color: Colors.black),
               onChanged: (String newValue) {
@@ -253,7 +254,9 @@ class _TelaCRUDPedidoVendaState extends State<TelaCRUDPedidoVenda> {
                   width: 336.0,
                   height: 88.0,
                   child: DropdownButtonFormField(
-                   decoration: InputDecoration(labelText: "Fornecedor",labelStyle: TextStyle(color: Colors.blueGrey) ),
+                    decoration: InputDecoration(
+                        labelText: "Fornecedor",
+                        labelStyle: TextStyle(color: Colors.blueGrey)),
                     value: _dropdownValueFornecedor,
                     style: TextStyle(color: Colors.black),
                     //hint: Text("Selecionar fornecedor"),
@@ -314,7 +317,6 @@ class _TelaCRUDPedidoVendaState extends State<TelaCRUDPedidoVenda> {
         _dropdownValueFornecedor != null &&
         _dropdownValueTipoPedido != null) {
       Map<String, dynamic> mapa = pedidoVenda.converterParaMapa();
-      print(vendedor.id);
       Map<String, dynamic> mapaVendedor = Map();
       mapaVendedor["id"] = vendedor.id;
       Map<String, dynamic> mapaEmpresa = Map();
@@ -372,7 +374,9 @@ class _TelaCRUDPedidoVendaState extends State<TelaCRUDPedidoVenda> {
             width: 336.0,
             height: 88.0,
             child: DropdownButtonFormField<String>(
-              decoration: InputDecoration(labelText: "Tipo Pagamento",labelStyle: TextStyle(color: Colors.blueGrey) ),
+              decoration: InputDecoration(
+                  labelText: "Tipo Pagamento",
+                  labelStyle: TextStyle(color: Colors.blueGrey)),
               value: _dropdownValueTipoPgto,
               style: TextStyle(color: Colors.black),
               onChanged: (String newValue) {
