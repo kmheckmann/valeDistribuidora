@@ -71,7 +71,6 @@ class _TelaCRUDRotaState extends State<TelaCRUDRota> {
         backgroundColor: Colors.blue,
         onPressed: (){
           _verificarExistenciaRota();
-          print(_clienteComRota);
           if(_dropdownValueCliente != null 
           && _dropdownValueVendedor != null 
           && _dropdownValueDiaSemana != null){  
@@ -361,7 +360,6 @@ Widget _criarCampoCheckBox() {
     //Busca todas as rotas cadastradas
     CollectionReference ref = Firestore.instance.collection("rotas");
     QuerySnapshot eventsQuery1 = await ref.where("ativa", isEqualTo: true).getDocuments();
-    print(eventsQuery1.documents.length);
       if(eventsQuery1.documents.length > 0){
         eventsQuery1.documents.forEach((document) async {
           CollectionReference ref2 = Firestore.instance.collection('rotas').document(document.documentID).collection('cliente');

@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:tcc_2/controller/EstoqueProdutoController.dart';
 import 'package:tcc_2/model/Categoria.dart';
 import 'package:tcc_2/model/Produto.dart';
 
@@ -8,7 +7,6 @@ class ProdutoController {
   bool existeCadastroCodigoBarra;
   String proxID;
   Produto produto = Produto();
-  EstoqueProdutoController _estoqueController = EstoqueProdutoController();
 
   ProdutoController();
 
@@ -156,6 +154,22 @@ class ProdutoController {
     eventsQuery.documents.forEach((document) {
       Produto p = Produto.buscarFirebase(document);
       produto = p;
+    });
+  }
+
+  //Obtem os demais dados do produto usando o id
+  Future<Null> obterProdutoPorID(String id) async {
+    CollectionReference ref = Firestore.instance.collection('produtos');
+    QuerySnapshot eventsQuery = await ref.getDocuments();
+    eventsQuery.documents.forEach((document) {
+      if (document.documentID == id) {
+        produto.id = document.documentID;
+        produto.codigo = document.data["codigo"];
+        produto.codBarra = document.data["codBarra"];
+        produto.descricao = document.data["descricao"];
+        produto.percentualLucro = document.data["percentLucro"];
+        produto.ativo = document.data["ativo"];
+      }
     });
   }
 }

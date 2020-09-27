@@ -46,7 +46,6 @@ class _TelaEstoqueState extends State<TelaEstoque> {
 //Coloca em cards todos os lotes de produtos com as informações de cada lote
   Widget _construirListaEstoque(estoques, index){
     EstoqueProduto e = estoques[index];
-    print(e.precoCompra);
     return InkWell(
       //InkWell eh pra dar uma animacao quando clicar no produto
       child: Card(

@@ -1,10 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:tcc_2/controller/EstoqueProdutoController.dart';
-import 'package:tcc_2/controller/ItemPedidoController.dart';
-import 'package:tcc_2/controller/PedidoController.dart';
+import 'package:tcc_2/controller/ItemPedidoVendaController.dart';
+import 'package:tcc_2/controller/PedidoVendaController.dart';
 import 'package:tcc_2/controller/ProdutoController.dart';
 import 'package:tcc_2/model/ItemPedido.dart';
+import 'package:tcc_2/model/ItemPedidoVenda.dart';
 import 'package:tcc_2/model/PedidoVenda.dart';
 import 'package:tcc_2/model/Produto.dart';
 import 'package:tcc_2/screens/TelaItensPedidoVenda.dart';
@@ -23,7 +24,7 @@ class TelaCRUDItemPedidoVenda extends StatefulWidget {
 class _TelaCRUDItemPedidoVendaState extends State<TelaCRUDItemPedidoVenda> {
   final DocumentSnapshot snapshot;
   PedidoVenda pedidoVenda;
-  ItemPedido itemPedido;
+  ItemPedidoVenda itemPedido;
 
   _TelaCRUDItemPedidoVendaState(
       {this.snapshot, this.pedidoVenda, this.itemPedido});
@@ -43,8 +44,8 @@ class _TelaCRUDItemPedidoVendaState extends State<TelaCRUDItemPedidoVenda> {
   final _scaffold = GlobalKey<ScaffoldState>();
 
   ProdutoController _controllerProduto = ProdutoController();
-  ItemPedidoController _controllerItemPedido = ItemPedidoController();
-  PedidoController _controllerPedido = PedidoController();
+  ItemPedidoVendaController _controllerItemPedido = ItemPedidoVendaController();
+  PedidoVendaController _controllerPedido = PedidoVendaController();
   EstoqueProdutoController _controllerEstoque = EstoqueProdutoController();
   @override
   void initState() {
@@ -59,7 +60,7 @@ class _TelaCRUDItemPedidoVendaState extends State<TelaCRUDItemPedidoVenda> {
       _novocadastro = false;
     } else {
       _nomeTela = "Novo Produto";
-      itemPedido = ItemPedido(pedidoVenda);
+      itemPedido = ItemPedidoVenda(pedidoVenda);
       _novocadastro = true;
     }
   }
@@ -133,9 +134,10 @@ class _TelaCRUDItemPedidoVendaState extends State<TelaCRUDItemPedidoVenda> {
               children: <Widget>[
                 Container(
                   width: 336.0,
-                  child: DropdownButton(
+                  height: 88.0,
+                  child: DropdownButtonFormField(
+                    decoration: InputDecoration(labelText: "Produto",labelStyle: TextStyle(color: Colors.blueGrey) ),
                     value: _dropdownValueProduto,
-                    hint: Text("Selecionar produto"),
                     onChanged: (String newValue) {
                       setState(() {
                         _dropdownValueProduto = newValue;
@@ -244,7 +246,7 @@ class _TelaCRUDItemPedidoVendaState extends State<TelaCRUDItemPedidoVenda> {
       pedidoVenda.valorTotal = _controllerPedido.pedidoVenda.valorTotal;
       pedidoVenda.valorComDesconto =
           _controllerPedido.pedidoVenda.valorComDesconto;
-      _controllerPedido.adicionarItem(itemPedido, pedidoVenda.id, produto.id,
+      _controllerItemPedido.persistirItem(itemPedido, pedidoVenda.id, produto.id,
           pedidoVenda.converterParaMapa());
     } else {
       _controllerPedido.atualizarPrecoNoVlTotal(
@@ -252,7 +254,7 @@ class _TelaCRUDItemPedidoVendaState extends State<TelaCRUDItemPedidoVenda> {
       pedidoVenda.valorTotal = _controllerPedido.pedidoVenda.valorTotal;
       pedidoVenda.valorComDesconto =
           _controllerPedido.pedidoVenda.valorComDesconto;
-      _controllerPedido.editarItem(itemPedido, pedidoVenda.id, produto.id,
+      _controllerItemPedido.persistirItem(itemPedido, pedidoVenda.id, produto.id,
           pedidoVenda.converterParaMapa());
     }
     Navigator.of(context).pop(MaterialPageRoute(

@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:scoped_model/scoped_model.dart';
-import 'package:tcc_2/controller/PedidoController.dart';
+import 'package:tcc_2/controller/PedidoVendaController.dart';
 import 'package:tcc_2/model/PedidoVenda.dart';
 import 'package:tcc_2/model/Usuario.dart';
 import 'package:tcc_2/screens/TelaCRUDPedidoVenda.dart';
@@ -106,13 +106,14 @@ class _TelaPedidosVendaState extends State<TelaPedidosVenda> {
         ),
       ),
       onTap: () async {
-        PedidoController _controller = PedidoController();
-        await _controller.obterEmpresa(p.id);
+        PedidoVendaController _controller = PedidoVendaController();
+        await _controller.obterEmpresadoPedido(p.id);
         p.empresa = _controller.empresa;
-        await _controller.obterUsuario(p.id);
+        await _controller.obterUsuariodoPedido(p.id);
         p.user = _controller.usuario;
-        Navigator.of(contexto).push(
-            MaterialPageRoute(builder: (contexto) => TelaCRUDPedidoVenda(pedidoVenda: p,snapshot: snapshot, vendedor: u)));
+        Navigator.of(contexto).push(MaterialPageRoute(
+            builder: (contexto) => TelaCRUDPedidoVenda(
+                pedidoVenda: p, snapshot: snapshot, vendedor: u)));
       },
     );
   }
