@@ -23,7 +23,7 @@ class PedidoCompraController extends PedidoController {
     };
   }
 
-  Future<Null> salvarPedido(
+  Future<Null> persistirAlteracoesPedido(
       Map<String, dynamic> dadosPedido,
       Map<String, dynamic> dadosEmpresa,
       Map<String, dynamic> dadosUsuario,
@@ -49,34 +49,6 @@ class PedidoCompraController extends PedidoController {
     await Firestore.instance
         .collection("pedidos")
         .document(idPedido)
-        .collection("vendedor")
-        .document("IDvendedor")
-        .setData(dadosUsuario);
-  }
-
-  Future<Null> editarPedido(
-      Map<String, dynamic> dadosPedido,
-      Map<String, dynamic> dadosEmpresa,
-      Map<String, dynamic> dadosUsuario,
-      String idFirebase) async {
-    this.dadosPedido = dadosPedido;
-    this.dadosEmpresa = dadosEmpresa;
-    this.dadosUsuario = dadosUsuario;
-    await Firestore.instance
-        .collection("pedidos")
-        .document(idFirebase)
-        .setData(dadosPedido);
-
-    await Firestore.instance
-        .collection("pedidos")
-        .document(idFirebase)
-        .collection("cliente")
-        .document("IDcliente")
-        .setData(dadosEmpresa);
-
-    await Firestore.instance
-        .collection("pedidos")
-        .document(idFirebase)
         .collection("vendedor")
         .document("IDvendedor")
         .setData(dadosUsuario);

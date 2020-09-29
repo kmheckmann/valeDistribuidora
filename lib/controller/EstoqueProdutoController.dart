@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:tcc_2/controller/ProdutoController.dart';
 import 'package:tcc_2/model/EstoqueProduto.dart';
 import 'package:tcc_2/model/Pedido.dart';
+import 'package:tcc_2/model/PedidoVenda.dart';
 import 'package:tcc_2/model/Produto.dart';
 
 class EstoqueProdutoController {
@@ -9,9 +10,12 @@ class EstoqueProdutoController {
 
   Map<String, dynamic> dadosEstoqueProduto = Map();
   ProdutoController _controllerProduto = ProdutoController();
-  List<EstoqueProduto> estoques  = List<EstoqueProduto>();
+  List<EstoqueProduto> estoques = List<EstoqueProduto>();
+  List<Produto> produtos = List<Produto>();
   bool produtoTemEstoque = false;
+  bool permitirFinalizarPedidoVenda = true;
   int qtdeExistente;
+  double precoVenda = 0;
 
   String proxID(Pedido p, String idItem, DateTime data) {
     //obtem o id pedido, id item e a hora, minutos e segundos atuais pra formar o id do estoque do item
@@ -75,7 +79,8 @@ class EstoqueProdutoController {
         .collection("produtos")
         .document(p.id)
         .collection("estoque");
-    QuerySnapshot _obterEstoque = await ref.where("quantidade", isGreaterThan: 0).getDocuments();
+    QuerySnapshot _obterEstoque =
+        await ref.where("quantidade", isGreaterThan: 0).getDocuments();
 
     //Adiciona cada registro na lista
     _obterEstoque.documents.forEach((document) {
@@ -148,5 +153,51 @@ class EstoqueProdutoController {
         contador += 1;
       } while (qtdeDesejada != 0);
     });
+  }
+
+  Future<Null> verificarEstoqueTodosItensPedido(PedidoVenda pedido) async {
+    //Metodo criado para verificar se todos os itens do pedido possuem estoque
+    //se sim, sera possível finalizar o pedido, caso contrário não será permitido
+
+    CollectionReference ref = Firestore.instance
+        .collection("pedidos")
+        .document(pedido.id)
+        .collection("itens");
+
+    QuerySnapshot _obterItens = await ref.getDocuments();
+    _obterItens.documents.forEach((item) {
+      _controllerProduto.obterProdutoPorID(item.data["id"]);
+      Produto prod = _controllerProduto.produto;
+      print(prod.descricao);
+      print(prod.codigo);
+      //Contador da lista
+      //recebe a quantidade desejada do produto
+      int qtdeDesejada = item.data["quantidade"];
+
+      verificarSeProdutoTemEstoqueDisponivel(prod, qtdeDesejada);
+
+      if (produtoTemEstoque == false) {
+        produtos.add(prod);
+        permitirFinalizarPedidoVenda = false;
+      }
+    });
+  }
+
+//O metodo ira aplicar no maior preco de compra do item o percentual de lucro definido no cadastro do produto
+  Future<Null> obterPrecoVenda(Produto p) async {
+    double preco = 0;
+    double maiorPrecoCompra = 0;
+
+    await obterEstoqueProduto(p);
+
+    estoques.forEach((item) {
+      preco = item.precoCompra;
+      if (preco > maiorPrecoCompra) {
+        maiorPrecoCompra = preco;
+      }
+    });
+
+    precoVenda =
+        ((p.percentualLucro / 100) * maiorPrecoCompra) + maiorPrecoCompra;
   }
 }
