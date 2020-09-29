@@ -81,9 +81,7 @@ class _TelaCRUDItemPedidoVendaState extends State<TelaCRUDItemPedidoVenda> {
               onPressed: () async {
                 if (_validadorCampos.currentState.validate()) {
                   if (_dropdownValueProduto != null) {
-                    await _controllerProduto
-                        .obterProdutoPorDescricao(_dropdownValueProduto);
-                    produto = _controllerProduto.produto;
+                    
 
                     await _controllerEstoque
                         .verificarSeProdutoTemEstoqueDisponivel(
@@ -138,7 +136,14 @@ class _TelaCRUDItemPedidoVendaState extends State<TelaCRUDItemPedidoVenda> {
                   child: DropdownButtonFormField(
                     decoration: InputDecoration(labelText: "Produto",labelStyle: TextStyle(color: Colors.blueGrey) ),
                     value: _dropdownValueProduto,
-                    onChanged: (String newValue) {
+                    onChanged: (String newValue) async{
+                      //Ao selecionar o valor no dropdown busca o item correspondente
+                      await _controllerProduto
+                        .obterProdutoPorDescricao(newValue);
+                    produto = _controllerProduto.produto;
+                    //Faz o calculo do preco de venda e seta o valor no campo
+                        await _controllerEstoque.obterPrecoVenda(produto);
+                        _controllerPreco.text = _controllerEstoque.precoVenda.toString();
                       setState(() {
                         _dropdownValueProduto = newValue;
                         itemPedido.labelListaProdutos = _dropdownValueProduto;

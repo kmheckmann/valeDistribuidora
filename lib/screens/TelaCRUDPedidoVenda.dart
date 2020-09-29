@@ -7,6 +7,7 @@ import 'package:tcc_2/controller/PedidoVendaController.dart';
 import 'package:tcc_2/controller/UsuarioController.dart';
 import 'package:tcc_2/model/Empresa.dart';
 import 'package:tcc_2/model/PedidoVenda.dart';
+import 'package:tcc_2/model/Produto.dart';
 import 'package:tcc_2/model/Usuario.dart';
 import 'package:tcc_2/screens/TelaItensPedidoVenda.dart';
 
@@ -43,7 +44,7 @@ class _TelaCRUDPedidoVendaState extends State<TelaCRUDPedidoVenda> {
   final _controllerPercentDesc = TextEditingController();
   final _controllerVendedor = TextEditingController();
   final _controllerFormaPgto = TextEditingController();
-  final _controllerFornecedor = TextEditingController();
+  final _controllerCliente = TextEditingController();
   final _controllerTipoPedido = TextEditingController();
   bool _novocadastro;
   bool _permiteEditar = true;
@@ -54,6 +55,7 @@ class _TelaCRUDPedidoVendaState extends State<TelaCRUDPedidoVenda> {
   EmpresaController _controllerEmpresa = EmpresaController();
   UsuarioController _controllerUsuario = UsuarioController();
   EstoqueProdutoController _controllerEstoque = EstoqueProdutoController();
+  List<Produto> produtos = List<Produto>();
 
   @override
   void initState() {
@@ -111,7 +113,7 @@ class _TelaCRUDPedidoVendaState extends State<TelaCRUDPedidoVenda> {
                     pedidoVenda.valorComDesconto.toString();
                 _controllerPercentDesc.text =
                     pedidoVenda.percentualDesconto.toString();
-                _controllerFornecedor.text = _dropdownValueFornecedor;
+                _controllerCliente.text = _dropdownValueFornecedor;
                 _controllerFormaPgto.text = pedidoVenda.tipoPagamento;
                 _controllerTipoPedido.text = pedidoVenda.tipoPedido;
               })
@@ -133,11 +135,21 @@ class _TelaCRUDPedidoVendaState extends State<TelaCRUDPedidoVenda> {
               await _controllerPedido.verificarSePedidoTemItens(pedidoVenda);
 
               if (_controllerPedido.podeFinalizar == true) {
-                await _controllerEstoque.descontarEstoqueProduto(pedidoVenda);
-                pedidoVenda.dataFinalPedido = DateTime.now();
-                _controllerDataFinal.text =
-                    _formatarData(pedidoVenda.dataFinalPedido);
-                _codigoBotaoSalvar();
+                await _controllerEstoque
+                    .verificarEstoqueTodosItensPedido(pedidoVenda);
+                if (_controllerEstoque.permitirFinalizarPedidoVenda == true) {
+                  await _controllerEstoque.descontarEstoqueProduto(pedidoVenda);
+                  pedidoVenda.dataFinalPedido = DateTime.now();
+                  _controllerDataFinal.text =
+                      _formatarData(pedidoVenda.dataFinalPedido);
+                  _codigoBotaoSalvar();
+                } else {
+                  showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return _alertaEstoque();
+                      });
+                }
               } else {
                 _scaffold.currentState.showSnackBar(SnackBar(
                   content: Text(
@@ -163,7 +175,7 @@ class _TelaCRUDPedidoVendaState extends State<TelaCRUDPedidoVenda> {
                   "Data Pedido", _controllerData, TextInputType.text),
               _criarCampoTexto(
                   "Data Finalização", _controllerDataFinal, TextInputType.text),
-              _campoFornecedor(),
+              _campoCliente(),
               _campoTipoPgto(),
               _campoTipoPedido(),
               _criarCampoTexto(
@@ -241,7 +253,7 @@ class _TelaCRUDPedidoVendaState extends State<TelaCRUDPedidoVenda> {
     );
   }
 
-  Widget _criarDropDownFornecedor() {
+  Widget _criarDropDownCliente() {
     return StreamBuilder<QuerySnapshot>(
         stream: empresas,
         builder: (context, snapshot) {
@@ -255,11 +267,10 @@ class _TelaCRUDPedidoVendaState extends State<TelaCRUDPedidoVenda> {
                   height: 88.0,
                   child: DropdownButtonFormField(
                     decoration: InputDecoration(
-                        labelText: "Fornecedor",
+                        labelText: "Cliente",
                         labelStyle: TextStyle(color: Colors.blueGrey)),
                     value: _dropdownValueFornecedor,
                     style: TextStyle(color: Colors.black),
-                    //hint: Text("Selecionar fornecedor"),
                     onChanged: (String newValue) {
                       setState(() {
                         _dropdownValueFornecedor = newValue;
@@ -327,10 +338,10 @@ class _TelaCRUDPedidoVendaState extends State<TelaCRUDPedidoVenda> {
         _novocadastro = false;
         await _controllerPedido.obterProxID();
         pedidoVenda.id = _controllerPedido.proxID;
-        _controllerPedido.salvarPedido(
+        _controllerPedido.persistirAlteracoesPedido(
             mapa, mapaEmpresa, mapaVendedor, pedidoVenda.id);
       } else {
-        _controllerPedido.editarPedido(
+        _controllerPedido.persistirAlteracoesPedido(
             mapa, mapaEmpresa, mapaVendedor, pedidoVenda.id);
       }
       Navigator.of(context).push(MaterialPageRoute(
@@ -423,15 +434,38 @@ class _TelaCRUDPedidoVendaState extends State<TelaCRUDPedidoVenda> {
     }
   }
 
-  Widget _campoFornecedor() {
-    _controllerFornecedor.text = pedidoVenda.empresa.nomeFantasia;
+  Widget _campoCliente() {
+    _controllerCliente.text = pedidoVenda.empresa.nomeFantasia;
     //se o pedido estiver finalizado sera criado um TextField com o valor
     //se não estiver, sera criado o dropDown
     if (pedidoVenda.pedidoFinalizado) {
       return _criarCampoTexto(
-          "Fornecedor", _controllerFornecedor, TextInputType.text);
+          "Cliente", _controllerCliente, TextInputType.text);
     } else {
-      return _criarDropDownFornecedor();
+      return _criarDropDownCliente();
     }
+  }
+
+  Widget _alertaEstoque() {
+    return AlertDialog(
+      title: Text('Produtos sem estoque suficiente'),
+      titleTextStyle: TextStyle(fontWeight: FontWeight.bold),
+      content: SingleChildScrollView(
+        child: ListBody(
+          children: <Widget>[
+            Text(
+                'O pedido possui itens sem estoque suficiente para atender a quantidade solicitada'),
+          ],
+        ),
+      ),
+      actions: <Widget>[
+        FlatButton(
+          child: Text('OK'),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        )
+      ],
+    );
   }
 }

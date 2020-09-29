@@ -49,64 +49,11 @@ abstract class PedidoController {
     };
   }
 
-  Future<Null> salvarPedido(
+  Future<Null> persistirAlteracoesPedido(
       Map<String, dynamic> dadosPedido,
       Map<String, dynamic> dadosEmpresa,
       Map<String, dynamic> dadosUsuario,
-      String idPedido) async {
-    this.dadosPedido = dadosPedido;
-    this.dadosEmpresa = dadosEmpresa;
-    this.dadosUsuario = dadosUsuario;
-
-    //Grava os dados do pedido
-    await Firestore.instance
-        .collection("pedidos")
-        .document(idPedido)
-        .setData(dadosPedido);
-
-    //Salva dentro da collection pedido o ID do cliente do pedido
-    await Firestore.instance
-        .collection("pedidos")
-        .document(idPedido)
-        .collection("cliente")
-        .document("IDcliente")
-        .setData(dadosEmpresa);
-    //Salva dentro da collection pedido o ID do vendedor
-    await Firestore.instance
-        .collection("pedidos")
-        .document(idPedido)
-        .collection("vendedor")
-        .document("IDvendedor")
-        .setData(dadosUsuario);
-  }
-
-  Future<Null> editarPedido(
-      Map<String, dynamic> dadosPedido,
-      Map<String, dynamic> dadosEmpresa,
-      Map<String, dynamic> dadosUsuario,
-      String idFirebase) async {
-    this.dadosPedido = dadosPedido;
-    this.dadosEmpresa = dadosEmpresa;
-    this.dadosUsuario = dadosUsuario;
-    await Firestore.instance
-        .collection("pedidos")
-        .document(idFirebase)
-        .setData(dadosPedido);
-
-    await Firestore.instance
-        .collection("pedidos")
-        .document(idFirebase)
-        .collection("cliente")
-        .document("IDcliente")
-        .setData(dadosEmpresa);
-
-    await Firestore.instance
-        .collection("pedidos")
-        .document(idFirebase)
-        .collection("vendedor")
-        .document("IDvendedor")
-        .setData(dadosUsuario);
-  }
+      String idPedido);
 
 //Busca os dados da empresa vinculada ao pedido
   Future<Null> obterEmpresadoPedido(String idPedido) async {

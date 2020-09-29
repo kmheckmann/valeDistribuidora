@@ -23,8 +23,8 @@ class PedidoVenda extends Pedido{
   @override
   Map<String, dynamic> converterParaMapa() {
     return {
-      "valorTotal": valorTotal,
-      "percentualDesconto": percentualDesconto,
+      "valorTotal": valorTotal + 0.0,
+      "percentualDesconto": percentualDesconto + 0.0,
       "tipoPagamento": tipoPagamento,
       "ehPedidoVenda": ehPedidoVenda,
       "tipoPedido": tipoPedido,
@@ -32,6 +32,7 @@ class PedidoVenda extends Pedido{
       "pedidoFinalizado": pedidoFinalizado,
       "dataFinalPedido": dataFinalPedido,
       "label": labelTelaPedidos,
+      "valorComDesconto": valorComDesconto
     };
   }
 

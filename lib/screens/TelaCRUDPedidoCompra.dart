@@ -316,10 +316,10 @@ class _TelaCRUDPedidoCompraState extends State<TelaCRUDPedidoCompra> {
         _novocadastro = false;
         await _controllerPedido.obterProxID();
         pedidoCompra.id = _controllerPedido.proxID;
-        _controllerPedido.salvarPedido(
+        _controllerPedido.persistirAlteracoesPedido(
             mapa, mapaEmpresa, mapaVendedor, pedidoCompra.id);
       } else {
-        _controllerPedido.editarPedido(
+        _controllerPedido.persistirAlteracoesPedido(
             mapa, mapaEmpresa, mapaVendedor, pedidoCompra.id);
       }
       Navigator.of(context).push(MaterialPageRoute(
