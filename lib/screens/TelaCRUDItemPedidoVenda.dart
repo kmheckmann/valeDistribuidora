@@ -81,9 +81,7 @@ class _TelaCRUDItemPedidoVendaState extends State<TelaCRUDItemPedidoVenda> {
               onPressed: () async {
                 if (_validadorCampos.currentState.validate()) {
                   if (_dropdownValueProduto != null) {
-                    
-
-                    await _controllerEstoque
+                    _controllerEstoque
                         .verificarSeProdutoTemEstoqueDisponivel(
                             produto, itemPedido.quantidade);
                     _temEstoque = _controllerEstoque.produtoTemEstoque;
@@ -244,6 +242,7 @@ class _TelaCRUDItemPedidoVendaState extends State<TelaCRUDItemPedidoVenda> {
   }
 
   void _codigoPersistir() async {
+    itemPedido.preco = double.parse(_controllerPreco.text);
     if (_novocadastro) {
       await _controllerItemPedido.obterProxID(pedidoVenda.id);
       itemPedido.id = _controllerItemPedido.proxID;

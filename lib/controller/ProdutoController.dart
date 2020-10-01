@@ -162,6 +162,7 @@ class ProdutoController {
     CollectionReference ref = Firestore.instance.collection('produtos');
     QuerySnapshot eventsQuery = await ref.getDocuments();
     eventsQuery.documents.forEach((document) {
+
       if (document.documentID == id) {
         produto.id = document.documentID;
         produto.codigo = document.data["codigo"];

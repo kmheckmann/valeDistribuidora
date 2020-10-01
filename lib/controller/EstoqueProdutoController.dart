@@ -80,15 +80,16 @@ class EstoqueProdutoController {
         .document(p.id)
         .collection("estoque");
     QuerySnapshot _obterEstoque =
-        await ref.where("quantidade", isGreaterThan: 0).getDocuments();
+        await ref.getDocuments();
 
     //Adiciona cada registro na lista
     _obterEstoque.documents.forEach((document) {
       EstoqueProduto e = EstoqueProduto();
-      e.id = document.documentID;
+      e = EstoqueProduto.buscarFirebase(document);
+      /*e.id = document.documentID;
       e.dataAquisicao = document.data["dtAquisicao"];
       e.quantidade = document.data["quantidade"];
-      e.precoCompra = document.data["precoCompra"];
+      e.precoCompra = document.data["precoCompra"];*/
       estoques.add(e);
     });
   }
@@ -102,7 +103,7 @@ class EstoqueProdutoController {
     //Contador para a quantidade de todos os lotes do item
     qtdeExistente = 0;
     //Chama o método abaixo para obter todo o estoque do item
-    await obterEstoqueProduto(p);
+    obterEstoqueProduto(p);
 
     //para cada registro existente, adicionada no contador a quantidade total do lote do estoque
     estoques.forEach((estoqueProduto) {
@@ -133,6 +134,7 @@ class EstoqueProdutoController {
 
       //Obtem todo o estoque do produto
       await obterEstoqueProduto(prod);
+      print("passou");
       //Enquanto a quantidade desejada nao estiver zerada será realizado a ação abaixo
       do {
         //Se o lote verificado possuir quantidade maior do que a qtde desejada
@@ -165,19 +167,17 @@ class EstoqueProdutoController {
         .collection("itens");
 
     QuerySnapshot _obterItens = await ref.getDocuments();
-    _obterItens.documents.forEach((item) {
+
+    _obterItens.documents.forEach((item) async{
       _controllerProduto.obterProdutoPorID(item.data["id"]);
       Produto prod = _controllerProduto.produto;
-      print(prod.descricao);
-      print(prod.codigo);
       //Contador da lista
       //recebe a quantidade desejada do produto
       int qtdeDesejada = item.data["quantidade"];
 
-      verificarSeProdutoTemEstoqueDisponivel(prod, qtdeDesejada);
+      await verificarSeProdutoTemEstoqueDisponivel(prod, qtdeDesejada);
 
       if (produtoTemEstoque == false) {
-        produtos.add(prod);
         permitirFinalizarPedidoVenda = false;
       }
     });
