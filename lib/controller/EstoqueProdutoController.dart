@@ -14,7 +14,7 @@ class EstoqueProdutoController {
   List<Produto> produtos = List<Produto>();
   bool produtoTemEstoque = false;
   bool permitirFinalizarPedidoVenda = true;
-  int qtdeExistente;
+  int qtdeExistente = 0;
   double precoVenda = 0;
 
   String proxID(Pedido p, String idItem, DateTime data) {
@@ -80,18 +80,25 @@ class EstoqueProdutoController {
         .document(p.id)
         .collection("estoque");
     QuerySnapshot _obterEstoque =
-        await ref.getDocuments();
+        await ref.where("quantidade", isGreaterThan: 0).getDocuments();
 
     //Adiciona cada registro na lista
     _obterEstoque.documents.forEach((document) {
       EstoqueProduto e = EstoqueProduto();
       e = EstoqueProduto.buscarFirebase(document);
-      /*e.id = document.documentID;
-      e.dataAquisicao = document.data["dtAquisicao"];
-      e.quantidade = document.data["quantidade"];
-      e.precoCompra = document.data["precoCompra"];*/
       estoques.add(e);
     });
+  }
+
+  int retornarQtdeExistente(Produto p){
+    int qtde = 0;
+    obterEstoqueProduto(p);
+    estoques.forEach((p){
+      if(estoques.length >0){
+        qtde += p.quantidade;
+      }      
+    });
+    return qtde;
   }
 
   //Esse método será usado no pedido de venda
@@ -134,7 +141,6 @@ class EstoqueProdutoController {
 
       //Obtem todo o estoque do produto
       await obterEstoqueProduto(prod);
-      print("passou");
       //Enquanto a quantidade desejada nao estiver zerada será realizado a ação abaixo
       do {
         //Se o lote verificado possuir quantidade maior do que a qtde desejada
@@ -168,18 +174,35 @@ class EstoqueProdutoController {
 
     QuerySnapshot _obterItens = await ref.getDocuments();
 
-    _obterItens.documents.forEach((item) async{
-      _controllerProduto.obterProdutoPorID(item.data["id"]);
+    _obterItens.documents.forEach((item) async {
+      await _controllerProduto.obterProdutoPorID(item.data["id"]);
       Produto prod = _controllerProduto.produto;
+      print("1 caralho");
+      print(prod.descricao);
+      print(item.data["quantidade"]);
       //Contador da lista
       //recebe a quantidade desejada do produto
       int qtdeDesejada = item.data["quantidade"];
 
-      await verificarSeProdutoTemEstoqueDisponivel(prod, qtdeDesejada);
+      qtdeExistente = 0;
+      //Chama o método abaixo para obter todo o estoque do item
+      await obterEstoqueProduto(prod);
+      print("caralho 2");
+      print(estoques.length);
+      print(qtdeExistente);
 
-      if (produtoTemEstoque == false) {
+      //para cada registro existente, adicionada no contador a quantidade total do lote do estoque
+      estoques.forEach((estoqueProduto) {
+        qtdeExistente += estoqueProduto.quantidade;
+        print(qtdeExistente);
+        print(qtdeDesejada);
+        if (qtdeDesejada > qtdeExistente) {
         permitirFinalizarPedidoVenda = false;
       }
+      print(permitirFinalizarPedidoVenda);
+      qtdeExistente = 0;
+      });
+    
     });
   }
 

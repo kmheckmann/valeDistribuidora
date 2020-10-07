@@ -34,6 +34,7 @@ class _TelaCRUDItemPedidoVendaState extends State<TelaCRUDItemPedidoVenda> {
   final _controllerPreco = TextEditingController();
   final _controllerQtde = TextEditingController();
   final _controllerProd = TextEditingController();
+  final _controllerProdQtde = TextEditingController();
   bool _novocadastro;
   bool _temEstoque = false;
   String _nomeTela;
@@ -52,11 +53,13 @@ class _TelaCRUDItemPedidoVendaState extends State<TelaCRUDItemPedidoVenda> {
     super.initState();
     _produtos = Firestore.instance.collection("produtos").snapshots();
     if (itemPedido != null) {
+      _controllerEstoque.obterEstoqueProduto(produto);
       _nomeTela = "Editar Produto";
       vlItemAntigo = itemPedido.preco;
       _dropdownValueProduto = itemPedido.produto.descricao;
       _controllerPreco.text = itemPedido.preco.toString();
       _controllerQtde.text = itemPedido.quantidade.toString();
+      _controllerProdQtde.text = _controllerEstoque.qtdeExistente.toString();
       _novocadastro = false;
     } else {
       _nomeTela = "Novo Produto";
@@ -81,20 +84,7 @@ class _TelaCRUDItemPedidoVendaState extends State<TelaCRUDItemPedidoVenda> {
               onPressed: () async {
                 if (_validadorCampos.currentState.validate()) {
                   if (_dropdownValueProduto != null) {
-                    _controllerEstoque
-                        .verificarSeProdutoTemEstoqueDisponivel(
-                            produto, itemPedido.quantidade);
-                    _temEstoque = _controllerEstoque.produtoTemEstoque;
-                    if (!_temEstoque) {
-                      showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return _alertaEstoqueProduto(
-                                _controllerEstoque.qtdeExistente);
-                          });
-                    } else {
-                      _codigoPersistir();
-                    }
+                    _codigoPersistir();
                   } else {
                     _scaffold.currentState.showSnackBar(SnackBar(
                       content: Text("É necessário selecionar um produto!"),
@@ -113,6 +103,7 @@ class _TelaCRUDItemPedidoVendaState extends State<TelaCRUDItemPedidoVenda> {
               _criarCampoTexto(_controllerPreco, "Preço", TextInputType.number),
               _criarCampoTexto(
                   _controllerQtde, "Quantidade", TextInputType.number),
+              _criarCampoQtdeExistente(),
             ],
           )),
     );
@@ -132,18 +123,22 @@ class _TelaCRUDItemPedidoVendaState extends State<TelaCRUDItemPedidoVenda> {
                   width: 336.0,
                   height: 88.0,
                   child: DropdownButtonFormField(
-                    decoration: InputDecoration(labelText: "Produto",labelStyle: TextStyle(color: Colors.blueGrey) ),
+                    decoration: InputDecoration(
+                        labelText: "Produto",
+                        labelStyle: TextStyle(color: Colors.blueGrey)),
                     value: _dropdownValueProduto,
-                    onChanged: (String newValue) async{
+                    onChanged: (String newValue) async {
                       //Ao selecionar o valor no dropdown busca o item correspondente
                       await _controllerProduto
-                        .obterProdutoPorDescricao(newValue);
-                    produto = _controllerProduto.produto;
-                    //Faz o calculo do preco de venda e seta o valor no campo
-                        await _controllerEstoque.obterPrecoVenda(produto);
-                        _controllerPreco.text = _controllerEstoque.precoVenda.toString();
+                          .obterProdutoPorDescricao(newValue);
+                      produto = _controllerProduto.produto;
+                      //Faz o calculo do preco de venda e seta o valor no campo
+                      await _controllerEstoque.obterPrecoVenda(produto);
+                      _controllerPreco.text =
+                          _controllerEstoque.precoVenda.toString();
                       setState(() {
                         _dropdownValueProduto = newValue;
+                        _controllerProdQtde.text = _controllerEstoque.retornarQtdeExistente(produto).toString();
                         itemPedido.labelListaProdutos = _dropdownValueProduto;
                       });
                     },
@@ -198,6 +193,20 @@ class _TelaCRUDItemPedidoVendaState extends State<TelaCRUDItemPedidoVenda> {
     );
   }
 
+  Widget _criarCampoQtdeExistente() {
+    return TextFormField(
+      controller: _controllerProdQtde,
+      enabled: false,
+      keyboardType: TextInputType.number,
+      decoration: InputDecoration(
+          hintText: "Quantidade Existente",
+          labelText: "Quantidade Existente",
+          labelStyle:
+              TextStyle(color: Colors.blueGrey, fontWeight: FontWeight.w400)),
+      style: TextStyle(color: Colors.grey, fontSize: 17.0),
+    );
+  }
+
   Widget _campoProduto() {
     _controllerProd.text = _dropdownValueProduto;
     //se o pedido estiver finalizado sera criado um TextField com o valor
@@ -209,38 +218,6 @@ class _TelaCRUDItemPedidoVendaState extends State<TelaCRUDItemPedidoVenda> {
     }
   }
 
-  Widget _alertaEstoqueProduto(int qtde) {
-    return AlertDialog(
-      title: Text('Produto sem estoque'),
-      titleTextStyle: TextStyle(fontWeight: FontWeight.bold),
-      content: SingleChildScrollView(
-        child: ListBody(
-          children: <Widget>[
-            Text(
-                'O produto não possui estoque suficiente para atender o pedido'),
-            Text('Quantidade existente: $qtde'),
-            Text('Deseja continuar?')
-          ],
-        ),
-      ),
-      actions: <Widget>[
-        FlatButton(
-          child: Text('Não'),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-        ),
-        FlatButton(
-          child: Text('Sim'),
-          onPressed: () {
-            Navigator.of(context).pop();
-            _codigoPersistir();
-          },
-        ),
-      ],
-    );
-  }
-
   void _codigoPersistir() async {
     itemPedido.preco = double.parse(_controllerPreco.text);
     if (_novocadastro) {
@@ -250,16 +227,16 @@ class _TelaCRUDItemPedidoVendaState extends State<TelaCRUDItemPedidoVenda> {
       pedidoVenda.valorTotal = _controllerPedido.pedidoVenda.valorTotal;
       pedidoVenda.valorComDesconto =
           _controllerPedido.pedidoVenda.valorComDesconto;
-      _controllerItemPedido.persistirItem(itemPedido, pedidoVenda.id, produto.id,
-          pedidoVenda.converterParaMapa());
+      _controllerItemPedido.persistirItem(itemPedido, pedidoVenda.id,
+          produto.id, pedidoVenda.converterParaMapa());
     } else {
       _controllerPedido.atualizarPrecoNoVlTotal(
           vlItemAntigo, pedidoVenda, itemPedido);
       pedidoVenda.valorTotal = _controllerPedido.pedidoVenda.valorTotal;
       pedidoVenda.valorComDesconto =
           _controllerPedido.pedidoVenda.valorComDesconto;
-      _controllerItemPedido.persistirItem(itemPedido, pedidoVenda.id, produto.id,
-          pedidoVenda.converterParaMapa());
+      _controllerItemPedido.persistirItem(itemPedido, pedidoVenda.id,
+          produto.id, pedidoVenda.converterParaMapa());
     }
     Navigator.of(context).pop(MaterialPageRoute(
         builder: (contexto) => TelaItensPedidovenda(pedidoVenda: pedidoVenda)));

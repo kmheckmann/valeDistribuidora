@@ -135,8 +135,10 @@ class _TelaCRUDPedidoVendaState extends State<TelaCRUDPedidoVenda> {
               await _controllerPedido.verificarSePedidoTemItens(pedidoVenda);
 
               if (_controllerPedido.podeFinalizar == true) {
-                await _controllerEstoque
+               _controllerEstoque
                     .verificarEstoqueTodosItensPedido(pedidoVenda);
+                    print("aqui 3");
+                    print(_controllerEstoque.permitirFinalizarPedidoVenda);
                 if (_controllerEstoque.permitirFinalizarPedidoVenda == true) {
                   await _controllerEstoque.descontarEstoqueProduto(pedidoVenda);
                   pedidoVenda.dataFinalPedido = DateTime.now();
