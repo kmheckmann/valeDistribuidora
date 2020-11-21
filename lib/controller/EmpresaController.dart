@@ -137,15 +137,16 @@ class EmpresaController {
 
   //Método utilizado pela tela te pedidos
   //seleciona-se a empresa no comboBox e pelo nome fantasia busca os outros dados da empresa
-  Future<Null> obterEmpresaPorDescricao(String nomeEmpresa) async {
+  Future<Empresa> obterEmpresaPorDescricao(String nomeEmpresa) async {
+    Empresa emp;
     CollectionReference ref = Firestore.instance.collection('empresas');
     QuerySnapshot eventsQuery =
-        await ref.where("nomeFantasia", isEqualTo: nomeEmpresa).getDocuments();
+        await ref.where("razaoSocial", isEqualTo: nomeEmpresa).getDocuments();
 
     eventsQuery.documents.forEach((document) {
-      Empresa e = Empresa.buscarFirebase(document);
-      e.id = document.documentID;
-      empresa = e;
+      emp = Empresa.buscarFirebase(document);
+      emp.id = document.documentID;
     });
+    return Future.value(emp);
   }
 }

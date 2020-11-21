@@ -13,7 +13,7 @@ class EstoqueProdutoController {
   List<EstoqueProduto> estoques = List<EstoqueProduto>();
   List<Produto> produtos = List<Produto>();
   bool produtoTemEstoque = false;
-  bool permitirFinalizarPedidoVenda = true;
+  bool permitirFinalizarPedidoVenda;
   int qtdeExistente = 0;
   double precoVenda = 0;
 
@@ -73,7 +73,8 @@ class EstoqueProdutoController {
   }
 
 //Método usado na consulta de estoque
-  Future<Null> obterEstoqueProduto(Produto p) async {
+  Future<List> obterEstoqueProduto(Produto p) async {
+    qtdeExistente = 0;
     //Obtém todos os estoque disponiveis
     CollectionReference ref = Firestore.instance
         .collection("produtos")
@@ -88,15 +89,16 @@ class EstoqueProdutoController {
       e = EstoqueProduto.buscarFirebase(document);
       estoques.add(e);
     });
+    return Future.value(estoques);
   }
 
-  int retornarQtdeExistente(Produto p){
+  int retornarQtdeExistente(Produto p) {
     int qtde = 0;
     obterEstoqueProduto(p);
-    estoques.forEach((p){
-      if(estoques.length >0){
+    estoques.forEach((p) {
+      if (estoques.length > 0) {
         qtde += p.quantidade;
-      }      
+      }
     });
     return qtde;
   }
@@ -166,44 +168,48 @@ class EstoqueProdutoController {
   Future<Null> verificarEstoqueTodosItensPedido(PedidoVenda pedido) async {
     //Metodo criado para verificar se todos os itens do pedido possuem estoque
     //se sim, sera possível finalizar o pedido, caso contrário não será permitido
-
     CollectionReference ref = Firestore.instance
         .collection("pedidos")
         .document(pedido.id)
         .collection("itens");
 
     QuerySnapshot _obterItens = await ref.getDocuments();
-
     _obterItens.documents.forEach((item) async {
-      await _controllerProduto.obterProdutoPorID(item.data["id"]);
-      Produto prod = _controllerProduto.produto;
-      print("1 caralho");
-      print(prod.descricao);
-      print(item.data["quantidade"]);
-      //Contador da lista
-      //recebe a quantidade desejada do produto
-      int qtdeDesejada = item.data["quantidade"];
+      Produto prod = Produto();
+      int qtdeDesejada;
+      _controllerProduto.obterProdutoPorID(item.data["id"]).whenComplete(() {
+        prod = _controllerProduto.produto;
+        //prod = await _controllerProduto.obterProdutoPorID(item.data["id"]);
+        print("1 aqui");
+        print(prod.descricao);
+        print(item.data["quantidade"]);
+        //Contador da lista
+        //recebe a quantidade desejada do produto
+        qtdeDesejada = item.data["quantidade"];
+      });
 
       qtdeExistente = 0;
       //Chama o método abaixo para obter todo o estoque do item
-      await obterEstoqueProduto(prod);
-      print("caralho 2");
-      print(estoques.length);
-      print(qtdeExistente);
-
-      //para cada registro existente, adicionada no contador a quantidade total do lote do estoque
-      estoques.forEach((estoqueProduto) {
-        qtdeExistente += estoqueProduto.quantidade;
+      await obterEstoqueProduto(prod).whenComplete(() {
+        print("aqui 2");
+        print(estoques.length);
         print(qtdeExistente);
-        print(qtdeDesejada);
-        if (qtdeDesejada > qtdeExistente) {
-        permitirFinalizarPedidoVenda = false;
-      }
-      print(permitirFinalizarPedidoVenda);
-      qtdeExistente = 0;
+
+        //para cada registro existente, adicionada no contador a quantidade total do lote do estoque
+        estoques.forEach((estoqueProduto) {
+          qtdeExistente += estoqueProduto.quantidade;
+          print(qtdeExistente);
+          print(qtdeDesejada);
+
+          if (qtdeDesejada >= qtdeExistente) {
+            qtdeExistente = 0;
+            permitirFinalizarPedidoVenda = false;
+          }
+        });
       });
-    
     });
+
+    // return Future.value(permitirFinalizarPedidoVenda);
   }
 
 //O metodo ira aplicar no maior preco de compra do item o percentual de lucro definido no cadastro do produto

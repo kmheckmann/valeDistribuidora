@@ -158,19 +158,21 @@ class ProdutoController {
   }
 
   //Obtem os demais dados do produto usando o id
-  Future<Null> obterProdutoPorID(String id) async {
+  Future<Produto> obterProdutoPorID(String id) async {
     CollectionReference ref = Firestore.instance.collection('produtos');
-    QuerySnapshot eventsQuery = await ref.getDocuments();
+    QuerySnapshot eventsQuery =  await ref.getDocuments();
     eventsQuery.documents.forEach((document) {
 
       if (document.documentID == id) {
-        produto.id = document.documentID;
+        produto = Produto.buscarFirebase(document);
+        /*produto.id = document.documentID;
         produto.codigo = document.data["codigo"];
         produto.codBarra = document.data["codBarra"];
         produto.descricao = document.data["descricao"];
         produto.percentualLucro = document.data["percentLucro"];
-        produto.ativo = document.data["ativo"];
+        produto.ativo = document.data["ativo"];*/
       }
     });
+    return await Future.value(produto);
   }
 }
