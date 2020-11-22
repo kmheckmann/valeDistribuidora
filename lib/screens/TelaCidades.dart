@@ -67,18 +67,22 @@ class _TelaCidadesState extends State<TelaCidades> {
                     c.nome,
                     style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: Color.fromARGB(255, 0, 120, 189),
+                        color: corTitulo(c.ativa),
                         fontSize: 20.0),
                   ),
                   Text(
                     c.estado,
-                    style:
-                        TextStyle(fontSize: 16.0, fontWeight: FontWeight.w500),
+                    style: TextStyle(
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.w500,
+                        color: corSecundaria(c.ativa)),
                   ),
                   Text(
                     c.ativa ? "Ativa" : "Inativa",
-                    style:
-                        TextStyle(fontSize: 16.0, fontWeight: FontWeight.w500),
+                    style: TextStyle(
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.w500,
+                        color: corSecundaria(c.ativa)),
                   ),
                 ],
               ),
@@ -93,5 +97,21 @@ class _TelaCidadesState extends State<TelaCidades> {
                 TelaCRUDCidade(cidade: c, snapshot: snapshot)));
       },
     );
+  }
+
+  Color corTitulo(bool situacao) {
+    if (situacao == true) {
+      return Color.fromARGB(255, 0, 120, 189);
+    } else {
+      return Color.fromARGB(255, 144, 144, 144);
+    }
+  }
+
+  Color corSecundaria(bool situacao) {
+    if (situacao == true) {
+      return Color.fromARGB(255, 0, 0, 0);
+    } else {
+      return Color.fromARGB(255, 144, 144, 144);
+    }
   }
 }
