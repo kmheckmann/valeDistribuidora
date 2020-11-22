@@ -86,6 +86,7 @@ class _TelaCRUDCidadeState extends State<TelaCRUDCidade> {
                     }
                     //retorna para a listagem das cidades
                     Navigator.of(context).pop();
+                    setState(() {});
                   }
                 } else {
                   if (_dropdownValue == null) {

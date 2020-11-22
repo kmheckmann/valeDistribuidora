@@ -25,16 +25,18 @@ class _TelaRotasState extends State<TelaRotas> {
       return Scaffold(
         //Cria botão para adicionar
         floatingActionButton: Visibility(
-          visible: u.ehAdministrador,
-          child: FloatingActionButton(
-            child: Icon(Icons.add),
-            backgroundColor: Theme.of(context).primaryColor,
-            
-            onPressed: () {
-              //Ao pressionar o botão direciona para a tela de cadastro
-              Navigator.of(context).push(
-                  MaterialPageRoute(builder: (context) => TelaCRUDRota(user: u,)));
-            })),
+            visible: u.ehAdministrador,
+            child: FloatingActionButton(
+                child: Icon(Icons.add),
+                backgroundColor: Theme.of(context).primaryColor,
+                onPressed: () {
+                  //Ao pressionar o botão direciona para a tela de cadastro
+                  Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) => TelaCRUDRota(
+                            user: u,
+                          )));
+                  setState(() {});
+                })),
         //Corpo da tela atual
         body: FutureBuilder<QuerySnapshot>(
             //O sistema ira acessar o documento "cidades"
@@ -116,7 +118,11 @@ class _TelaRotasState extends State<TelaRotas> {
         r.setCliente = await _controller.obterCliente(r.getIdFirebase);
         //direciona para a tela onde será possível visualizar em detalhe a rota
         Navigator.of(contexto).push(MaterialPageRoute(
-            builder: (contexto) => TelaCRUDRota(rota: r, snapshot: snapshot, user: u,)));
+            builder: (contexto) => TelaCRUDRota(
+                  rota: r,
+                  snapshot: snapshot,
+                  user: u,
+                )));
       },
     );
   }
