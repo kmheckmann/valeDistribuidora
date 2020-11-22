@@ -20,6 +20,7 @@ class _TelaCidadesState extends State<TelaCidades> {
             //Direciona para a tela de cadastro
             Navigator.of(context).push(
                 MaterialPageRoute(builder: (context) => TelaCRUDCidade()));
+            setState(() {});
           }),
       body: FutureBuilder<QuerySnapshot>(
           //O sistema ira acessar o documento "cidades"
@@ -95,6 +96,7 @@ class _TelaCidadesState extends State<TelaCidades> {
         Navigator.of(contexto).push(MaterialPageRoute(
             builder: (contexto) =>
                 TelaCRUDCidade(cidade: c, snapshot: snapshot)));
+        setState(() {});
       },
     );
   }
