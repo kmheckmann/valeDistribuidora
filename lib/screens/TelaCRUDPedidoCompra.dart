@@ -259,9 +259,9 @@ class _TelaCRUDPedidoCompraState extends State<TelaCRUDPedidoCompra> {
                     items: snapshot.data.documents
                         .map((DocumentSnapshot document) {
                       return DropdownMenuItem<String>(
-                          value: document.data['nomeFantasia'],
+                          value: document.data['razaoSocial'],
                           child: Container(
-                            child: Text(document.data['nomeFantasia'],
+                            child: Text(document.data['razaoSocial'],
                                 style: TextStyle(color: Colors.black)),
                           ));
                     }).toList(),

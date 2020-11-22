@@ -137,8 +137,10 @@ class _TelaCRUDPedidoVendaState extends State<TelaCRUDPedidoVenda> {
               if (_controllerPedido.podeFinalizar == true) {
                 await _controllerEstoque
                     .verificarEstoqueTodosItensPedido(pedidoVenda);
+                print("aqui 3");
+                print(_controllerEstoque.permitirFinalizarPedidoVenda);
                 if (_controllerEstoque.permitirFinalizarPedidoVenda == true) {
-                  await _controllerEstoque.descontarEstoqueProduto(pedidoVenda);
+                  _controllerEstoque.descontarEstoqueProduto(pedidoVenda);
                   pedidoVenda.dataFinalPedido = DateTime.now();
                   _controllerDataFinal.text =
                       _formatarData(pedidoVenda.dataFinalPedido);
@@ -280,9 +282,9 @@ class _TelaCRUDPedidoVendaState extends State<TelaCRUDPedidoVenda> {
                     items: snapshot.data.documents
                         .map((DocumentSnapshot document) {
                       return DropdownMenuItem<String>(
-                          value: document.data['nomeFantasia'],
+                          value: document.data['razaoSocial'],
                           child: Container(
-                            child: Text(document.data['nomeFantasia'],
+                            child: Text(document.data['razaoSocial'],
                                 style: TextStyle(color: Colors.black)),
                           ));
                     }).toList(),

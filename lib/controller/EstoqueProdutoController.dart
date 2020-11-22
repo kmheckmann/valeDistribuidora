@@ -13,8 +13,8 @@ class EstoqueProdutoController {
   List<EstoqueProduto> estoques = List<EstoqueProduto>();
   List<Produto> produtos = List<Produto>();
   bool produtoTemEstoque = false;
-  bool permitirFinalizarPedidoVenda = true;
-  int qtdeExistente;
+  bool permitirFinalizarPedidoVenda;
+  int qtdeExistente = 0;
   double precoVenda = 0;
 
   String proxID(Pedido p, String idItem, DateTime data) {
@@ -73,7 +73,8 @@ class EstoqueProdutoController {
   }
 
 //Método usado na consulta de estoque
-  Future<Null> obterEstoqueProduto(Produto p) async {
+  Future<List> obterEstoqueProduto(Produto p) async {
+    qtdeExistente = 0;
     //Obtém todos os estoque disponiveis
     CollectionReference ref = Firestore.instance
         .collection("produtos")
@@ -85,12 +86,21 @@ class EstoqueProdutoController {
     //Adiciona cada registro na lista
     _obterEstoque.documents.forEach((document) {
       EstoqueProduto e = EstoqueProduto();
-      e.id = document.documentID;
-      e.dataAquisicao = document.data["dtAquisicao"];
-      e.quantidade = document.data["quantidade"];
-      e.precoCompra = document.data["precoCompra"];
+      e = EstoqueProduto.buscarFirebase(document);
       estoques.add(e);
     });
+    return Future.value(estoques);
+  }
+
+  int retornarQtdeExistente(Produto p) {
+    int qtde = 0;
+    obterEstoqueProduto(p);
+    estoques.forEach((p) {
+      if (estoques.length > 0) {
+        qtde += p.quantidade;
+      }
+    });
+    return qtde;
   }
 
   //Esse método será usado no pedido de venda
@@ -102,7 +112,7 @@ class EstoqueProdutoController {
     //Contador para a quantidade de todos os lotes do item
     qtdeExistente = 0;
     //Chama o método abaixo para obter todo o estoque do item
-    await obterEstoqueProduto(p);
+    obterEstoqueProduto(p);
 
     //para cada registro existente, adicionada no contador a quantidade total do lote do estoque
     estoques.forEach((estoqueProduto) {
@@ -158,29 +168,48 @@ class EstoqueProdutoController {
   Future<Null> verificarEstoqueTodosItensPedido(PedidoVenda pedido) async {
     //Metodo criado para verificar se todos os itens do pedido possuem estoque
     //se sim, sera possível finalizar o pedido, caso contrário não será permitido
-
     CollectionReference ref = Firestore.instance
         .collection("pedidos")
         .document(pedido.id)
         .collection("itens");
 
     QuerySnapshot _obterItens = await ref.getDocuments();
-    _obterItens.documents.forEach((item) {
-      _controllerProduto.obterProdutoPorID(item.data["id"]);
-      Produto prod = _controllerProduto.produto;
-      print(prod.descricao);
-      print(prod.codigo);
-      //Contador da lista
-      //recebe a quantidade desejada do produto
-      int qtdeDesejada = item.data["quantidade"];
+    _obterItens.documents.forEach((item) async {
+      Produto prod = Produto();
+      int qtdeDesejada;
+      _controllerProduto.obterProdutoPorID(item.data["id"]).whenComplete(() {
+        prod = _controllerProduto.produto;
+        //prod = await _controllerProduto.obterProdutoPorID(item.data["id"]);
+        print("1 aqui");
+        print(prod.descricao);
+        print(item.data["quantidade"]);
+        //Contador da lista
+        //recebe a quantidade desejada do produto
+        qtdeDesejada = item.data["quantidade"];
+      });
 
-      verificarSeProdutoTemEstoqueDisponivel(prod, qtdeDesejada);
+      qtdeExistente = 0;
+      //Chama o método abaixo para obter todo o estoque do item
+      await obterEstoqueProduto(prod).whenComplete(() {
+        print("aqui 2");
+        print(estoques.length);
+        print(qtdeExistente);
 
-      if (produtoTemEstoque == false) {
-        produtos.add(prod);
-        permitirFinalizarPedidoVenda = false;
-      }
+        //para cada registro existente, adicionada no contador a quantidade total do lote do estoque
+        estoques.forEach((estoqueProduto) {
+          qtdeExistente += estoqueProduto.quantidade;
+          print(qtdeExistente);
+          print(qtdeDesejada);
+
+          if (qtdeDesejada >= qtdeExistente) {
+            qtdeExistente = 0;
+            permitirFinalizarPedidoVenda = false;
+          }
+        });
+      });
     });
+
+    // return Future.value(permitirFinalizarPedidoVenda);
   }
 
 //O metodo ira aplicar no maior preco de compra do item o percentual de lucro definido no cadastro do produto
