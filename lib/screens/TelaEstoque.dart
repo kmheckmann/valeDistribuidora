@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:tcc_2/model/EstoqueProduto.dart';
-import 'package:tcc_2/screens/TelaFiltroEstoque.dart';
+import 'package:tcc_2/screens/HomeScreen.dart';
 
 class TelaEstoque extends StatefulWidget {
-  @override
   final List<EstoqueProduto> estoques;
+  @override
   TelaEstoque({this.estoques});
   _TelaEstoqueState createState() => _TelaEstoqueState(estoques: estoques);
 }
@@ -24,6 +24,18 @@ class _TelaEstoqueState extends State<TelaEstoque> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
+        leading: Builder(
+          builder: (BuildContext context) {
+            return IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () {
+                Navigator.of(context).push(MaterialPageRoute(
+                builder: (context) => HomeScreen(
+                    )));
+              },
+            );
+          },
+        ),
         title: Text("Consulta de Estoque"),
         centerTitle: true,
       ),
@@ -34,7 +46,6 @@ class _TelaEstoqueState extends State<TelaEstoque> {
           onPressed: () {
             estoques.clear();
             Navigator.of(context).pop(estoques);
-            
           }),
       body: ListView.builder(
           itemCount: estoques == null ? 0 : estoques.length,
