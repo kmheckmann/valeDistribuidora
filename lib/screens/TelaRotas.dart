@@ -33,7 +33,7 @@ class _TelaRotasState extends State<TelaRotas> {
             onPressed: () {
               //Ao pressionar o botão direciona para a tela de cadastro
               Navigator.of(context).push(
-                  MaterialPageRoute(builder: (context) => TelaCRUDRota()));
+                  MaterialPageRoute(builder: (context) => TelaCRUDRota(user: u,)));
             })),
         //Corpo da tela atual
         body: FutureBuilder<QuerySnapshot>(

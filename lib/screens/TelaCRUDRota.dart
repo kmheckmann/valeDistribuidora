@@ -382,8 +382,11 @@ class _TelaCRUDRotaState extends State<TelaCRUDRota> {
   }
 
   Widget _campoVendedor() {
-    _controllerVendedor.text =
+    if(!_novocadastro){
+      _controllerVendedor.text =
         rota.getVendedor.nome + " - " + rota.getVendedor.cpf;
+    }
+    
     if (user.ehAdministrador) {
       return _criarDropDownVendedor();
     } else {
@@ -392,7 +395,10 @@ class _TelaCRUDRotaState extends State<TelaCRUDRota> {
   }
 
   Widget _campoCliente() {
-    _controllerCliente.text = rota.getCliente.razaoSocial;
+    if(!_novocadastro){
+      _controllerCliente.text = rota.getCliente.razaoSocial;
+    }
+    
     if (user.ehAdministrador) {
       return _criarDropDownCliente();
     } else {
@@ -401,7 +407,9 @@ class _TelaCRUDRotaState extends State<TelaCRUDRota> {
   }
 
   Widget _campoDiaSemana() {
-    _controllerDiaSemana.text = rota.getDiaSemana;
+    if(!_novocadastro){
+      _controllerDiaSemana.text = rota.getDiaSemana;
+    }
     if (user.ehAdministrador) {
       return _criarOpcoesDiaSemana();
     } else {
