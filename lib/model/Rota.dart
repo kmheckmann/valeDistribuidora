@@ -11,6 +11,7 @@ class Rota {
   String _diaSemana;
   String _frequencia;
   String _tituloRota;
+  String _idv;
   bool _ativa;
 
   Rota();
@@ -63,6 +64,14 @@ class Rota {
     _tituloRota = t;
   }
 
+  String get getIDV{
+    return _idv;
+  }
+
+  set setIDV(String idv){
+    _idv = idv;
+  }
+
   bool get getAtiva{
     return _ativa;
   }
@@ -81,5 +90,6 @@ class Rota {
     _diaSemana = snapshot.data["diaSemana"];
     _ativa = snapshot.data["ativa"];
     _tituloRota = snapshot.data["tituloRota"];
+    _idv = snapshot.data["idv"];
   }
 }

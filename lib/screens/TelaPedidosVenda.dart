@@ -22,7 +22,7 @@ class _TelaPedidosVendaState extends State<TelaPedidosVenda> {
       u.nome = model.dadosUsuarioAtual["nome"];
       u.email = model.dadosUsuarioAtual["email"];
       u.cpf = model.dadosUsuarioAtual["cpf"];
-      u.ehAdministrador = model.dadosUsuarioAtual["ehAdministrador"];
+      u.ehAdministrador = model.dadosUsuarioAtual["ehAdm"];
       u.ativo = model.dadosUsuarioAtual["ativo"];
 
       return ScopedModel<PedidoVenda>(

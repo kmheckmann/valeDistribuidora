@@ -9,12 +9,13 @@ import 'package:tcc_2/model/Usuario.dart';
 
 class TelaCRUDRota extends StatefulWidget {
   final Rota rota;
+  final Usuario user;
   final DocumentSnapshot snapshot;
 
-  TelaCRUDRota({this.rota, this.snapshot});
+  TelaCRUDRota({this.rota, this.snapshot, this.user});
 
   @override
-  _TelaCRUDRotaState createState() => _TelaCRUDRotaState(rota, snapshot);
+  _TelaCRUDRotaState createState() => _TelaCRUDRotaState(rota, snapshot, user);
 }
 
 //enumerado das opções de frequencia
@@ -24,9 +25,13 @@ class _TelaCRUDRotaState extends State<TelaCRUDRota> {
   final DocumentSnapshot snapshot;
   final _validadorCampos = GlobalKey<FormState>();
   final _scaffold = GlobalKey<ScaffoldState>();
+  final Usuario user;
   RotaController _controllerRota = RotaController();
   EmpresaController _controllerEmpresa = EmpresaController();
   UsuarioController _controllerUsuario = UsuarioController();
+  final _controllerCliente = TextEditingController();
+  final _controllerVendedor = TextEditingController();
+  final _controllerDiaSemana = TextEditingController();
   bool _clienteComRota;
   String _dropdownValueVendedor;
   String _dropdownValueCliente;
@@ -39,7 +44,7 @@ class _TelaCRUDRotaState extends State<TelaCRUDRota> {
   Usuario vendedor = Usuario();
 
   SingingCharacter _character = SingingCharacter.semanal;
-  _TelaCRUDRotaState(this.rota, this.snapshot);
+  _TelaCRUDRotaState(this.rota, this.snapshot, this.user);
   @override
   void initState() {
     super.initState();
@@ -74,45 +79,49 @@ class _TelaCRUDRotaState extends State<TelaCRUDRota> {
         title: Text(_nomeTela),
         centerTitle: true,
       ),
-      floatingActionButton: FloatingActionButton(
-        //cria o icone para salcar
-        child: Icon(Icons.save),
-        backgroundColor: Colors.blue,
-        onPressed: () async {
-          //ao salvar verifica se os campos não estão vazios
-          if (_dropdownValueCliente != null &&
-              _dropdownValueVendedor != null &&
-              _dropdownValueDiaSemana != null) {
-            cliente = await _controllerEmpresa
-                .obterEmpresaPorDescricao(_dropdownValueCliente);
-            vendedor = await _controllerUsuario
-                .obterUsuarioPorCPF(_dropdownValueVendedor);
-            await _controllerRota.verificarExistenciaRota(cliente.id, rota);
-            _clienteComRota = _controllerRota.existeRota;
-            //depois dos campos verifica se outro vendedor não realiza a rota para o cliente selecionado
-            if (_clienteComRota == false) {
-              _fazerPersistencia();
-              //Fecha a tela atual e volta para a anterior
-              Navigator.of(context).pop();
-            } else {
-              //se outro vendedor já possui rota para o cliente selecionado exibe mensagem e não salva
-              _scaffold.currentState.showSnackBar(SnackBar(
-                content: Text("Cliente é utilizado em outra rota. Verifique!"),
-                backgroundColor: Colors.red,
-                duration: Duration(seconds: 5),
-              ));
-            }
-          } else {
-            //se não forem informados todos os campos exibe mensagem e não salva
-            _scaffold.currentState.showSnackBar(SnackBar(
-              content: Text(
-                  "Todos os campos da tela devem ter um valor selecionado!"),
-              backgroundColor: Colors.red,
-              duration: Duration(seconds: 5),
-            ));
-          }
-        },
-      ),
+      floatingActionButton: Visibility(
+          //Se o user for administrador apresenta o botão para salvar
+          visible: user.ehAdministrador,
+          child: FloatingActionButton(
+            //cria o icone para salcar
+            child: Icon(Icons.save),
+            backgroundColor: Colors.blue,
+            onPressed: () async {
+              //ao salvar verifica se os campos não estão vazios
+              if (_dropdownValueCliente != null &&
+                  _dropdownValueVendedor != null &&
+                  _dropdownValueDiaSemana != null) {
+                cliente = await _controllerEmpresa
+                    .obterEmpresaPorDescricao(_dropdownValueCliente);
+                vendedor = await _controllerUsuario
+                    .obterUsuarioPorCPF(_dropdownValueVendedor);
+                await _controllerRota.verificarExistenciaRota(cliente.id, rota);
+                _clienteComRota = _controllerRota.existeRota;
+                //depois dos campos verifica se outro vendedor não realiza a rota para o cliente selecionado
+                if (_clienteComRota == false) {
+                  _fazerPersistencia();
+                  //Fecha a tela atual e volta para a anterior
+                  Navigator.of(context).pop();
+                } else {
+                  //se outro vendedor já possui rota para o cliente selecionado exibe mensagem e não salva
+                  _scaffold.currentState.showSnackBar(SnackBar(
+                    content:
+                        Text("Cliente é utilizado em outra rota. Verifique!"),
+                    backgroundColor: Colors.red,
+                    duration: Duration(seconds: 5),
+                  ));
+                }
+              } else {
+                //se não forem informados todos os campos exibe mensagem e não salva
+                _scaffold.currentState.showSnackBar(SnackBar(
+                  content: Text(
+                      "Todos os campos da tela devem ter um valor selecionado!"),
+                  backgroundColor: Colors.red,
+                  duration: Duration(seconds: 5),
+                ));
+              }
+            },
+          )),
       body: Form(
           //Form cria o corpo da tela
           key: _validadorCampos,
@@ -120,9 +129,12 @@ class _TelaCRUDRotaState extends State<TelaCRUDRota> {
             padding: EdgeInsets.all(8.0),
             children: <Widget>[
               //onde seta-se os campos que serão apresentados
-              _criarDropDownVendedor(),
-              _criarDropDownCliente(),
-              _criarOpcoesDiaSemana(),
+              //Dentro de cada método será verificado se o usuário é administrador
+              //Se for, apresenta os campos habilitados para edição
+              //Caso contrário não será permitido editar
+              _campoVendedor(),
+              _campoCliente(),
+              _campoDiaSemana(),
               _criarRadioButton(),
               _criarCampoCheckBox(),
             ],
@@ -273,34 +285,40 @@ class _TelaCRUDRotaState extends State<TelaCRUDRota> {
           title: const Text('Semanal'),
           value: SingingCharacter.semanal,
           groupValue: _character,
-          onChanged: (SingingCharacter value) {
-            setState(() {
-              _character = value;
-              rota.setFrequencia = "Semanal";
-            });
-          },
+          onChanged: user.ehAdministrador
+              ? (SingingCharacter value) {
+                  setState(() {
+                    _character = value;
+                    rota.setFrequencia = "Semanal";
+                  });
+                }
+              : null,
         ),
         RadioListTile<SingingCharacter>(
           title: const Text('Quinzenal'),
           value: SingingCharacter.quinzenal,
           groupValue: _character,
-          onChanged: (SingingCharacter value) {
-            setState(() {
-              _character = value;
-              rota.setFrequencia = "Quinzenal";
-            });
-          },
+          onChanged: user.ehAdministrador
+              ? (SingingCharacter value) {
+                  setState(() {
+                    _character = value;
+                    rota.setFrequencia = "Quinzenal";
+                  });
+                }
+              : null,
         ),
         RadioListTile<SingingCharacter>(
           title: const Text('Mensal'),
           value: SingingCharacter.mensal,
           groupValue: _character,
-          onChanged: (SingingCharacter value) {
-            setState(() {
-              _character = value;
-              rota.setFrequencia = "Mensal";
-            });
-          },
+          onChanged: user.ehAdministrador
+              ? (SingingCharacter value) {
+                  setState(() {
+                    _character = value;
+                    rota.setFrequencia = "Mensal";
+                  });
+                }
+              : null,
         )
       ],
     );
@@ -313,15 +331,17 @@ class _TelaCRUDRotaState extends State<TelaCRUDRota> {
         children: <Widget>[
           Checkbox(
             value: rota.getAtiva == true,
-            onChanged: (bool novoValor) {
-              setState(() {
-                if (novoValor) {
-                  rota.setAtiva = true;
-                } else {
-                  rota.setAtiva = false;
-                }
-              });
-            },
+            onChanged: user.ehAdministrador
+                ? (bool novoValor) {
+                    setState(() {
+                      if (novoValor) {
+                        rota.setAtiva = true;
+                      } else {
+                        rota.setAtiva = false;
+                      }
+                    });
+                  }
+                : null,
           ),
           Text(
             "Ativa?",
@@ -344,9 +364,10 @@ class _TelaCRUDRotaState extends State<TelaCRUDRota> {
     }
   }
 
-  void _fazerPersistencia() async{
+  void _fazerPersistencia() async {
     //faz as atribuições necessárias para ter todos os dados que serão salvos no firebase
     rota.setTituloRota = vendedor.nome + " - " + cliente.razaoSocial;
+    rota.setIDV = vendedor.id;
     Map<String, dynamic> mapa = _controllerRota.converterParaMapa(rota);
     Map<String, dynamic> mapaVendedor = Map();
     mapaVendedor["id"] = vendedor.id;
@@ -358,5 +379,49 @@ class _TelaCRUDRotaState extends State<TelaCRUDRota> {
     }
     _controllerRota.persistirRota(
         mapa, mapaCliente, mapaVendedor, rota.getIdFirebase);
+  }
+
+  Widget _campoVendedor() {
+    _controllerVendedor.text =
+        rota.getVendedor.nome + " - " + rota.getVendedor.cpf;
+    if (user.ehAdministrador) {
+      return _criarDropDownVendedor();
+    } else {
+      return _criarCampoTexto("Vendedor", _controllerVendedor);
+    }
+  }
+
+  Widget _campoCliente() {
+    _controllerCliente.text = rota.getCliente.razaoSocial;
+    if (user.ehAdministrador) {
+      return _criarDropDownCliente();
+    } else {
+      return _criarCampoTexto("Cliente", _controllerCliente);
+    }
+  }
+
+  Widget _campoDiaSemana() {
+    _controllerDiaSemana.text = rota.getDiaSemana;
+    if (user.ehAdministrador) {
+      return _criarOpcoesDiaSemana();
+    } else {
+      return _criarCampoTexto("Dia da Semana", _controllerDiaSemana);
+    }
+  }
+
+  Widget _criarCampoTexto(String nome, TextEditingController controller) {
+    return Container(
+      padding: EdgeInsets.all(8.0),
+      child: TextFormField(
+        controller: controller,
+        decoration: InputDecoration(
+            hintText: nome,
+            labelText: nome,
+            labelStyle:
+                TextStyle(color: Colors.blueGrey, fontWeight: FontWeight.w400)),
+        style: TextStyle(color: Colors.grey, fontSize: 17.0),
+        enabled: false,
+      ),
+    );
   }
 }

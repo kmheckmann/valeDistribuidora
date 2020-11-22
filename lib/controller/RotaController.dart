@@ -42,7 +42,8 @@ class RotaController {
       "diaSemana": r.getDiaSemana,
       "frequencia": r.getFrequencia,
       "ativa": r.getAtiva,
-      "tituloRota": r.getTituloRota
+      "tituloRota": r.getTituloRota,
+      "idv": r.getIDV
     };
   }
 
@@ -87,8 +88,6 @@ class RotaController {
     QuerySnapshot obterClienteRota = await ref.getDocuments();
 
     for (var document in obterClienteRota.documents) {
-      print(document.documentID);
-      print(document.data["id"]);
       cliente.id = document.data["id"];
 
       CollectionReference refCliente =
@@ -113,16 +112,12 @@ class RotaController {
     QuerySnapshot obterVendedorRota = await ref.getDocuments();
 
     for (var document in obterVendedorRota.documents) {
-      print(document.data["id"]);
       vendedor.id = document.data["id"];
       CollectionReference refCliente =
           Firestore.instance.collection('usuarios');
-      QuerySnapshot obterDadosVendedor = await refCliente.getDocuments();
-      print(obterDadosVendedor.documents.length);
+      QuerySnapshot obterDadosVendedor = await refCliente.getDocuments();      
 
       for (var document in obterDadosVendedor.documents) {
-        print("aqui");
-        print(document.documentID);
         if (vendedor.id == document.documentID) {
           vendedor = Usuario.buscarFirebase(document);
           return Future.value(vendedor);
