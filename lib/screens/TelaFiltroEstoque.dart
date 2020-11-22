@@ -7,8 +7,9 @@ import 'package:tcc_2/model/Produto.dart';
 import 'package:tcc_2/screens/TelaEstoque.dart';
 
 class TelaFiltroEstoque extends StatefulWidget {
+  final List<EstoqueProduto> estoques = List();
   @override
-  _TelaFiltroEstoqueState createState() => _TelaFiltroEstoqueState();
+  _TelaFiltroEstoqueState createState() => _TelaFiltroEstoqueState(this.estoques);
 }
 
 class _TelaFiltroEstoqueState extends State<TelaFiltroEstoque> {
@@ -16,13 +17,13 @@ class _TelaFiltroEstoqueState extends State<TelaFiltroEstoque> {
   ProdutoController _controllerProduto = ProdutoController();
   Produto p = Produto();
   List<EstoqueProduto> estoques;
-  Stream<QuerySnapshot> _produtos;
   String _dropdownValueProduto;
+
+  _TelaFiltroEstoqueState(this.estoques);
 
   @override
   void initState() {
     super.initState();
-    _produtos = Firestore.instance.collection("produtos").snapshots();
   }
 
   @override
@@ -55,7 +56,7 @@ class _TelaFiltroEstoqueState extends State<TelaFiltroEstoque> {
 
   Widget _criarDropDownProduto() {
     return StreamBuilder<QuerySnapshot>(
-        stream: _produtos,
+        stream: Firestore.instance.collection("produtos").snapshots(),
         builder: (context, snapshot) {
 
           if (!snapshot.hasData)
