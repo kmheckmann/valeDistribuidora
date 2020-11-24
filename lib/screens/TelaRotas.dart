@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:scoped_model/scoped_model.dart';
+import 'package:tcc_2/acessorios/Cores.dart';
 import 'package:tcc_2/controller/RotaController.dart';
 import 'package:tcc_2/model/Usuario.dart';
 import 'package:tcc_2/screens/TelaCRUDRota.dart';
@@ -13,6 +14,7 @@ class TelaRotas extends StatefulWidget {
 
 class _TelaRotasState extends State<TelaRotas> {
   RotaController _controller = RotaController();
+  Cores cores = Cores();
   Usuario u = Usuario();
   @override
   Widget build(BuildContext context) {
@@ -35,6 +37,7 @@ class _TelaRotasState extends State<TelaRotas> {
                       builder: (context) => TelaCRUDRota(
                             user: u,
                           )));
+                  //set state para atualizar a lista após voltar para esta tela
                   setState(() {});
                 })),
         //Corpo da tela atual
@@ -96,7 +99,7 @@ class _TelaRotasState extends State<TelaRotas> {
                     r.getTituloRota,
                     style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: corTitulo(r.getAtiva),
+                        color: cores.corTitulo(r.getAtiva),
                         fontSize: 20.0),
                   ),
                   Text(
@@ -104,7 +107,7 @@ class _TelaRotasState extends State<TelaRotas> {
                     style: TextStyle(
                         fontSize: 16.0,
                         fontWeight: FontWeight.w500,
-                        color: corSituacao(r.getAtiva)),
+                        color: cores.corSecundaria(r.getAtiva)),
                   ),
                 ],
               ),
@@ -125,21 +128,5 @@ class _TelaRotasState extends State<TelaRotas> {
                 )));
       },
     );
-  }
-
-  Color corTitulo(bool situacao) {
-    if (situacao == true) {
-      return Color.fromARGB(255, 0, 120, 189);
-    } else {
-      return Color.fromARGB(255, 144, 144, 144);
-    }
-  }
-
-  Color corSituacao(bool situacao) {
-    if (situacao == true) {
-      return Color.fromARGB(255, 0, 0, 0);
-    } else {
-      return Color.fromARGB(255, 144, 144, 144);
-    }
   }
 }

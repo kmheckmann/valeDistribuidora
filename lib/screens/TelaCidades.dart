@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:tcc_2/acessorios/Cores.dart';
 import 'package:tcc_2/model/Cidade.dart';
 import 'package:tcc_2/screens/TelaCRUDCidade.dart';
 
@@ -9,6 +10,7 @@ class TelaCidades extends StatefulWidget {
 }
 
 class _TelaCidadesState extends State<TelaCidades> {
+  Cores cores = Cores();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -68,7 +70,7 @@ class _TelaCidadesState extends State<TelaCidades> {
                     c.nome,
                     style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: corTitulo(c.ativa),
+                        color: cores.corTitulo(c.ativa),
                         fontSize: 20.0),
                   ),
                   Text(
@@ -76,14 +78,14 @@ class _TelaCidadesState extends State<TelaCidades> {
                     style: TextStyle(
                         fontSize: 16.0,
                         fontWeight: FontWeight.w500,
-                        color: corSecundaria(c.ativa)),
+                        color: cores.corSecundaria(c.ativa)),
                   ),
                   Text(
                     c.ativa ? "Ativa" : "Inativa",
                     style: TextStyle(
                         fontSize: 16.0,
                         fontWeight: FontWeight.w500,
-                        color: corSecundaria(c.ativa)),
+                        color: cores.corSecundaria(c.ativa)),
                   ),
                 ],
               ),
@@ -99,21 +101,5 @@ class _TelaCidadesState extends State<TelaCidades> {
         setState(() {});
       },
     );
-  }
-
-  Color corTitulo(bool situacao) {
-    if (situacao == true) {
-      return Color.fromARGB(255, 0, 120, 189);
-    } else {
-      return Color.fromARGB(255, 144, 144, 144);
-    }
-  }
-
-  Color corSecundaria(bool situacao) {
-    if (situacao == true) {
-      return Color.fromARGB(255, 0, 0, 0);
-    } else {
-      return Color.fromARGB(255, 144, 144, 144);
-    }
   }
 }
