@@ -33,7 +33,6 @@ class _TelaCRUDPedidoCompraState extends State<TelaCRUDPedidoCompra> {
 
   final _validadorCampos = GlobalKey<FormState>();
   final _scaffold = GlobalKey<ScaffoldState>();
-  Stream<QuerySnapshot> empresas;
   String _dropdownValueTipoPgto;
   String _dropdownValueFornecedor;
   final _controllerVlTotal = TextEditingController();
@@ -63,7 +62,7 @@ class _TelaCRUDPedidoCompraState extends State<TelaCRUDPedidoCompra> {
       _controllerVlTotal.text = pedidoCompra.valorTotal.toString();
       _controllerIdPedido.text = pedidoCompra.id;
       _controllerPercentDesc.text = pedidoCompra.percentualDesconto.toString();
-      _controllerVendedor.text = pedidoCompra.user.nome;
+      _controllerVendedor.text = pedidoCompra.user.getNome;
       _dropdownValueTipoPgto = pedidoCompra.tipoPagamento;
       _dropdownValueFornecedor = pedidoCompra.empresa.nomeFantasia;
       _controllerVlTotalDesc.text = pedidoCompra.valorComDesconto.toString();
@@ -85,7 +84,7 @@ class _TelaCRUDPedidoCompraState extends State<TelaCRUDPedidoCompra> {
       _novocadastro = true;
       _vlCheckBox = false;
       pedidoCompra.pedidoFinalizado = false;
-      _controllerVendedor.text = vendedor.nome;
+      _controllerVendedor.text = vendedor.getNome;
     }
   }
 
@@ -118,7 +117,7 @@ class _TelaCRUDPedidoCompraState extends State<TelaCRUDPedidoCompra> {
             await _controllerEmpresa
                 .obterEmpresaPorDescricao(_dropdownValueFornecedor);
             empresa = _controllerEmpresa.empresa;
-            await _controllerUsuario.obterUsuarioPorCPF(vendedor.cpf);
+            await _controllerUsuario.obterUsuarioPorCPF(vendedor.getCPF);
             vendedor = _controllerUsuario.usuario;
             pedidoCompra.pedidoFinalizado = _vlCheckBox;
 
@@ -233,43 +232,51 @@ class _TelaCRUDPedidoCompraState extends State<TelaCRUDPedidoCompra> {
   }
 
   Widget _criarDropDownFornecedor() {
-    empresas = Firestore.instance.collection('empresas').where('ehFornecedor', isEqualTo: true).snapshots();
     return StreamBuilder<QuerySnapshot>(
-        stream: empresas,
+        stream: Firestore.instance
+            .collection('empresas')
+            .where('ehFornecedor', isEqualTo: true)
+            .snapshots(),
         builder: (context, snapshot) {
-          var length = snapshot.data.documents.length;
-          DocumentSnapshot ds = snapshot.data.documents[length - 1];
-          return Container(
-            padding: EdgeInsets.fromLTRB(0.0, 8.0, 8.0, 0.0),
-            child: Row(
-              children: <Widget>[
-                Container(
-                  width: 336.0,
-                  child: DropdownButton(
-                    value: _dropdownValueFornecedor,
-                    style: TextStyle(color: Colors.black),
-                    hint: Text("Selecionar fornecedor"),
-                    onChanged: (String newValue) {
-                      setState(() {
-                        _dropdownValueFornecedor = newValue;
-                        pedidoCompra.labelTelaPedidos =
-                            _dropdownValueFornecedor;
-                      });
-                    },
-                    items: snapshot.data.documents
-                        .map((DocumentSnapshot document) {
-                      return DropdownMenuItem<String>(
-                          value: document.data['razaoSocial'],
-                          child: Container(
-                            child: Text(document.data['razaoSocial'],
-                                style: TextStyle(color: Colors.black)),
-                          ));
-                    }).toList(),
+          if (!snapshot.hasData) {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          } else {
+            var length = snapshot.data.documents.length;
+            DocumentSnapshot ds = snapshot.data.documents[length - 1];
+            return Container(
+              padding: EdgeInsets.fromLTRB(0.0, 8.0, 8.0, 0.0),
+              child: Row(
+                children: <Widget>[
+                  Container(
+                    width: 336.0,
+                    child: DropdownButton(
+                      value: _dropdownValueFornecedor,
+                      style: TextStyle(color: Colors.black),
+                      hint: Text("Selecionar fornecedor"),
+                      onChanged: (String newValue) {
+                        setState(() {
+                          _dropdownValueFornecedor = newValue;
+                          pedidoCompra.labelTelaPedidos =
+                              _dropdownValueFornecedor;
+                        });
+                      },
+                      items: snapshot.data.documents
+                          .map((DocumentSnapshot document) {
+                        return DropdownMenuItem<String>(
+                            value: document.data['razaoSocial'],
+                            child: Container(
+                              child: Text(document.data['razaoSocial'],
+                                  style: TextStyle(color: Colors.black)),
+                            ));
+                      }).toList(),
+                    ),
                   ),
-                ),
-              ],
-            ),
-          );
+                ],
+              ),
+            );
+          }
         });
   }
 
@@ -307,7 +314,7 @@ class _TelaCRUDPedidoCompraState extends State<TelaCRUDPedidoCompra> {
       Map<String, dynamic> mapa =
           _controllerPedido.converterParaMapa(pedidoCompra);
       Map<String, dynamic> mapaVendedor = Map();
-      mapaVendedor["id"] = vendedor.id;
+      mapaVendedor["id"] = vendedor.getID;
       Map<String, dynamic> mapaEmpresa = Map();
       mapaEmpresa["id"] = empresa.id;
       pedidoCompra.pedidoFinalizado = _vlCheckBox;

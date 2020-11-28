@@ -29,7 +29,7 @@ class _TelaEmpresasState extends State<TelaEmpresas> {
       body: FutureBuilder<QuerySnapshot>(
         //O sistema ira acessar o documento "empresas"
           future: Firestore.instance
-              .collection("empresas").getDocuments(),
+              .collection("empresas").orderBy("ativo").getDocuments(),
           builder: (context, snapshot) {
             //Como os dados serao buscados do firebase, pode ser que demore para obter
             //entao, enquanto os dados nao sao obtidos sera apresentado um circulo na tela

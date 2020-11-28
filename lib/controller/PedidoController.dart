@@ -101,10 +101,10 @@ abstract class PedidoController {
 //Compara o ID do vendedor do pedido com todos os cadastrados até encontrar um igual
 //Após isso obtém as demais informações do vendedor
     obterUsuario.documents.forEach((document) {
-      user.id = document.data["id"];
+      user.setID = document.data["id"];
 
       obterDadosUsuario.documents.forEach((document1) {
-        if (user.id == document1.documentID) {
+        if (user.getID == document1.documentID) {
           user = Usuario.buscarFirebase(document1);
         }
       });

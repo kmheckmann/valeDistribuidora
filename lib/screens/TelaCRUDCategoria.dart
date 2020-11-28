@@ -85,7 +85,10 @@ class _TelaCRUDCategoriaState extends State<TelaCRUDCategoria> {
             children: <Widget>[
               TextFormField(
                 controller: _controllerDescricao,
-                decoration: InputDecoration(hintText: "Descrição da categoria"),
+                decoration: InputDecoration(
+                    labelText: "Nome da categoria",
+                    labelStyle: TextStyle(
+                        color: Colors.blueGrey, fontWeight: FontWeight.w400)),
                 style: TextStyle(color: Colors.black, fontSize: 17.0),
                 keyboardType: TextInputType.text,
                 //Onde é realizada a validação do form
@@ -94,7 +97,7 @@ class _TelaCRUDCategoriaState extends State<TelaCRUDCategoria> {
                   if (_existeCadastro) return "Categoria já existe. Verifique!";
                   if (text.isEmpty) return "Informe a descrição!";
                 },
-                onChanged: (text) async {
+                onChanged: (text) {
                   categoria.descricao = text.toUpperCase();
                 },
               ),

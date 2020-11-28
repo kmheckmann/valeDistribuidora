@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:scoped_model/scoped_model.dart';
-import 'package:tcc_2/model/Usuario.dart';
-import 'package:tcc_2/screens/TelaEstoque.dart';
+import 'package:tcc_2/controller/UsuarioController.dart';
 import 'package:tcc_2/screens/TelaInicial.dart';
 
 void main() => runApp(MyApp());
@@ -10,8 +9,8 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     //O scopedModel eh para conseguir acessar a classe usuario de qualquer lugar do app
-    return ScopedModel<Usuario>(
-      model: Usuario(),
+    return ScopedModel<UsuarioController>(
+      model: UsuarioController(),
       child: MaterialApp(
         title: 'TCC',
         theme: ThemeData(

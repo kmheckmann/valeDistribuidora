@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:scoped_model/scoped_model.dart';
 import 'package:tcc_2/acessorios/Cores.dart';
 import 'package:tcc_2/controller/RotaController.dart';
+import 'package:tcc_2/controller/UsuarioController.dart';
 import 'package:tcc_2/model/Usuario.dart';
 import 'package:tcc_2/screens/TelaCRUDRota.dart';
 import 'package:tcc_2/model/Rota.dart';
@@ -16,18 +17,19 @@ class _TelaRotasState extends State<TelaRotas> {
   RotaController _controller = RotaController();
   Cores cores = Cores();
   Usuario u = Usuario();
+  UsuarioController _usuarioController = UsuarioController();
   @override
   Widget build(BuildContext context) {
-    return ScopedModelDescendant<Usuario>(builder: (context, child, model) {
-      u.nome = model.dadosUsuarioAtual["nome"];
-      u.email = model.dadosUsuarioAtual["email"];
-      u.cpf = model.dadosUsuarioAtual["cpf"];
-      u.ehAdministrador = model.dadosUsuarioAtual["ehAdm"];
-      u.ativo = model.dadosUsuarioAtual["ativo"];
+    return ScopedModelDescendant<UsuarioController>(builder: (context, child, model) {
+      u.setNome = model.dadosUsuarioAtual["nome"];
+      u.setEmail = model.dadosUsuarioAtual["email"];
+      u.setCPF = model.dadosUsuarioAtual["cpf"];
+      u.setEhAdm = model.dadosUsuarioAtual["ehAdm"];
+      u.setAtivo = model.dadosUsuarioAtual["ativo"];
       return Scaffold(
         //Cria botão para adicionar
         floatingActionButton: Visibility(
-            visible: u.ehAdministrador,
+            visible: u.getEhAdm,
             child: FloatingActionButton(
                 child: Icon(Icons.add),
                 backgroundColor: Theme.of(context).primaryColor,
@@ -43,8 +45,8 @@ class _TelaRotasState extends State<TelaRotas> {
         //Corpo da tela atual
         body: FutureBuilder<QuerySnapshot>(
             //O sistema ira acessar o documento "cidades"
-            future: u.ehAdministrador
-                ? Firestore.instance.collection("rotas").getDocuments()
+            future: u.getEhAdm
+                ? Firestore.instance.collection("rotas").orderBy("ativa").getDocuments()
                 : Firestore.instance
                     .collection("rotas")
                     .where("idv", isEqualTo: model.usuarioFirebase.uid)
