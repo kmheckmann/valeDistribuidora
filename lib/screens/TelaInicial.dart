@@ -1,7 +1,9 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:scoped_model/scoped_model.dart';
 import 'package:tcc_2/controller/UsuarioController.dart';
 import 'package:tcc_2/model/Usuario.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:tcc_2/screens/HomeScreen.dart';
 
 class TelaInicial extends StatefulWidget {
@@ -117,7 +119,9 @@ class _TelaInicialState extends State<TelaInicial> {
                               email: _controllerEmail.text,
                               senha: _controllerSenha.text,
                               sucessoLogin: _sucessoLogin,
-                              falhaLogin: _falhaLogin);
+                              falhaLogin: _falhaLogin,
+                              emailNaoVerificado: _emailNaoVerificado
+                              );
                         }
                       },
                     ),
@@ -132,6 +136,14 @@ class _TelaInicialState extends State<TelaInicial> {
   void _falhaLogin() {
     _scaffold.currentState.showSnackBar(SnackBar(
       content: Text("Email e/ou senha inválidos!"),
+      backgroundColor: Colors.red,
+      duration: Duration(seconds: 3),
+    ));
+  }
+
+  void _emailNaoVerificado() {
+    _scaffold.currentState.showSnackBar(SnackBar(
+      content: Text("Email não verificado!"),
       backgroundColor: Colors.red,
       duration: Duration(seconds: 3),
     ));

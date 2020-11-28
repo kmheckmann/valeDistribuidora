@@ -53,6 +53,7 @@ class UsuarioController extends Model {
         .createUserWithEmailAndPassword(
             email: dadosUser["email"], password: senha)
         .then((user) async {
+      user.sendEmailVerification();
       //se der certo a criacao do usuario, pego os dados e salvo no firebase
       await salvarUsuario(dadosUser, user.uid);
       cadastradoSucesso();
@@ -68,7 +69,8 @@ class UsuarioController extends Model {
       {@required String email,
       @required String senha,
       @required VoidCallback sucessoLogin,
-      @required VoidCallback falhaLogin}) async {
+      @required VoidCallback falhaLogin,
+      @required VoidCallback emailNaoVerificado}) async {
     carregando = true;
     //"avisar" todas as classes coonfiguradas para receber notificação sobre as mudancas que ocorreram no usuario
     notifyListeners();
@@ -77,12 +79,18 @@ class UsuarioController extends Model {
     _autenticar
         .signInWithEmailAndPassword(email: email, password: senha)
         .then((usuario) async {
-      usuarioFirebase = usuario;
-      //Carrega os dados do usuario
-      await _carregarDadosUsuario();
-      sucessoLogin();
-      carregando = false;
-      notifyListeners();
+          print(usuario.isEmailVerified);
+      if (usuario.isEmailVerified) {
+        //Carrega os dados do usuario
+        await _carregarDadosUsuario();
+        sucessoLogin();
+        carregando = false;
+        notifyListeners();
+      } else {
+        emailNaoVerificado();
+        carregando = false;
+        notifyListeners();
+      }
     }).catchError((e) {
       falhaLogin();
       carregando = false;
@@ -203,6 +211,5 @@ class UsuarioController extends Model {
     return cpfValido;
   }
 
-  void desativarContausuario(){
-  }
+  void desativarContausuario() {}
 }
