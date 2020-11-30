@@ -32,7 +32,8 @@ class UsuarioController extends Model {
       "cpf": user.getCPF,
       "email": user.getEmail,
       "ehAdm": user.getEhAdm,
-      "ativo": user.getAtivo
+      "ativo": user.getAtivo,
+      "primeiroLogin": user.getPrimeiroLogin
     };
   }
 
@@ -70,7 +71,9 @@ class UsuarioController extends Model {
       @required String senha,
       @required VoidCallback sucessoLogin,
       @required VoidCallback falhaLogin,
-      @required VoidCallback emailNaoVerificado}) async {
+      @required VoidCallback emailNaoVerificado,
+      @required VoidCallback primeiroLogin,
+      @required VoidCallback usuarioInativo}) async {
     carregando = true;
     //"avisar" todas as classes coonfiguradas para receber notificação sobre as mudancas que ocorreram no usuario
     notifyListeners();
@@ -79,18 +82,23 @@ class UsuarioController extends Model {
     _autenticar
         .signInWithEmailAndPassword(email: email, password: senha)
         .then((usuario) async {
-          print(usuario.isEmailVerified);
       if (usuario.isEmailVerified) {
         //Carrega os dados do usuario
         await _carregarDadosUsuario();
-        sucessoLogin();
-        carregando = false;
-        notifyListeners();
+        if (dadosUsuarioAtual["ativo"]) {
+          if (!dadosUsuarioAtual["primeiroLogin"]) {
+            sucessoLogin();
+          } else {
+            primeiroLogin();
+          }
+        } else {
+          usuarioInativo();
+        }
       } else {
         emailNaoVerificado();
-        carregando = false;
-        notifyListeners();
       }
+      carregando = false;
+      notifyListeners();
     }).catchError((e) {
       falhaLogin();
       carregando = false;
@@ -123,6 +131,14 @@ class UsuarioController extends Model {
 //utiliza uma propriedade nativa do firebase que dispara um email para redefinir a senha
   void recuperarSenha(String email) {
     _autenticar.sendPasswordResetEmail(email: email);
+  }
+
+  //metodo utilizado na tela TrocarSenha, após o primeiro login do user
+  void alterarSenha(String senha) {
+    usuarioFirebase.updatePassword(senha);
+    dadosUsuarioAtual["primeiroLogin"] = false;
+    usuario.setPrimeiroLogin = false;
+    salvarUsuario(dadosUsuarioAtual, usuarioFirebase.uid);
   }
 
 //Carrega todos os dados do usuário que efetuou o login

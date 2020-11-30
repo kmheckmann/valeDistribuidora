@@ -54,6 +54,7 @@ class _TelaCRUDUsuarioState extends State<TelaCRUDUsuario> {
       _novoCadastro = true;
       usuario = Usuario();
       usuario.setAtivo = true;
+      usuario.setPrimeiroLogin = true;
       usuario.setEhAdm = true;
     }
   }
@@ -105,7 +106,7 @@ class _TelaCRUDUsuarioState extends State<TelaCRUDUsuario> {
                     } else {
                       _controllerUser.salvarUsuario(
                           dadosUsuario, usuario.getID);
-                          _sucesso();
+                      _sucesso();
                     }
                   }
                 }),
@@ -117,14 +118,19 @@ class _TelaCRUDUsuarioState extends State<TelaCRUDUsuario> {
                     child: Column(
                       children: <Widget>[
                         _criarCampoTexto("Nome Completo", _controllerNome,
-                            TextInputType.text, false, true),
+                            TextInputType.text, false, true, 150),
                         _criarCampoTexto("CPF", _controllerCPF,
-                            TextInputType.number, false, true),
-                        _criarCampoTexto("E-mail", _controllerEmail,
-                            TextInputType.emailAddress, false, _novoCadastro),
+                            TextInputType.number, false, true, 11),
+                        _criarCampoTexto(
+                            "E-mail",
+                            _controllerEmail,
+                            TextInputType.emailAddress,
+                            false,
+                            _novoCadastro,
+                            40),
                         _novoCadastro
                             ? _criarCampoTexto("Senha", _controllerSenha,
-                                TextInputType.text, true, true)
+                                TextInputType.text, true, true, 20)
                             : Container(),
                         _criarCampoCheckBoxAdm(),
                         _criarCampoCheckBoxAtivo()
@@ -137,7 +143,7 @@ class _TelaCRUDUsuarioState extends State<TelaCRUDUsuario> {
   }
 
   Widget _criarCampoTexto(String nome, TextEditingController controller,
-      TextInputType tipo, bool obscured, bool enabled) {
+      TextInputType tipo, bool obscured, bool enabled, int tamanho) {
     return Column(
       children: <Widget>[
         TextFormField(
@@ -145,6 +151,7 @@ class _TelaCRUDUsuarioState extends State<TelaCRUDUsuario> {
           keyboardType: tipo,
           obscureText: obscured,
           enabled: enabled,
+          maxLength: tamanho,
           validator: (text) {
             if (text.isEmpty) return "Este campo deve ser informado";
             if (nome == "CPF" && text.isNotEmpty && _cpfValido == false)
@@ -159,7 +166,7 @@ class _TelaCRUDUsuarioState extends State<TelaCRUDUsuario> {
               if (nome == "E-mail" && !text.contains(".com"))
                 return "E-mail inválido!";
             }
-            if (nome == "Senha" && text.length < 6) return "Senha inválida!";
+            if (nome == "Senha" && text.length < 6) return "A senha deve conter no mínimo 6 caracteres";
           },
           decoration: InputDecoration(
               labelText: nome,

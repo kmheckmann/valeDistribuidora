@@ -10,6 +10,7 @@ class Usuario extends Model {
   String _senha;
   bool _ehAdministrador;
   bool _ativo;
+  bool _primeiroLogin;
 
   Usuario();
 
@@ -20,6 +21,15 @@ class Usuario extends Model {
   set setEhAdm(bool ehadm) {
     _ehAdministrador = ehadm;
   }
+
+  bool get getPrimeiroLogin{
+    return _primeiroLogin;
+  }
+
+  set setPrimeiroLogin(bool primeiroLogin) {
+    _primeiroLogin = primeiroLogin;
+  }
+
 
   String get getSenha {
     return _senha;
@@ -80,5 +90,6 @@ class Usuario extends Model {
     _email = snapshot.data["email"];
     _ehAdministrador = snapshot.data["ehAdm"];
     _ativo = snapshot.data["ativo"];
+    _primeiroLogin = snapshot.data["primeiroLogin"];
   }
 }

@@ -26,7 +26,7 @@ class _TelaCidadesState extends State<TelaCidades> {
           }),
       body: FutureBuilder<QuerySnapshot>(
           //O sistema ira acessar o documento "cidades"
-          future: Firestore.instance.collection("cidades").orderBy("ativa").getDocuments(),
+          future: Firestore.instance.collection("cidades").orderBy("ativa",descending: true).getDocuments(),
           builder: (context, snapshot) {
             //Como os dados serao buscados do firebase, pode ser que demore para obter
             //entao, enquanto os dados nao sao obtidos sera apresentado um circulo na tela

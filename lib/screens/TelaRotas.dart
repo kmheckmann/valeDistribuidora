@@ -46,7 +46,7 @@ class _TelaRotasState extends State<TelaRotas> {
         body: FutureBuilder<QuerySnapshot>(
             //O sistema ira acessar o documento "cidades"
             future: u.getEhAdm
-                ? Firestore.instance.collection("rotas").orderBy("ativa").getDocuments()
+                ? Firestore.instance.collection("rotas").orderBy("ativa",descending: true).getDocuments()
                 : Firestore.instance
                     .collection("rotas")
                     .where("idv", isEqualTo: model.usuarioFirebase.uid)

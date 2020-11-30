@@ -24,7 +24,7 @@ class _TelaProdutosState extends State<TelaProdutos> {
           }),
       body: FutureBuilder<QuerySnapshot>(
           //O sistema ira acessar documentos e colecoes até chegar nos itens da categoria selecionada
-          future: Firestore.instance.collection("produtos").orderBy("ativo").getDocuments(),
+          future: Firestore.instance.collection("produtos").orderBy("ativo",descending: true).getDocuments(),
           //O FutureBuilder do tipo QuerySnapshot eh para obter todos os itens de uma colecao,
           //no caso a colecao itens dentro da categoria
           builder: (context, snapshot) {

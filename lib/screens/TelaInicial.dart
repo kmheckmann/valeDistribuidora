@@ -5,6 +5,7 @@ import 'package:tcc_2/controller/UsuarioController.dart';
 import 'package:tcc_2/model/Usuario.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:tcc_2/screens/HomeScreen.dart';
+import 'package:tcc_2/screens/TelaTrocarSenha.dart';
 
 class TelaInicial extends StatefulWidget {
   @override
@@ -120,7 +121,9 @@ class _TelaInicialState extends State<TelaInicial> {
                               senha: _controllerSenha.text,
                               sucessoLogin: _sucessoLogin,
                               falhaLogin: _falhaLogin,
-                              emailNaoVerificado: _emailNaoVerificado
+                              emailNaoVerificado: _emailNaoVerificado,
+                              primeiroLogin: _primeiroLogin,
+                              usuarioInativo: _usuarioInativo
                               );
                         }
                       },
@@ -149,10 +152,25 @@ class _TelaInicialState extends State<TelaInicial> {
     ));
   }
 
+  void _usuarioInativo() {
+    _scaffold.currentState.showSnackBar(SnackBar(
+      content: Text("Usuário inativo, entre em contato com o administrador"),
+      backgroundColor: Colors.red,
+      duration: Duration(seconds: 3),
+    ));
+  }
+
   void _sucessoLogin() {
     _controllerSenha.text = "";
     _controllerEmail.text = "";
     Navigator.of(context)
         .push(MaterialPageRoute(builder: (context) => HomeScreen()));
+  }
+
+  void _primeiroLogin() {
+    _controllerSenha.text = "";
+    _controllerEmail.text = "";
+    Navigator.of(context)
+        .push(MaterialPageRoute(builder: (context) => TelaTrocarSenha()));
   }
 }

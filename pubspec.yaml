@@ -27,6 +27,7 @@ dependencies:
   cloud_firestore: ^0.8.2+3
   carousel_pro: ^0.0.13
   transparent_image: 0.1.0
+
   scoped_model: ^1.0.1
   path_provider: ^0.5.0+1
   firebase_auth: ^0.7.0

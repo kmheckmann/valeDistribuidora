@@ -2,14 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:scoped_model/scoped_model.dart';
 import 'package:tcc_2/acessorios/BotaoMenu.dart';
 import 'package:tcc_2/controller/UsuarioController.dart';
-import 'package:tcc_2/model/Usuario.dart';
 
 class Menu extends StatelessWidget {
   final PageController pageController;
+  bool _ehAdm = false;
 
   Menu(this.pageController);
-
-  UsuarioController _usuarioController = UsuarioController();
 
   Widget corFundo() => Container(
         decoration: BoxDecoration(color: Color.fromARGB(170, 0, 120, 233)),
@@ -17,7 +15,9 @@ class Menu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Drawer(
+    return ScopedModelDescendant<UsuarioController>(rebuildOnChange: true, builder: (context, child, model){
+      _ehAdm = model.dadosUsuarioAtual["ehAdm"];
+      return Drawer(
       child: Stack(
         children: <Widget>[
           corFundo(),
@@ -72,21 +72,22 @@ class Menu extends StatelessWidget {
               BotaoMenu(Icons.home, "Início", pageController, 0),
               BotaoMenu(
                   Icons.attach_money, "Pedido de Venda", pageController, 1),
-              BotaoMenu(Icons.business_center, "Empresas", pageController, 2),
-              BotaoMenu(Icons.location_on, "Cidades", pageController, 3),
+              _ehAdm ? BotaoMenu(Icons.business_center, "Empresas", pageController, 2) : Container(),
+              _ehAdm ? BotaoMenu(Icons.location_on, "Cidades", pageController, 3) : Container(),
               BotaoMenu(Icons.store_mall_directory, "Consulta de Estoque",
                   pageController, 4),
               BotaoMenu(Icons.directions_car, "Rotas", pageController, 5),
-              BotaoMenu(Icons.apps, "Produtos", pageController, 6),
-              BotaoMenu(Icons.add_shopping_cart, "Pedido de Compra",
-                  pageController, 7),
-              BotaoMenu(Icons.people, "Usuários", pageController, 8),
+              _ehAdm ? BotaoMenu(Icons.apps, "Produtos", pageController, 6) : Container(),
+              _ehAdm ? BotaoMenu(Icons.add_shopping_cart, "Pedido de Compra",
+                  pageController, 7) : Container(),
+              _ehAdm ? BotaoMenu(Icons.people, "Usuários", pageController, 8) : Container(),
               BotaoMenu(Icons.assessment, "Consultas", pageController, 9),
-              BotaoMenu(Icons.bubble_chart, "Categorias", pageController, 10),
+              _ehAdm ? BotaoMenu(Icons.bubble_chart, "Categorias", pageController, 10) : Container(),
             ],
           )
         ],
       ),
     );
+    });
   }
 }
