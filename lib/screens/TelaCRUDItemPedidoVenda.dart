@@ -39,7 +39,6 @@ class _TelaCRUDItemPedidoVendaState extends State<TelaCRUDItemPedidoVenda> {
   bool _temEstoque = false;
   String _nomeTela;
   Produto produto = Produto();
-  Stream<QuerySnapshot> _produtos;
 
   final _validadorCampos = GlobalKey<FormState>();
   final _scaffold = GlobalKey<ScaffoldState>();
@@ -51,7 +50,6 @@ class _TelaCRUDItemPedidoVendaState extends State<TelaCRUDItemPedidoVenda> {
   @override
   void initState() {
     super.initState();
-    _produtos = Firestore.instance.collection("produtos").snapshots();
     if (itemPedido != null) {
       _controllerEstoque.obterEstoqueProduto(produto);
       _nomeTela = "Editar Produto";
@@ -111,54 +109,65 @@ class _TelaCRUDItemPedidoVendaState extends State<TelaCRUDItemPedidoVenda> {
 
   Widget _criarDropDownProduto() {
     return StreamBuilder<QuerySnapshot>(
-        stream: _produtos,
+        stream: Firestore.instance
+            .collection("produtos")
+            .where("ativo", isEqualTo: true)
+            .snapshots(),
         builder: (context, snapshot) {
-          var length = snapshot.data.documents.length;
-          DocumentSnapshot ds = snapshot.data.documents[length - 1];
-          return Container(
-            padding: EdgeInsets.fromLTRB(0.0, 8.0, 8.0, 0.0),
-            child: Row(
-              children: <Widget>[
-                Container(
-                  width: 336.0,
-                  height: 88.0,
-                  child: DropdownButtonFormField(
-                    decoration: InputDecoration(
-                        labelText: "Produto",
-                        labelStyle: TextStyle(color: Colors.blueGrey)),
-                    value: _dropdownValueProduto,
-                    onChanged: (String newValue) async {
-                      //Ao selecionar o valor no dropdown busca o item correspondente
-                      await _controllerProduto
-                          .obterProdutoPorDescricao(newValue);
-                      produto = _controllerProduto.produto;
-                      //Faz o calculo do preco de venda e seta o valor no campo
-                      await _controllerEstoque.obterPrecoVenda(produto);
-                      _controllerPreco.text =
-                          _controllerEstoque.precoVenda.toString();
-                      setState(() {
-                        _dropdownValueProduto = newValue;
-                        _controllerProdQtde.text = _controllerEstoque.retornarQtdeExistente(produto).toString();
-                        itemPedido.labelListaProdutos = _dropdownValueProduto;
-                      });
-                    },
-                    items: snapshot.data.documents
-                        .map((DocumentSnapshot document) {
-                      return DropdownMenuItem<String>(
-                          value: document.data['descricao'],
-                          child: Container(
-                            child: Text(
-                                document.documentID +
-                                    ' - ' +
-                                    document.data['descricao'],
-                                style: TextStyle(color: Colors.black)),
-                          ));
-                    }).toList(),
+          if (!snapshot.hasData) {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          } else {
+            var length = snapshot.data.documents.length;
+            DocumentSnapshot ds = snapshot.data.documents[length - 1];
+            return Container(
+              padding: EdgeInsets.fromLTRB(0.0, 8.0, 8.0, 0.0),
+              child: Row(
+                children: <Widget>[
+                  Container(
+                    width: 336.0,
+                    height: 88.0,
+                    child: DropdownButtonFormField(
+                      decoration: InputDecoration(
+                          labelText: "Produto",
+                          labelStyle: TextStyle(color: Colors.blueGrey)),
+                      value: _dropdownValueProduto,
+                      onChanged: (String newValue) async {
+                        //Ao selecionar o valor no dropdown busca o item correspondente
+                        await _controllerProduto
+                            .obterProdutoPorDescricao(newValue);
+                        produto = _controllerProduto.produto;
+                        //Faz o calculo do preco de venda e seta o valor no campo
+                        await _controllerEstoque.obterPrecoVenda(produto);
+                        _controllerPreco.text =
+                            _controllerEstoque.precoVenda.toString();
+                        setState(() {
+                          _dropdownValueProduto = newValue;
+                          _controllerProdQtde.text = _controllerEstoque
+                              .retornarQtdeExistente(produto)
+                              .toString();
+                          itemPedido.labelListaProdutos = _dropdownValueProduto;
+                        });
+                      },
+                      items: snapshot.data.documents
+                          .map((DocumentSnapshot document) {
+                        return DropdownMenuItem<String>(
+                            value: document.data['descricao'],
+                            child: Container(
+                              child: Text(
+                                  document.documentID +
+                                      ' - ' +
+                                      document.data['descricao'],
+                                  style: TextStyle(color: Colors.black)),
+                            ));
+                      }).toList(),
+                    ),
                   ),
-                ),
-              ],
-            ),
-          );
+                ],
+              ),
+            );
+          }
         });
   }
 

@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:scoped_model/scoped_model.dart';
+import 'package:tcc_2/acessorios/Cores.dart';
 import 'package:tcc_2/controller/RotaController.dart';
+import 'package:tcc_2/controller/UsuarioController.dart';
 import 'package:tcc_2/model/Usuario.dart';
 import 'package:tcc_2/screens/TelaCRUDRota.dart';
 import 'package:tcc_2/model/Rota.dart';
@@ -13,19 +15,21 @@ class TelaRotas extends StatefulWidget {
 
 class _TelaRotasState extends State<TelaRotas> {
   RotaController _controller = RotaController();
+  Cores cores = Cores();
   Usuario u = Usuario();
+  UsuarioController _usuarioController = UsuarioController();
   @override
   Widget build(BuildContext context) {
-    return ScopedModelDescendant<Usuario>(builder: (context, child, model) {
-      u.nome = model.dadosUsuarioAtual["nome"];
-      u.email = model.dadosUsuarioAtual["email"];
-      u.cpf = model.dadosUsuarioAtual["cpf"];
-      u.ehAdministrador = model.dadosUsuarioAtual["ehAdm"];
-      u.ativo = model.dadosUsuarioAtual["ativo"];
+    return ScopedModelDescendant<UsuarioController>(builder: (context, child, model) {
+      u.setNome = model.dadosUsuarioAtual["nome"];
+      u.setEmail = model.dadosUsuarioAtual["email"];
+      u.setCPF = model.dadosUsuarioAtual["cpf"];
+      u.setEhAdm = model.dadosUsuarioAtual["ehAdm"];
+      u.setAtivo = model.dadosUsuarioAtual["ativo"];
       return Scaffold(
         //Cria botão para adicionar
         floatingActionButton: Visibility(
-            visible: u.ehAdministrador,
+            visible: u.getEhAdm,
             child: FloatingActionButton(
                 child: Icon(Icons.add),
                 backgroundColor: Theme.of(context).primaryColor,
@@ -35,13 +39,14 @@ class _TelaRotasState extends State<TelaRotas> {
                       builder: (context) => TelaCRUDRota(
                             user: u,
                           )));
+                  //set state para atualizar a lista após voltar para esta tela
                   setState(() {});
                 })),
         //Corpo da tela atual
         body: FutureBuilder<QuerySnapshot>(
             //O sistema ira acessar o documento "cidades"
-            future: u.ehAdministrador
-                ? Firestore.instance.collection("rotas").getDocuments()
+            future: u.getEhAdm
+                ? Firestore.instance.collection("rotas").orderBy("ativa",descending: true).getDocuments()
                 : Firestore.instance
                     .collection("rotas")
                     .where("idv", isEqualTo: model.usuarioFirebase.uid)
@@ -96,7 +101,7 @@ class _TelaRotasState extends State<TelaRotas> {
                     r.getTituloRota,
                     style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: corTitulo(r.getAtiva),
+                        color: cores.corTitulo(r.getAtiva),
                         fontSize: 20.0),
                   ),
                   Text(
@@ -104,7 +109,7 @@ class _TelaRotasState extends State<TelaRotas> {
                     style: TextStyle(
                         fontSize: 16.0,
                         fontWeight: FontWeight.w500,
-                        color: corSituacao(r.getAtiva)),
+                        color: cores.corSecundaria(r.getAtiva)),
                   ),
                 ],
               ),
@@ -125,21 +130,5 @@ class _TelaRotasState extends State<TelaRotas> {
                 )));
       },
     );
-  }
-
-  Color corTitulo(bool situacao) {
-    if (situacao == true) {
-      return Color.fromARGB(255, 0, 120, 189);
-    } else {
-      return Color.fromARGB(255, 144, 144, 144);
-    }
-  }
-
-  Color corSituacao(bool situacao) {
-    if (situacao == true) {
-      return Color.fromARGB(255, 0, 0, 0);
-    } else {
-      return Color.fromARGB(255, 144, 144, 144);
-    }
   }
 }

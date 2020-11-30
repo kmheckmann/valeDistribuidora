@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:tcc_2/acessorios/Cores.dart';
 import 'package:tcc_2/controller/EmpresaController.dart';
 import 'package:tcc_2/model/Empresa.dart';
 import 'package:tcc_2/screens/TelaCRUDEmpresa.dart';
@@ -10,6 +11,7 @@ class TelaEmpresas extends StatefulWidget {
 }
 
 class _TelaEmpresasState extends State<TelaEmpresas> {
+  Cores cores = Cores();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -27,7 +29,7 @@ class _TelaEmpresasState extends State<TelaEmpresas> {
       body: FutureBuilder<QuerySnapshot>(
         //O sistema ira acessar o documento "empresas"
           future: Firestore.instance
-              .collection("empresas").getDocuments(),
+              .collection("empresas").orderBy("ativo",descending: true).getDocuments(),
           builder: (context, snapshot) {
             //Como os dados serao buscados do firebase, pode ser que demore para obter
             //entao, enquanto os dados nao sao obtidos sera apresentado um circulo na tela
@@ -70,14 +72,15 @@ class _TelaEmpresasState extends State<TelaEmpresas> {
                         e.razaoSocial,
                         style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            color: Color.fromARGB(255, 0, 120, 189),
+                            color: cores.corTitulo(e.ativo),
                             fontSize: 20.0),
                       ),
                       Text(
                         e.ativo ? "Ativa" : "Inativa",
                         style: TextStyle(
                             fontSize: 16.0,
-                            fontWeight: FontWeight.w500),
+                            fontWeight: FontWeight.w500,
+                            color: cores.corSecundaria(e.ativo)),
                       ),
                     ],
                   ),

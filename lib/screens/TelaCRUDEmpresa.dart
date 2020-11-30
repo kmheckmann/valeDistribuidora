@@ -30,7 +30,6 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
   String _dropdownValue;
   bool _existeCadastroIE;
   bool _existeCadastroCNPJ;
-  Stream<QuerySnapshot> _streamCidade;
 
   //Usa-se controladores de textos para colocar texto nos componentes e obter o que está no componente
   final _scaffold = GlobalKey<ScaffoldState>();
@@ -52,10 +51,6 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
     super.initState();
     _existeCadastroIE = false;
     _existeCadastroCNPJ = false;
-    _streamCidade = Firestore.instance
-        .collection('cidades')
-        .where('ativa', isEqualTo: true)
-        .snapshots();
     if (empresa != null) {
       _nomeTela = "Editar Empresa";
       _controllerRazaoSocial.text = empresa.razaoSocial;
@@ -93,11 +88,11 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
             backgroundColor: Colors.blue,
             onPressed: () async {
               //Ao clicar pra salvar realiza a verificação de CNPJ e Inscrição Estadual
-              await _controllerEmpresa.verificarExistenciaEmpresa(empresa, _novocadastro);
+              await _controllerEmpresa.verificarExistenciaEmpresa(
+                  empresa, _novocadastro);
 
               //Roda o validator de cada campo e verifica se os conteúdos estão de acordo com esperado
               if (_validadorCampos.currentState.validate()) {
-
                 //Verifica se o dropdown da cidade tem valor
                 if (_dropdownValue != null) {
                   //Obtém todas as informações da cidade do dropdown
@@ -110,7 +105,7 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
                   Map<String, dynamic> mapa =
                       _controllerEmpresa.converterParaMapa(empresa);
 
-                  //Verifica qual método para persistir as alterações deve-se chamar    
+                  //Verifica qual método para persistir as alterações deve-se chamar
                   if (_novocadastro) {
                     _controllerEmpresa.salvarEmpresa(mapa, mapaCidade);
                   } else {
@@ -390,7 +385,10 @@ class _TelaCRUDEmpresaState extends State<TelaCRUDEmpresa> {
 
   Widget _criarDropDownCidade() {
     return StreamBuilder<QuerySnapshot>(
-        stream: _streamCidade,
+        stream: Firestore.instance
+            .collection('cidades')
+            .where('ativa', isEqualTo: true)
+            .snapshots(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return Center(

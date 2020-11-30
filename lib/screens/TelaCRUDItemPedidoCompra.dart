@@ -40,7 +40,6 @@ class _TelaCRUDItemPedidoCompraState extends State<TelaCRUDItemPedidoCompra> {
   bool _novocadastro;
   String _nomeTela;
   Produto produto = Produto();
-  Stream<QuerySnapshot> _produtos;
 
   final _validadorCampos = GlobalKey<FormState>();
   final _scaffold = GlobalKey<ScaffoldState>();
@@ -53,7 +52,6 @@ class _TelaCRUDItemPedidoCompraState extends State<TelaCRUDItemPedidoCompra> {
   @override
   void initState() {
     super.initState();
-    _produtos = Firestore.instance.collection("produtos").snapshots();
     if (itemPedido != null) {
       _nomeTela = "Editar Produto";
       vlItemAntigo = itemPedido.preco;
@@ -143,39 +141,48 @@ class _TelaCRUDItemPedidoCompraState extends State<TelaCRUDItemPedidoCompra> {
 
   Widget _criarDropDownProduto() {
     return StreamBuilder<QuerySnapshot>(
-        stream: _produtos,
+        stream: Firestore.instance
+            .collection("produtos")
+            .where("ativo", isEqualTo: true)
+            .snapshots(),
         builder: (context, snapshot) {
-          var length = snapshot.data.documents.length;
-          DocumentSnapshot ds = snapshot.data.documents[length - 1];
-          return Container(
-            padding: EdgeInsets.fromLTRB(0.0, 8.0, 8.0, 0.0),
-            child: Row(
-              children: <Widget>[
-                Container(
-                  width: 336.0,
-                  child: DropdownButton(
-                    value: _dropdownValueProduto,
-                    hint: Text("Selecionar produto"),
-                    onChanged: (String newValue) {
-                      setState(() {
-                        _dropdownValueProduto = newValue;
-                        itemPedido.labelListaProdutos = _dropdownValueProduto;
-                      });
-                    },
-                    items: snapshot.data.documents
-                        .map((DocumentSnapshot document) {
-                      return DropdownMenuItem<String>(
-                          value: document.data['descricao'],
-                          child: Container(
-                            child: Text(document.data['descricao'],
-                                style: TextStyle(color: Colors.black)),
-                          ));
-                    }).toList(),
+          if (!snapshot.hasData) {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          } else {
+            var length = snapshot.data.documents.length;
+            DocumentSnapshot ds = snapshot.data.documents[length - 1];
+            return Container(
+              padding: EdgeInsets.fromLTRB(0.0, 8.0, 8.0, 0.0),
+              child: Row(
+                children: <Widget>[
+                  Container(
+                    width: 336.0,
+                    child: DropdownButton(
+                      value: _dropdownValueProduto,
+                      hint: Text("Selecionar produto"),
+                      onChanged: (String newValue) {
+                        setState(() {
+                          _dropdownValueProduto = newValue;
+                          itemPedido.labelListaProdutos = _dropdownValueProduto;
+                        });
+                      },
+                      items: snapshot.data.documents
+                          .map((DocumentSnapshot document) {
+                        return DropdownMenuItem<String>(
+                            value: document.data['descricao'],
+                            child: Container(
+                              child: Text(document.data['descricao'],
+                                  style: TextStyle(color: Colors.black)),
+                            ));
+                      }).toList(),
+                    ),
                   ),
-                ),
-              ],
-            ),
-          );
+                ],
+              ),
+            );
+          }
         });
   }
 

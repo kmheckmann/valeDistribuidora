@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:scoped_model/scoped_model.dart';
+import 'package:tcc_2/acessorios/Cores.dart';
 import 'package:tcc_2/controller/PedidoCompraController.dart';
+import 'package:tcc_2/controller/UsuarioController.dart';
 import 'package:tcc_2/model/PedidoCompra.dart';
 import 'package:tcc_2/model/Usuario.dart';
 import 'package:tcc_2/screens/TelaCRUDPedidoCompra.dart';
@@ -15,15 +17,17 @@ class TelaPedidosCompra extends StatefulWidget {
 class _TelaPedidosCompraState extends State<TelaPedidosCompra> {
   Usuario u = Usuario();
   DateFormat format = DateFormat();
+  Cores cores = Cores();
+  UsuarioController _usuarioController = UsuarioController();
 
   @override
   Widget build(BuildContext context) {
-    return ScopedModelDescendant<Usuario>(builder: (context, child, model) {
-      u.nome = model.dadosUsuarioAtual["nome"];
-      u.email = model.dadosUsuarioAtual["email"];
-      u.cpf = model.dadosUsuarioAtual["cpf"];
-      u.ehAdministrador = model.dadosUsuarioAtual["ehAdm"];
-      u.ativo = model.dadosUsuarioAtual["ativo"];
+    return ScopedModelDescendant<UsuarioController>(builder: (context, child, model) {
+      u.setNome = model.dadosUsuarioAtual["nome"];
+      u.setEmail = model.dadosUsuarioAtual["email"];
+      u.setCPF = model.dadosUsuarioAtual["cpf"];
+      u.setEhAdm = model.dadosUsuarioAtual["ehAdm"];
+      u.setAtivo = model.dadosUsuarioAtual["ativo"];
 
       return ScopedModel<PedidoCompra>(
         model: PedidoCompra(),
@@ -42,6 +46,7 @@ class _TelaPedidosCompraState extends State<TelaPedidosCompra> {
               future: Firestore.instance
                   .collection("pedidos")
                   .where("ehPedidoVenda", isEqualTo: false)
+                  .orderBy("pedidoFinalizado",descending: true)
                   .getDocuments(),
               builder: (context, snapshot) {
                 //Como os dados serao buscados do firebase, pode ser que demore para obter
@@ -90,19 +95,30 @@ class _TelaPedidosCompraState extends State<TelaPedidosCompra> {
                     p.id,
                     style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: Color.fromARGB(255, 0, 120, 189),
+                        color: cores.corTitulo(!p.pedidoFinalizado),
                         fontSize: 20.0),
                   ),
                   Text(
                     "Fornecedor: ${p.labelTelaPedidos}",
-                    style:
-                        TextStyle(fontSize: 16.0, fontWeight: FontWeight.w500),
+                    style: TextStyle(
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.w500,
+                        color: cores.corSecundaria(!p.pedidoFinalizado)),
                   ),
                   Text(
                     "Data: ${p.dataPedido.day}/${p.dataPedido.month}/${p.dataPedido.year} ${new DateFormat.Hms().format(p.dataPedido)}",
-                    style:
-                        TextStyle(fontSize: 16.0, fontWeight: FontWeight.w500),
+                    style: TextStyle(
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.w500,
+                        color: cores.corSecundaria(!p.pedidoFinalizado)),
                   ),
+                  Text(
+                    p.pedidoFinalizado ? "Finalizado: Sim" : "Finalizado: Não",
+                    style: TextStyle(
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.w500,
+                        color: cores.corSecundaria(!p.pedidoFinalizado)),
+                  )
                 ],
               ),
             ))

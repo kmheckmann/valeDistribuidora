@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:tcc_2/acessorios/Cores.dart';
 import 'package:tcc_2/screens/TelaCRUDCategoria.dart';
 import 'package:tcc_2/model/Categoria.dart';
 
@@ -9,6 +10,7 @@ class TelaCategorias extends StatefulWidget {
 }
 
 class _TelaCategoriasState extends State<TelaCategorias> {
+  Cores cores = Cores();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -23,7 +25,7 @@ class _TelaCategoriasState extends State<TelaCategorias> {
           }),
       body: FutureBuilder<QuerySnapshot>(
           //O sistema ira acessar o documento "categorias"
-          future: Firestore.instance.collection("categorias").getDocuments(),
+          future: Firestore.instance.collection("categorias").orderBy("ativa",descending: true).getDocuments(),
           builder: (context, snapshot) {
             //Como os dados serao buscados do firebase, pode ser que demore para obter
             //entao, enquanto os dados nao sao obtidos sera apresentado um circulo na tela
@@ -68,13 +70,15 @@ class _TelaCategoriasState extends State<TelaCategorias> {
                     c.descricao,
                     style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: Color.fromARGB(255, 0, 120, 189),
+                        color: cores.corTitulo(c.ativa),
                         fontSize: 20.0),
                   ),
                   Text(
                     c.ativa ? "Ativa" : "Inativa",
-                    style:
-                        TextStyle(fontSize: 16.0, fontWeight: FontWeight.w500),
+                    style: TextStyle(
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.w500,
+                        color: cores.corSecundaria(c.ativa)),
                   ),
                 ],
               ),

@@ -56,7 +56,7 @@ class _TelaCRUDRotaState extends State<TelaCRUDRota> {
       _nomeTela = "Editar Rota";
       _dropdownValueDiaSemana = rota.getDiaSemana;
       _dropdownValueVendedor =
-          rota.getVendedor.nome + " - " + rota.getVendedor.cpf;
+          rota.getVendedor.getNome + " - " + rota.getVendedor.getCPF;
       _dropdownValueCliente = rota.getCliente.razaoSocial;
       _atribuirValorFrquencia(rota.getFrequencia);
       _novocadastro = false;
@@ -81,7 +81,7 @@ class _TelaCRUDRotaState extends State<TelaCRUDRota> {
       ),
       floatingActionButton: Visibility(
           //Se o user for administrador apresenta o botão para salvar
-          visible: user.ehAdministrador,
+          visible: user.getEhAdm,
           child: FloatingActionButton(
             //cria o icone para salcar
             child: Icon(Icons.save),
@@ -144,7 +144,7 @@ class _TelaCRUDRotaState extends State<TelaCRUDRota> {
 
   Widget _criarDropDownCliente() {
     return StreamBuilder<QuerySnapshot>(
-        stream: Firestore.instance.collection('empresas').snapshots(),
+        stream: Firestore.instance.collection('empresas').where("ativo", isEqualTo: true).snapshots(),
         builder: (context, snapshot) {
           var length = snapshot.data.documents.length;
           if (!snapshot.hasData) {
@@ -189,7 +189,7 @@ class _TelaCRUDRotaState extends State<TelaCRUDRota> {
 
   Widget _criarDropDownVendedor() {
     return StreamBuilder<QuerySnapshot>(
-        stream: Firestore.instance.collection('usuarios').snapshots(),
+        stream: Firestore.instance.collection('usuarios').where("ativo", isEqualTo: true).snapshots(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return Center(
@@ -285,7 +285,7 @@ class _TelaCRUDRotaState extends State<TelaCRUDRota> {
           title: const Text('Semanal'),
           value: SingingCharacter.semanal,
           groupValue: _character,
-          onChanged: user.ehAdministrador
+          onChanged: user.getEhAdm
               ? (SingingCharacter value) {
                   setState(() {
                     _character = value;
@@ -298,7 +298,7 @@ class _TelaCRUDRotaState extends State<TelaCRUDRota> {
           title: const Text('Quinzenal'),
           value: SingingCharacter.quinzenal,
           groupValue: _character,
-          onChanged: user.ehAdministrador
+          onChanged: user.getEhAdm
               ? (SingingCharacter value) {
                   setState(() {
                     _character = value;
@@ -311,7 +311,7 @@ class _TelaCRUDRotaState extends State<TelaCRUDRota> {
           title: const Text('Mensal'),
           value: SingingCharacter.mensal,
           groupValue: _character,
-          onChanged: user.ehAdministrador
+          onChanged: user.getEhAdm
               ? (SingingCharacter value) {
                   setState(() {
                     _character = value;
@@ -331,7 +331,7 @@ class _TelaCRUDRotaState extends State<TelaCRUDRota> {
         children: <Widget>[
           Checkbox(
             value: rota.getAtiva == true,
-            onChanged: user.ehAdministrador
+            onChanged: user.getEhAdm
                 ? (bool novoValor) {
                     setState(() {
                       if (novoValor) {
@@ -366,11 +366,11 @@ class _TelaCRUDRotaState extends State<TelaCRUDRota> {
 
   void _fazerPersistencia() async {
     //faz as atribuições necessárias para ter todos os dados que serão salvos no firebase
-    rota.setTituloRota = vendedor.nome + " - " + cliente.razaoSocial;
-    rota.setIDV = vendedor.id;
+    rota.setTituloRota = vendedor.getNome + " - " + cliente.razaoSocial;
+    rota.setIDV = vendedor.getID;
     Map<String, dynamic> mapa = _controllerRota.converterParaMapa(rota);
     Map<String, dynamic> mapaVendedor = Map();
-    mapaVendedor["id"] = vendedor.id;
+    mapaVendedor["id"] = vendedor.getID;
     Map<String, dynamic> mapaCliente = Map();
     mapaCliente["id"] = cliente.id;
     if (_novocadastro) {
@@ -384,10 +384,10 @@ class _TelaCRUDRotaState extends State<TelaCRUDRota> {
   Widget _campoVendedor() {
     if(!_novocadastro){
       _controllerVendedor.text =
-        rota.getVendedor.nome + " - " + rota.getVendedor.cpf;
+        rota.getVendedor.getNome + " - " + rota.getVendedor.getCPF;
     }
     
-    if (user.ehAdministrador) {
+    if (user.getEhAdm) {
       return _criarDropDownVendedor();
     } else {
       return _criarCampoTexto("Vendedor", _controllerVendedor);
@@ -399,7 +399,7 @@ class _TelaCRUDRotaState extends State<TelaCRUDRota> {
       _controllerCliente.text = rota.getCliente.razaoSocial;
     }
     
-    if (user.ehAdministrador) {
+    if (user.getEhAdm) {
       return _criarDropDownCliente();
     } else {
       return _criarCampoTexto("Cliente", _controllerCliente);
@@ -410,7 +410,7 @@ class _TelaCRUDRotaState extends State<TelaCRUDRota> {
     if(!_novocadastro){
       _controllerDiaSemana.text = rota.getDiaSemana;
     }
-    if (user.ehAdministrador) {
+    if (user.getEhAdm) {
       return _criarOpcoesDiaSemana();
     } else {
       return _criarCampoTexto("Dia da Semana", _controllerDiaSemana);
