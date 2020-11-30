@@ -206,9 +206,9 @@ class UsuarioController extends Model {
     //Nos users cadastrados verifica se existe algum com o mesmo cpf informado no cadastro atual
     //se houver atribui true para a variável _existeCadastro
     QuerySnapshot eventsQuery =
-        await ref.where("email", isEqualTo: user.getCPF).getDocuments();
+        await ref.where("email", isEqualTo: user.getEmail).getDocuments();
     eventsQuery.documents.forEach((document) {
-      if (user.getCPF == document.data["email"] &&
+      if (user.getEmail == document.data["email"] &&
           user.getID != document.documentID) {
         existeEmail = true;
       }
